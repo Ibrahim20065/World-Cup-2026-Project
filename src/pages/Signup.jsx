@@ -1,21 +1,44 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import axios from 'axios'
 
 function Signup() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-  const handleSignup = (e) => {
-    e.preventDefault()
+  const handleSignup = async () => {
+    setError('')
+
+    // Check passwords match before sending to backend
     if (password !== confirm) {
-      alert('Passwords do not match!')
+      setError('Passwords do not match!')
       return
     }
-    console.log('Signing up:', username, email, password)
-    // We'll connect this to Flask backend later
+
+    setLoading(true)
+
+    try {
+      // Send signup data to Flask backend
+      await axios.post('http://127.0.0.1:5000/api/signup', {
+        username,
+        email,
+        password
+      })
+
+      // Redirect to login page after successful signup
+      navigate('/login')
+
+    } catch (err) {
+      setError(err.response?.data?.error || 'Something went wrong')
+    }
+
+    setLoading(false)
   }
 
   return (
@@ -26,7 +49,6 @@ function Signup() {
         transition={{ duration: 0.6 }}
         className="bg-gray-800 p-10 rounded-2xl w-full max-w-md shadow-lg"
       >
-        {/* Title */}
         <h1 className="text-3xl font-extrabold text-green-400 mb-2 text-center">
           Join WC2026 ⚽
         </h1>
@@ -34,7 +56,6 @@ function Signup() {
           Create an account and start predicting
         </p>
 
-        {/* Form */}
         <div className="flex flex-col gap-5">
           <div>
             <label className="text-gray-300 text-sm mb-1 block">Username</label>
@@ -80,15 +101,20 @@ function Signup() {
             />
           </div>
 
+          {/* Show error message if signup fails */}
+          {error && (
+            <p className="text-red-400 text-sm text-center">{error}</p>
+          )}
+
           <button
             onClick={handleSignup}
-            className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-lg transition mt-2"
+            disabled={loading}
+            className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-lg transition mt-2 disabled:opacity-50"
           >
-            Create Account
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </div>
 
-        {/* Login link */}
         <p className="text-gray-400 text-center mt-6">
           Already have an account?{' '}
           <Link to="/login" className="text-green-400 hover:underline font-medium">

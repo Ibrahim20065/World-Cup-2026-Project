@@ -1,15 +1,40 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import axios from 'axios'
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    console.log('Logging in with:', email, password)
-    // We'll connect this to Flask backend later
+  const handleLogin = async () => {
+    setLoading(true)
+    setError('')
+
+    try {
+      // Send email and password to Flask backend
+      const response = await axios.post('http://127.0.0.1:5000/api/login', {
+        email,
+        password
+      })
+
+      // Save the token and username in localStorage
+      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('username', response.data.username)
+      localStorage.setItem('is_admin', response.data.is_admin)
+
+      // Redirect to home page after login
+      navigate('/')
+
+    } catch (err) {
+      // Show error message if login fails
+      setError(err.response?.data?.error || 'Something went wrong')
+    }
+
+    setLoading(false)
   }
 
   return (
@@ -20,15 +45,13 @@ function Login() {
         transition={{ duration: 0.6 }}
         className="bg-gray-800 p-10 rounded-2xl w-full max-w-md shadow-lg"
       >
-        {/* Title */}
         <h1 className="text-3xl font-extrabold text-green-400 mb-2 text-center">
           Welcome Back ⚽
         </h1>
         <p className="text-gray-400 text-center mb-8">
-          Log in and witness World Cup glory!
+          Login and witness World Cup magic!
         </p>
 
-        {/* Form */}
         <div className="flex flex-col gap-5">
           <div>
             <label className="text-gray-300 text-sm mb-1 block">Email</label>
@@ -52,15 +75,20 @@ function Login() {
             />
           </div>
 
+          {/* Show error message if login fails */}
+          {error && (
+            <p className="text-red-400 text-sm text-center">{error}</p>
+          )}
+
           <button
             onClick={handleLogin}
-            className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-lg transition mt-2"
+            disabled={loading}
+            className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-lg transition mt-2 disabled:opacity-50"
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </div>
 
-        {/* Sign up link */}
         <p className="text-gray-400 text-center mt-6">
           Don't have an account?{' '}
           <Link to="/signup" className="text-green-400 hover:underline font-medium">
