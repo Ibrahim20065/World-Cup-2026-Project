@@ -8,6 +8,7 @@ import Countries from './pages/Countries'
 import Admin from './pages/Admin'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import CountryProfile from './pages/CountryProfile'
  
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/livescores" element={<LiveScores />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/countries" element={<Countries />} />
+            <Route path="/countries/:name" element={<CountryProfile />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
