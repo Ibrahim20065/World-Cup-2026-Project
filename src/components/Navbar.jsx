@@ -58,6 +58,15 @@ function Navbar() {
             <span className="text-gray-300 font-medium">
               👋 {username}
             </span>
+
+          {localStorage.getItem('is_admin') === 'true' && (
+  <Link
+    to="/admin"
+    className="border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black font-bold px-5 py-2 rounded-full transition"
+  >
+    ⚙️ Admin
+  </Link>
+)}
             <button
               onClick={handleLogout}
               className="border border-red-500 text-red-400 hover:bg-red-500 hover:text-white font-bold px-5 py-2 rounded-full transition"
@@ -81,6 +90,7 @@ function Navbar() {
               Sign Up
             </Link>
           </>
+          
         )}
       </div>
 

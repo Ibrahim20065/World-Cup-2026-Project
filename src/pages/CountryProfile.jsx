@@ -21,8 +21,23 @@ function CountryProfile() {
   const { name } = useParams()
   const navigate = useNavigate()
 
-  // Convert URL param back to country name
-  const countryName = name
+  
+  // Special cases where country names are all caps or have special formatting
+const SPECIAL_NAMES = {
+  'usa': 'USA',
+  'dr-congo': 'DR Congo',
+  'gb-eng': 'England',
+  'gb-sct': 'Scotland',
+  'ivory-coast': 'Ivory Coast',
+  'cape-verde': 'Cape Verde',
+  'saudi-arabia': 'Saudi Arabia',
+  'south-korea': 'South Korea',
+  'south-africa': 'South Africa',
+  'new-zealand': 'New Zealand',
+  'czech-republic': 'Czech Republic',
+}
+
+const countryName = SPECIAL_NAMES[name] || name
     .split('-')
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
