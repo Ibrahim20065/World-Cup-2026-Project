@@ -14,6 +14,7 @@ function Navbar() {
     { path: '/livescores', label: 'Live Scores' },
     { path: '/leaderboard', label: 'Leaderboard' },
     { path: '/countries', label: 'Countries' },
+    { path: '/map', label: 'Host Cities' },
   ]
 
   // Handle logout — clear everything from localStorage and go to home

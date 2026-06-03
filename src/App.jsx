@@ -9,6 +9,8 @@ import Admin from './pages/Admin'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import CountryProfile from './pages/CountryProfile'
+import WorldCupMap from './pages/WorldCupMap'
+import CityProfile from './pages/CityProfile'
  
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/map" element={<WorldCupMap />} />
+            <Route path="/cities/:name" element={<CityProfile />} />
           </Routes>
         </main>
       </div>
