@@ -1,23 +1,38 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import PLAYERS from '../players'
 
-// ============================================================
-// PLAYER SEARCH — reusable autocomplete input for award picks
-// ============================================================
-function PlayerSearch({ value, onChange, placeholder, ringColor = 'focus-within:ring-green-500' }) {
+function PlayerSearch({ value, onChange, placeholder, ringColor = 'focus-within:ring-green-500', playerList }) {
   const [query, setQuery] = useState(value || '')
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const ref = useRef(null)
 
-  // Filter players based on what user types
+  const searchPool = playerList || PLAYERS
+
+  useEffect(() => { setQuery(value || '') }, [value])
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setShowSuggestions(false)
+        const match = searchPool.find(p => p.name.toLowerCase() === query.toLowerCase())
+        if (!match && query) {
+          setQuery('')
+          onChange('')
+        }
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [query, searchPool, onChange])
+
   const handleChange = (val) => {
     setQuery(val)
     onChange(val)
-
     if (val.length >= 2) {
-      const filtered = PLAYERS.filter(p =>
+      const filtered = searchPool.filter(p =>
         p.name.toLowerCase().includes(val.toLowerCase())
-      ).slice(0, 6) // show max 6 suggestions
+      ).slice(0, 6)
       setSuggestions(filtered)
       setShowSuggestions(true)
     } else {
@@ -26,7 +41,6 @@ function PlayerSearch({ value, onChange, placeholder, ringColor = 'focus-within:
     }
   }
 
-  // When user clicks a suggestion
   const handleSelect = (player) => {
     setQuery(player.name)
     onChange(player.name)
@@ -35,19 +49,16 @@ function PlayerSearch({ value, onChange, placeholder, ringColor = 'focus-within:
   }
 
   return (
-    <div className="relative">
-      {/* Input field */}
+    <div className="relative" ref={ref}>
       <div className={`flex items-center bg-gray-700 rounded-lg ring-2 ring-transparent ${ringColor} transition`}>
         <input
           type="text"
           value={query}
           onChange={(e) => handleChange(e.target.value)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
           onFocus={() => query.length >= 2 && setShowSuggestions(true)}
           placeholder={placeholder || 'Search player...'}
           className="w-full bg-transparent text-white px-4 py-3 focus:outline-none"
         />
-        {/* Clear button */}
         {query && (
           <button
             onClick={() => { setQuery(''); onChange(''); setSuggestions([]) }}
@@ -58,7 +69,6 @@ function PlayerSearch({ value, onChange, placeholder, ringColor = 'focus-within:
         )}
       </div>
 
-      {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden">
           {suggestions.map((player) => (
@@ -67,16 +77,13 @@ function PlayerSearch({ value, onChange, placeholder, ringColor = 'focus-within:
               onMouseDown={() => handleSelect(player)}
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-700 transition text-left"
             >
-              {/* Country flag */}
               <img
                 src={`https://flagcdn.com/w40/${player.flag}.png`}
                 alt={player.country}
                 className="w-7 h-5 object-cover rounded-sm flex-shrink-0"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
-              {/* Player name */}
               <span className="text-white font-medium flex-1">{player.name}</span>
-              {/* Country + position */}
               <span className="text-gray-400 text-xs">{player.country} · {player.position}</span>
             </button>
           ))}

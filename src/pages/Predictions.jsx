@@ -9,6 +9,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import PlayerSearch from '../components/PlayerSearch'
+import PLAYERS from '../players'
 
 // ============================================================
 // FLAG MAP
@@ -30,6 +31,62 @@ const FLAGS = {
 
 const BADGE = ['bg-green-500 text-black', 'bg-blue-500 text-white', 'bg-yellow-500 text-black', 'bg-red-500 text-white']
 const POSITION_LABEL = ['1st', '2nd', '3rd', '4th']
+
+// ============================================================
+// U21 ELIGIBLE PLAYERS — born on or after January 1, 2005
+// Official FIFA cutoff for Best Young Player Award
+// ============================================================
+const U21_NAMES = new Set([
+  // Spain
+  'Lamine Yamal', 'Pau Cubarsi', 'Marc Pubill', 'Victor Munoz',
+  // France
+  'Warren Zaire-Emery', 'Desire Doue',
+  // England
+  'Kobbie Mainoo', "Nico O'Reilly",
+  // Germany
+  'Lennart Karl',
+  // Turkey
+  'Arda Guler', 'Kenan Yildiz', 'Can Uzun',
+  // Brazil
+  'Endrick', 'Rayan',
+  // Argentina
+  'Nico Paz',
+  // Croatia
+  'Luka Vuskovic',
+  // Ecuador
+  'Kendry Paez',
+  // Netherlands
+  'Jorrel Hato',
+  // Sweden
+  'Lucas Bergvall', 'Taha Ali',
+  // Australia
+  'Nestory Irankunda',
+  // Morocco
+  'Ayoub Bouaddi',
+  // Mexico
+  'Gilberto Mora', 'Mateo Chavez',
+  // Belgium
+  'Mike Penders', 'Nathan Ngoy',
+  // Ivory Coast
+  'Yan Diomande', 'Oumar Diakite',
+  // Norway
+  'Antonio Nusa',
+  // Senegal
+  'Ibrahim Mbaye',
+  // Czech Republic
+  'Lukas Hornicek', 'Stepan Chaloupek',
+  // Scotland
+  'Findlay Curtis', 'Tyler Fletcher', 'Ben Gannon-Doak',
+  // South Africa
+  'Khulumani Ndamane', 'Kamogelo Sebelebele',
+  // Algeria
+  'Ibrahim Maza',
+  // Uzbekistan
+  'Abbosbek Fayzullaev',
+])
+
+// Filter players.js to only U21 eligible
+const U21_PLAYERS = PLAYERS.filter(p => U21_NAMES.has(p.name))
 
 // ============================================================
 // SORTABLE TEAM
@@ -191,13 +248,10 @@ function getFinalTeams(sfPreds) {
 // ============================================================
 // BRACKET MATCH — compact match box for the bracket view
 // ============================================================
-function BracketMatch({ match, prediction, onPick }) {
-  const team1 = match.team1 || '?'
-  const team2 = match.team2 || '?'
-
-  const TeamRow = ({ team }) => (
+function TeamRow({ team, prediction, matchId, onPick }) {
+  return (
     <button
-      onClick={() => team !== '?' && onPick(match.id, team)}
+      onClick={() => team !== '?' && onPick(matchId, team)}
       disabled={team === '?'}
       className={`w-full flex items-center gap-2 px-3 py-2 transition ${
         prediction === team
@@ -220,15 +274,20 @@ function BracketMatch({ match, prediction, onPick }) {
       {prediction === team && team !== '?' && <span className="text-green-400 text-xs">✓</span>}
     </button>
   )
+}
+
+function BracketMatch({ match, prediction, onPick }) {
+  const team1 = match.team1 || '?'
+  const team2 = match.team2 || '?'
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden w-44 flex-shrink-0">
       <div className="text-gray-600 text-[10px] text-center py-1 bg-gray-900 font-bold">
         {typeof match.match === 'number' ? `Match ${match.match}` : match.match}
       </div>
-      <TeamRow team={team1} />
+      <TeamRow team={team1} prediction={prediction} matchId={match.id} onPick={onPick} />
       <div className="h-px bg-gray-700"></div>
-      <TeamRow team={team2} />
+      <TeamRow team={team2} prediction={prediction} matchId={match.id} onPick={onPick} />
     </div>
   )
 }
@@ -358,7 +417,7 @@ function Predictions() {
       {/* GROUP STAGE */}
       {activeTab === 'groups' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(groups).map(([groupName, teams]) => (
+          {Object.entries(groups).map(([groupName]) => (
             <motion.div key={groupName} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
               <h2 className="text-green-400 font-extrabold text-lg mb-4">Group {groupName}</h2>
@@ -569,28 +628,49 @@ function Predictions() {
           </motion.div>
 
           {[
-            { title: '👟 Golden Boot', color: 'text-orange-400', ring: 'focus-within:ring-orange-400', state: goldenBoot, setState: setGoldenBoot },
-            { title: '🧤 Golden Glove', color: 'text-blue-400', ring: 'focus-within:ring-blue-400', state: goldenGlove, setState: setGoldenGlove },
-            { title: '🌟 Best U21 Player', color: 'text-purple-400', ring: 'focus-within:ring-purple-400', state: u21Award, setState: setU21Award },
-          ].map(({ title, color, ring, state, setState }) => (
-            <motion.div key={title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-              <h2 className={`${color} font-extrabold text-lg mb-1`}>{title}</h2>
-              <p className="text-gray-500 text-xs mb-4">1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
-              <div className="flex flex-col gap-4">
-                {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
-                  <div key={label}>
-                    <label className="text-gray-300 text-sm mb-1 block">{label}</label>
-                    <PlayerSearch value={state[i]}
-                      onChange={val => { const u = [...state]; u[i] = val; setState(u) }}
-                      placeholder="Search player..." ringColor={ring} />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          ))}
+  { title: '👟 Golden Boot', color: 'text-orange-400', ring: 'focus-within:ring-orange-400', state: goldenBoot, setState: setGoldenBoot },
+  { title: '🧤 Golden Glove', color: 'text-blue-400', ring: 'focus-within:ring-blue-400', state: goldenGlove, setState: setGoldenGlove },
+].map(({ title, color, ring, state, setState }) => (
+  <motion.div key={title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+    className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+    <h2 className={`${color} font-extrabold text-lg mb-1`}>{title}</h2>
+    <p className="text-gray-500 text-xs mb-4">1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
+    <div className="flex flex-col gap-4">
+      {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
+        <div key={label}>
+          <label className="text-gray-300 text-sm mb-1 block">{label}</label>
+          <PlayerSearch value={state[i]}
+            onChange={val => { const u = [...state]; u[i] = val; setState(u) }}
+            placeholder="Search player..." ringColor={ring} />
         </div>
-      )}
+      ))}
+    </div>
+  </motion.div>
+))}
+
+{/* U21 Award — only U21 eligible players */}
+<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+  className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+  <h2 className="text-purple-400 font-extrabold text-lg mb-1">🌟 Best U21 Player</h2>
+  <p className="text-gray-500 text-xs mb-4">
+    1st: 12pts · 2nd: 8pts · 3rd: 4pts — Only players born Jan 1, 2005 or later
+  </p>
+  <div className="flex flex-col gap-4">
+    {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
+      <div key={label}>
+        <label className="text-gray-300 text-sm mb-1 block">{label}</label>
+        <PlayerSearch value={u21Award[i]}
+          onChange={val => { const u = [...u21Award]; u[i] = val; setU21Award(u) }}
+          placeholder="Search U21 player..."
+          ringColor="focus-within:ring-purple-400"
+          playerList={U21_PLAYERS}
+        />
+      </div>
+    ))}
+  </div>
+</motion.div>
+</div>
+  )}
 
       {/* Save Button */}
       <div className="mt-10 flex flex-col items-center gap-3">
