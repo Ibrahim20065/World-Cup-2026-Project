@@ -32,6 +32,7 @@ const FLAGS = {
 const BADGE = ['bg-green-500 text-black', 'bg-blue-500 text-white', 'bg-yellow-500 text-black', 'bg-red-500 text-white']
 const POSITION_LABEL = ['1st', '2nd', '3rd', '4th']
 
+
 // ============================================================
 // U21 ELIGIBLE PLAYERS — born on or after January 1, 2005
 // Official FIFA cutoff for Best Young Player Award
@@ -83,6 +84,8 @@ const U21_NAMES = new Set([
   'Ibrahim Maza',
   // Uzbekistan
   'Abbosbek Fayzullaev',
+  //Egypt
+  'Hamza Abdel Karim',
 ])
 
 // Filter players.js to only U21 eligible
@@ -329,17 +332,49 @@ function Predictions() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [activeTab, setActiveTab] = useState('groups')
+  const [locked, setLocked] = useState(false)
+  const [awardsLocked, setAwardsLocked] = useState(false)
 
   const token = localStorage.getItem('token')
   const sensors = useSensors(useSensor(PointerSensor))
 
-  useEffect(() => {
+useEffect(() => {
     axios.get('http://127.0.0.1:5000/api/groups').then(res => {
       setGroups(res.data)
       const initial = {}
       Object.keys(res.data).forEach(g => { initial[g] = [...res.data[g]] })
       setGroupPredictions(initial)
       setLoading(false)
+
+      // Load saved predictions if user is logged in
+      const token = localStorage.getItem('token')
+      if (token) {
+        axios.get('http://127.0.0.1:5000/api/predictions', {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(saved => {
+          if (saved.data.saved) {
+            // Restore all saved predictions
+            if (Object.keys(saved.data.group_predictions).length > 0) {
+              setGroupPredictions(saved.data.group_predictions)
+            }
+            if (saved.data.third_place_advancing.length > 0) {
+              setThirdPlaceAdvancing(saved.data.third_place_advancing)
+            }
+            if (Object.keys(saved.data.knockout_predictions).length > 0) {
+              setKnockoutPredictions(saved.data.knockout_predictions)
+            }
+            if (saved.data.golden_ball) setGoldenBall(saved.data.golden_ball)
+            if (saved.data.silver_ball) setSilverBall(saved.data.silver_ball)
+            if (saved.data.bronze_ball) setBronzeBall(saved.data.bronze_ball)
+            if (saved.data.golden_boot?.length) setGoldenBoot(saved.data.golden_boot)
+            if (saved.data.golden_glove?.length) setGoldenGlove(saved.data.golden_glove)
+            if (saved.data.u21_award?.length) setU21Award(saved.data.u21_award)
+
+            // Lock predictions — user already submitted
+            setLocked(true)
+          }
+        }).catch(() => {})
+      }
     })
   }, [])
 
@@ -351,9 +386,10 @@ function Predictions() {
     const newIndex = teams.indexOf(over.id)
     setGroupPredictions(prev => ({ ...prev, [groupName]: arrayMove(teams, oldIndex, newIndex) }))
   }
-
-  const savePredictions = async () => {
-    if (!token) { setMessage('Please login to save predictions!'); return }
+// Save progress without locking
+  const saveProgress = async () => {
+    if (!token) { setMessage('Please login to save!'); return }
+    if (locked) { setMessage('Predictions are locked!'); return }
     setSaving(true)
     try {
       await axios.post('http://127.0.0.1:5000/api/predictions', {
@@ -367,7 +403,82 @@ function Predictions() {
         golden_glove: goldenGlove,
         u21_award: u21Award,
       }, { headers: { Authorization: `Bearer ${token}` } })
-      setMessage('Predictions saved! ✅')
+      setMessage('Progress saved! ✅')
+    } catch {
+      setMessage('Error saving. Please try again.')
+    }
+    setSaving(false)
+  }
+
+const savePredictions = async () => {
+    if (!token) { setMessage('Please login to save predictions!'); return }
+    if (locked) { setMessage('Predictions are locked! You already submitted.'); return }
+    
+    const hasKnockout = Object.keys(knockoutPredictions.r32).length > 0
+    const hasGroups = Object.values(groupPredictions).some((teams, i) => {
+      const original = Object.values(groups)[i]
+      return original && JSON.stringify(teams) !== JSON.stringify(original)
+    })
+
+    if (!hasKnockout && !hasGroups) {
+      setMessage('⚠️ Nothing to save! Fill in your predictions first.')
+      return
+    }
+    
+    
+    setSaving(true)
+    try {
+      await axios.post('http://127.0.0.1:5000/api/predictions', {
+        group_predictions: groupPredictions,
+        third_place_advancing: thirdPlaceAdvancing,
+        knockout_predictions: knockoutPredictions,
+        golden_ball: goldenBall,
+        silver_ball: silverBall,
+        bronze_ball: bronzeBall,
+        golden_boot: goldenBoot,
+        golden_glove: goldenGlove,
+        u21_award: u21Award,
+      }, { headers: { Authorization: `Bearer ${token}` } })
+      setMessage('Predictions saved and locked! ✅🔒')
+      setLocked(true)
+
+      if (goldenBall || goldenBoot.some(v => v)) {
+        setAwardsLocked(true)
+      }
+    } catch {
+      setMessage('Error saving. Please try again.')
+    }
+    setSaving(false)
+  }
+
+  // Save and lock awards independently
+  const saveAwards = async () => {
+    if (!token) { setMessage('Please login to save!'); return }
+    if (awardsLocked) { setMessage('Award predictions are locked!'); return }
+
+    const hasAwards = goldenBall || silverBall || bronzeBall ||
+      goldenBoot.some(v => v) || goldenGlove.some(v => v) || u21Award.some(v => v)
+
+    if (!hasAwards) {
+      setMessage('⚠️ Nothing to save! Pick your award predictions first.')
+      return
+    }
+
+    setSaving(true)
+    try {
+      await axios.post('http://127.0.0.1:5000/api/predictions', {
+        group_predictions: groupPredictions,
+        third_place_advancing: thirdPlaceAdvancing,
+        knockout_predictions: knockoutPredictions,
+        golden_ball: goldenBall,
+        silver_ball: silverBall,
+        bronze_ball: bronzeBall,
+        golden_boot: goldenBoot,
+        golden_glove: goldenGlove,
+        u21_award: u21Award,
+      }, { headers: { Authorization: `Bearer ${token}` } })
+      setMessage('Award predictions saved and locked! ✅🔒')
+      setAwardsLocked(true)
     } catch {
       setMessage('Error saving. Please try again.')
     }
@@ -395,6 +506,16 @@ function Predictions() {
       </motion.h1>
       <p className="text-gray-400 mb-8">Drag teams to set their group finishing position, then fill in the bracket.</p>
 
+      {locked && (
+        <div className="bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-2xl p-4 mb-8 flex items-center gap-3">
+          <span className="text-2xl">🔒</span>
+          <div>
+            <p className="text-yellow-400 font-bold">Predictions Locked</p>
+            <p className="text-gray-400 text-sm">You've already submitted your predictions. They cannot be changed.</p>
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex flex-wrap gap-3 mb-8">
         {[
@@ -402,14 +523,20 @@ function Predictions() {
           { id: 'third',    label: '🥉 3rd Place' },
           { id: 'knockout', label: '🏆 Knockout Stage' },
           { id: 'awards',   label: '🎖 Awards' },
+          { id: 'second',   label: '🔄 Second Chance' },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-2 rounded-full font-bold transition ${
+            className={`px-6 py-2 rounded-full font-bold transition relative ${
               activeTab === tab.id
                 ? 'bg-green-500 text-black'
                 : 'border border-green-500 text-green-400 hover:bg-green-500 hover:text-black'
             }`}>
             {tab.label}
+            {tab.id === 'second' && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                SOON
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -437,6 +564,16 @@ function Predictions() {
               </div>
             </motion.div>
           ))}
+
+          {! locked && (
+            <div className="col-span-full flex justify-center mt-6">
+              <button onClick={saveProgress} disabled={saving}
+              className="bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-3 rounded-full transition disabled:opacity-50 ">
+                {saving ? 'Saving...' : '💾 Save Group Stage Predictions'}
+              </button>
+            </div>
+          )
+          }
         </div>
       )}
 
@@ -482,8 +619,18 @@ function Predictions() {
                   </div>
                   {isSelected && <span className="text-green-400 font-bold text-lg">✓</span>}
                 </motion.div>
+                
               )
             })}
+            {! locked && (
+            <div className="col-span-full flex justify-center mt-6">
+              <button onClick={saveProgress} disabled={saving}
+              className="bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-3 rounded-full transition disabled:opacity-50 ">
+                {saving ? 'Saving...' : '💾 Save 3rd Place Predictions'}
+              </button>
+            </div>
+          )
+          }
           </div>
         </div>
       )}
@@ -602,6 +749,25 @@ function Predictions() {
 
           </div>
         </div>
+        {/* Final Submit */}
+          <div className="col-span-full flex flex-col items-center gap-3 mt-6">
+            {message && (
+              <p className={`text-sm font-medium ${message.includes('✅') ? 'text-green-400' : 'text-red-400'}`}>
+                {message}
+              </p>
+            )}
+            <button onClick={savePredictions} disabled={saving || locked}
+              className={`font-extrabold px-12 py-4 rounded-full text-lg transition disabled:opacity-50 ${
+                locked
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : 'bg-green-500 hover:bg-green-400 text-black'
+              }`}>
+              {locked ? '🔒 Predictions Locked' : saving ? 'Saving...' : '🔒 Submit & Lock All Predictions'}
+            </button>
+            {!locked && (
+              <p className="text-gray-500 text-xs">⚠️ Once submitted, predictions cannot be changed</p>
+            )}
+          </div>
       </>
     )}
   </div>
@@ -669,21 +835,69 @@ function Predictions() {
     ))}
   </div>
 </motion.div>
+
+{/* Save Awards Button */}
+<div className="col-span-full flex flex-col items-center gap-3 mt-6">
+  {message && (
+    <p className={`text-sm font-medium ${message.includes('✅') || message.includes('saved') ? 'text-green-400' : 'text-red-400'}`}>
+      {message}
+    </p>
+  )}
+  <button onClick={saveAwards} disabled={saving || awardsLocked}
+    className={`font-extrabold px-10 py-4 rounded-full text-lg transition disabled:opacity-50 ${
+      awardsLocked
+        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+        : 'bg-green-500 hover:bg-green-400 text-black'
+    }`}>
+    {awardsLocked ? '🔒 Awards Locked' : saving ? 'Saving...' : '🔒 Submit & Lock Award Predictions'}
+  </button>
+  {!awardsLocked && (
+    <p className="text-gray-500 text-xs">⚠️ Once submitted, award predictions cannot be changed</p>
+  )}
+</div>
+
+{/* Final Submit */}
+          <div className="col-span-full flex flex-col items-center gap-3 mt-6">
+            {message && (
+              <p className={`text-sm font-medium ${message.includes('✅') ? 'text-green-400' : 'text-red-400'}`}>
+                {message}
+              </p>
+            )}
+            <button onClick={savePredictions} disabled={saving || locked}
+              className={`font-extrabold px-12 py-4 rounded-full text-lg transition disabled:opacity-50 ${
+                locked
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : 'bg-green-500 hover:bg-green-400 text-black'
+              }`}>
+              {locked ? '🔒 Predictions Locked' : saving ? 'Saving...' : '🔒 Submit & Lock All Predictions'}
+            </button>
+            {!locked && (
+              <p className="text-gray-500 text-xs">⚠️ Once submitted, predictions cannot be changed</p>
+            )}
+          </div>
 </div>
   )}
 
-      {/* Save Button */}
-      <div className="mt-10 flex flex-col items-center gap-3">
-        {message && (
-          <p className={`text-sm font-medium ${message.includes('✅') ? 'text-green-400' : 'text-red-400'}`}>
-            {message}
-          </p>
-        )}
-        <button onClick={savePredictions} disabled={saving}
-          className="bg-green-500 hover:bg-green-400 text-black font-extrabold px-12 py-4 rounded-full text-lg transition disabled:opacity-50">
-          {saving ? 'Saving...' : 'Save Predictions 🎯'}
-        </button>
-      </div>
+      {/* SECOND CHANCE */}
+      {activeTab === 'second' && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+            className="text-center">
+            <span className="text-6xl mb-6 block">🔄</span>
+            <h2 className="text-3xl font-extrabold text-green-400 mb-3">Second Chance</h2>
+            <p className="text-gray-400 text-lg mb-2">Coming after the Group Stage ends!</p>
+            <p className="text-gray-500 text-sm max-w-md mx-auto mb-6">
+              Once all group stage matches are completed on June 27,
+              you'll get a second chance to predict the knockout stage
+              from Round of 32 all the way to the Final — based on the actual results.
+            </p>
+            <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 inline-block">
+              <p className="text-yellow-400 font-bold text-lg">🗓️ Opens: June 28, 2026</p>
+              <p className="text-gray-500 text-sm mt-1">After all group results are confirmed</p>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }
