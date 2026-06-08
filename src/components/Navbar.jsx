@@ -1,12 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../assets/AuthContext'
 
 function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
-
-  // Check if user is logged in by looking for token in localStorage
-  const token = localStorage.getItem('token')
-  const username = localStorage.getItem('username')
+  const { user, logout } = useAuth()
 
   const links = [
     { path: '/', label: 'Home' },
@@ -17,24 +15,18 @@ function Navbar() {
     { path: '/map', label: 'Host Cities' },
   ]
 
-  // Handle logout — clear everything from localStorage and go to home
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('username')
-    localStorage.removeItem('is_admin')
+    logout()
     navigate('/')
-    window.location.reload()
   }
 
   return (
     <nav className="bg-gray-800 border-b border-gray-700 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
 
-      {/* Logo */}
       <Link to="/" className="text-green-400 font-extrabold text-2xl tracking-wide">
         ⚽ WC2026
       </Link>
 
-      {/* Nav Links */}
       <div className="flex gap-6 items-center">
         {links.map((link) => (
           <Link
@@ -51,23 +43,20 @@ function Navbar() {
         ))}
       </div>
 
-      {/* Auth Buttons — changes based on login state */}
       <div className="flex gap-3 items-center">
-        {token ? (
-          // User is logged in — show username and logout button
+        {user ? (
           <>
             <span className="text-gray-300 font-medium">
-              👋 {username}
+              👋 {user.username}
             </span>
-
-          {localStorage.getItem('is_admin') === 'true' && (
-  <Link
-    to="/admin"
-    className="border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black font-bold px-5 py-2 rounded-full transition"
-  >
-    ⚙️ Admin
-  </Link>
-)}
+            {user.is_admin && (
+              <Link
+                to="/admin"
+                className="border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black font-bold px-5 py-2 rounded-full transition"
+              >
+                ⚙️ Admin
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="border border-red-500 text-red-400 hover:bg-red-500 hover:text-white font-bold px-5 py-2 rounded-full transition"
@@ -76,7 +65,6 @@ function Navbar() {
             </button>
           </>
         ) : (
-          // User is not logged in — show login and signup buttons
           <>
             <Link
               to="/login"
@@ -91,7 +79,6 @@ function Navbar() {
               Sign Up
             </Link>
           </>
-          
         )}
       </div>
 

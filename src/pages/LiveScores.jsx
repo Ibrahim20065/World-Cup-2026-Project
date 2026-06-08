@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 
-// ============================================================
-// FLAG MAP — reusing same country codes as predictions
-// ============================================================
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
   'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia': 'ba',
@@ -20,9 +17,6 @@ const FLAGS = {
   'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
 }
 
-// ============================================================
-// STATUS BADGE — shows match status
-// ============================================================
 function StatusBadge({ status }) {
   if (status === 'LIVE') return (
     <span className="flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
@@ -41,12 +35,8 @@ function StatusBadge({ status }) {
   )
 }
 
-// ============================================================
-// MATCH CARD — single match display
-// ============================================================
 function MatchCard({ match, onClick }) {
   const isNS = match.status === 'NS'
-  const isFT = match.status === 'FT'
   const isLive = match.status === 'LIVE'
 
   return (
@@ -58,18 +48,14 @@ function MatchCard({ match, onClick }) {
         isLive ? 'border-red-500' : 'border-gray-700'
       }`}
     >
-      {/* Group + Status */}
       <div className="flex justify-between items-center mb-4">
         <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">
-          Group {match.group}
+          {match.group ? `Group ${match.group}` : match.round ? `Round ${match.round}` : 'Match'}
         </span>
         <StatusBadge status={match.status} />
       </div>
 
-      {/* Teams + Score */}
       <div className="flex items-center justify-between gap-4">
-
-        {/* Home Team */}
         <div className="flex flex-col items-center gap-2 flex-1">
           <img
             src={`https://flagcdn.com/w80/${FLAGS[match.home] || 'un'}.png`}
@@ -80,7 +66,6 @@ function MatchCard({ match, onClick }) {
           <span className="text-white font-bold text-sm text-center">{match.home}</span>
         </div>
 
-        {/* Score / Time */}
         <div className="flex flex-col items-center gap-1">
           {isNS ? (
             <>
@@ -94,7 +79,6 @@ function MatchCard({ match, onClick }) {
           )}
         </div>
 
-        {/* Away Team */}
         <div className="flex flex-col items-center gap-2 flex-1">
           <img
             src={`https://flagcdn.com/w80/${FLAGS[match.away] || 'un'}.png`}
@@ -104,20 +88,52 @@ function MatchCard({ match, onClick }) {
           />
           <span className="text-white font-bold text-sm text-center">{match.away}</span>
         </div>
-
       </div>
 
-      {/* Venue */}
       <p className="text-gray-500 text-xs text-center mt-4">📍 {match.venue}</p>
     </motion.div>
   )
 }
 
-// ============================================================
-// MATCH DETAIL MODAL — shows when user clicks a match
-// ============================================================
 function MatchModal({ match, onClose }) {
+  const [events, setEvents] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!match) return
+    if (match.status === 'NS') return
+    if (!match.api_fixture_id) return
+
+    setEventsLoading(true)
+    axios.get(`http://127.0.0.1:5000/api/match-events/${match.api_fixture_id}`)
+      .then(res => {
+        setEvents(res.data)
+        setEventsLoading(false)
+      })
+      .catch(() => setEventsLoading(false))
+  }, [match])
+
   if (!match) return null
+
+  const getEventIcon = (type, detail) => {
+    if (type === 'Goal') {
+      if (detail === 'Own Goal') return '⚽🔴'
+      if (detail === 'Penalty') return '⚽🎯'
+      return '⚽'
+    }
+    if (type === 'Card') {
+      if (detail === 'Yellow Card') return '🟨'
+      if (detail === 'Red Card') return '🟥'
+      if (detail === 'Yellow Red Card') return '🟨🟥'
+    }
+    if (type === 'subst') return '🔄'
+    return '•'
+  }
+
+  const homeEvents = events.filter(e => e.team === match.home || 
+    match.home.toLowerCase().includes(e.team.toLowerCase()) ||
+    e.team.toLowerCase().includes(match.home.toLowerCase()))
+  const awayEvents = events.filter(e => !homeEvents.includes(e))
 
   return (
     <AnimatePresence>
@@ -133,23 +149,18 @@ function MatchModal({ match, onClose }) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gray-800 rounded-2xl p-8 w-full max-w-lg border border-gray-700 shadow-2xl"
+          className="bg-gray-800 rounded-2xl p-8 w-full max-w-lg border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto"
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <span className="text-green-400 font-bold text-sm uppercase tracking-wider">
-              Group {match.group} — {match.date}
+              {match.group ? `Group ${match.group}` : `Round ${match.round}`} — {match.date}
             </span>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white text-xl"
-            >
-              ✕
-            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">✕</button>
           </div>
 
           {/* Teams + Score */}
-          <div className="flex items-center justify-between gap-4 mb-8">
+          <div className="flex items-center justify-between gap-4 mb-6">
             <div className="flex flex-col items-center gap-2 flex-1">
               <img
                 src={`https://flagcdn.com/w80/${FLAGS[match.home] || 'un'}.png`}
@@ -170,6 +181,11 @@ function MatchModal({ match, onClose }) {
                   <span className="text-white font-extrabold text-4xl">
                     {match.home_score ?? 0} — {match.away_score ?? 0}
                   </span>
+                  {match.status === 'LIVE' && match.minute && (
+                    <span className="text-red-400 font-bold text-sm mt-1 animate-pulse">
+                      {match.minute}'
+                    </span>
+                  )}
                   <StatusBadge status={match.status} />
                 </>
               )}
@@ -185,6 +201,65 @@ function MatchModal({ match, onClose }) {
             </div>
           </div>
 
+          {/* Match Events */}
+          {match.status !== 'NS' && (
+            <div className="mb-6">
+              <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">
+                Match Events
+              </h3>
+
+              {eventsLoading ? (
+                <p className="text-gray-500 text-sm text-center py-4 animate-pulse">
+                  Loading events...
+                </p>
+              ) : events.length === 0 ? (
+                <p className="text-gray-600 text-sm text-center py-4">
+                  No events yet
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {events
+                    .filter(e => e.type !== 'subst') // hide subs by default, cleaner
+                    .map((e, i) => {
+                      const isHome = homeEvents.includes(e)
+                      return (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-3 text-sm ${
+                            isHome ? 'flex-row' : 'flex-row-reverse'
+                          }`}
+                        >
+                          {/* Minute */}
+                          <span className="text-gray-500 text-xs w-8 text-center">
+                            {e.minute}'
+                          </span>
+
+                          {/* Icon */}
+                          <span className="text-base">
+                            {getEventIcon(e.type, e.detail)}
+                          </span>
+
+                          {/* Player */}
+                          <span className={`text-white font-medium ${
+                            isHome ? 'text-left' : 'text-right'
+                          }`}>
+                            {e.player}
+                          </span>
+
+                          {/* Detail (Own Goal / Penalty) */}
+                          {(e.detail === 'Own Goal' || e.detail === 'Penalty') && (
+                            <span className="text-gray-500 text-xs">
+                              ({e.detail})
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Match Info */}
           <div className="bg-gray-700 rounded-xl p-4 flex flex-col gap-3">
             <div className="flex justify-between">
@@ -199,16 +274,11 @@ function MatchModal({ match, onClose }) {
               <span className="text-gray-400 text-sm">🕐 Kick Off</span>
               <span className="text-white text-sm font-medium">{match.time} UTC</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400 text-sm">🏆 Stage</span>
-              <span className="text-white text-sm font-medium">Group Stage</span>
-            </div>
           </div>
 
-          {/* Coming Soon notice for live stats */}
           {match.status === 'NS' && (
             <p className="text-gray-500 text-xs text-center mt-4">
-              Live stats, lineups and events will appear here once the match starts ⚡
+              Live stats will appear here once the match starts ⚡
             </p>
           )}
         </motion.div>
@@ -217,36 +287,41 @@ function MatchModal({ match, onClose }) {
   )
 }
 
-// ============================================================
-// MAIN LIVE SCORES PAGE
-// ============================================================
 function LiveScores() {
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
   const [selectedMatch, setSelectedMatch] = useState(null)
   const [filter, setFilter] = useState('ALL')
   const [selectedDate, setSelectedDate] = useState('')
 
   const GROUPS = ['ALL', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
 
-  // Fetch all matches on load
-  useEffect(() => {
-    axios.get('http://127.0.0.1:5000/api/matches')
+  const fetchMatches = () => {
+    axios.get('http://127.0.0.1:5000/api/livescores')
       .then(res => {
-        setMatches(res.data)
+        // Only show 2026 matches
+        const wc2026 = res.data.filter(m => m.date && m.date.startsWith('2026'))
+        setMatches(wc2026)
+        setLastUpdated(new Date().toLocaleTimeString())
         setLoading(false)
       })
       .catch(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchMatches()
+    // Poll every 60 seconds
+    const interval = setInterval(fetchMatches, 60000)
+    return () => clearInterval(interval)
   }, [])
 
-  // Filter matches
   const filtered = matches.filter(m => {
     const groupMatch = filter === 'ALL' || m.group === filter
     const dateMatch = !selectedDate || m.date === selectedDate
     return groupMatch && dateMatch
   })
 
-  // Group by date
   const byDate = filtered.reduce((acc, match) => {
     if (!acc[match.date]) acc[match.date] = []
     acc[match.date].push(match)
@@ -262,21 +337,25 @@ function LiveScores() {
   return (
     <div className="min-h-screen bg-gray-900 text-white px-6 py-10">
 
-      {/* Title */}
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-extrabold text-green-400 mb-2"
-      >
-        Live Scores ⚡
-      </motion.h1>
+      <div className="flex items-center justify-between mb-2">
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-extrabold text-green-400"
+        >
+          Live Scores ⚡
+        </motion.h1>
+        {lastUpdated && (
+          <span className="text-gray-500 text-xs">
+            🔄 Updated {lastUpdated}
+          </span>
+        )}
+      </div>
       <p className="text-gray-400 mb-8">
         Follow every World Cup 2026 match — click a match for details.
       </p>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
-        {/* Group filter */}
         <div className="flex flex-wrap gap-2">
           {GROUPS.map(g => (
             <button
@@ -293,7 +372,6 @@ function LiveScores() {
           ))}
         </div>
 
-        {/* Date filter */}
         <input
           type="date"
           value={selectedDate}
@@ -310,7 +388,6 @@ function LiveScores() {
         )}
       </div>
 
-      {/* Matches grouped by date */}
       {Object.keys(byDate).sort().map(date => (
         <div key={date} className="mb-10">
           <h2 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-4 border-b border-gray-700 pb-2">
@@ -320,31 +397,21 @@ function LiveScores() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {byDate[date].map(match => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                onClick={setSelectedMatch}
-              />
+              <MatchCard key={match.id} match={match} onClick={setSelectedMatch} />
             ))}
           </div>
         </div>
       ))}
 
-      {/* No matches */}
       {Object.keys(byDate).length === 0 && (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg">No matches found for this filter.</p>
         </div>
       )}
 
-      {/* Match Detail Modal */}
       {selectedMatch && (
-        <MatchModal
-          match={selectedMatch}
-          onClose={() => setSelectedMatch(null)}
-        />
+        <MatchModal match={selectedMatch} onClose={() => setSelectedMatch(null)} />
       )}
-
     </div>
   )
 }

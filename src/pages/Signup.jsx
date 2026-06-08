@@ -10,12 +10,14 @@ function Signup() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState('signup') // 'signup' or 'verify'
+  const [code, setCode] = useState('')
+  const [pendingEmail, setPendingEmail] = useState('')
   const navigate = useNavigate()
 
   const handleSignup = async () => {
     setError('')
 
-    // Check passwords match before sending to backend
     if (password !== confirm) {
       setError('Passwords do not match!')
       return
@@ -24,15 +26,15 @@ function Signup() {
     setLoading(true)
 
     try {
-      // Send signup data to Flask backend
       await axios.post('http://127.0.0.1:5000/api/signup', {
         username,
         email,
         password
       })
 
-      // Redirect to login page after successful signup
-      navigate('/login')
+      // Move to verification step
+      setPendingEmail(email)
+      setStep('verify')
 
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong')
@@ -41,6 +43,86 @@ function Signup() {
     setLoading(false)
   }
 
+  const handleVerify = async () => {
+    setError('')
+    setLoading(true)
+
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/api/verify', {
+        email: pendingEmail,
+        code
+      })
+
+      // Log them in directly
+      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('username', response.data.username)
+      localStorage.setItem('is_admin', response.data.is_admin)
+
+      navigate('/')
+      window.location.reload()
+
+    } catch (err) {
+      setError(err.response?.data?.error || 'Invalid code, try again')
+    }
+
+    setLoading(false)
+  }
+
+  // ── VERIFICATION SCREEN ──
+  if (step === 'verify') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="bg-gray-800 p-10 rounded-2xl w-full max-w-md shadow-lg text-center"
+        >
+          <div className="text-5xl mb-4">📧</div>
+          <h1 className="text-3xl font-extrabold text-green-400 mb-2">
+            Check your email!
+          </h1>
+          <p className="text-gray-400 mb-2">
+            We sent a 6-digit code to:
+          </p>
+          <p className="text-white font-bold mb-8">{pendingEmail}</p>
+
+          <input
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="000000"
+            maxLength={6}
+            className="w-full bg-gray-700 text-white text-center text-3xl font-extrabold tracking-widest px-4 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mb-6"
+          />
+
+          {error && (
+            <p className="text-red-400 text-sm mb-4">{error}</p>
+          )}
+
+          <button
+            onClick={handleVerify}
+            disabled={loading || code.length !== 6}
+            className="w-full bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-lg transition disabled:opacity-50"
+          >
+            {loading ? 'Verifying...' : 'Verify & Enter ⚽'}
+          </button>
+
+          <p className="text-gray-500 text-xs mt-6">
+            Didn't get it? Check your spam folder or{' '}
+            <button
+              onClick={() => setStep('signup')}
+              className="text-green-400 hover:underline"
+            >
+              go back
+            </button>
+          </p>
+        </motion.div>
+      </div>
+    )
+  }
+
+  // ── SIGNUP SCREEN ──
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <motion.div
@@ -101,7 +183,6 @@ function Signup() {
             />
           </div>
 
-          {/* Show error message if signup fails */}
           {error && (
             <p className="text-red-400 text-sm text-center">{error}</p>
           )}

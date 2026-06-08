@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import axios from 'axios'
+import { useAuth } from '../assets/AuthContext'
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
   const navigate = useNavigate()
 
   const handleLogin = async () => {
@@ -22,9 +24,7 @@ function Login() {
       })
 
       // Save the token and username in localStorage
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('username', response.data.username)
-      localStorage.setItem('is_admin', response.data.is_admin)
+      login(response.data)
 
       // Redirect to home page after login
       navigate('/')

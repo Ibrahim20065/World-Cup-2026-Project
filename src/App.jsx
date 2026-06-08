@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
+import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Predictions from './pages/Predictions'
 import LiveScores from './pages/LiveScores'
@@ -20,21 +22,27 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/predictions" element={<Predictions />} />
-            <Route path="/livescores" element={<LiveScores />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/countries" element={<Countries />} />
-            <Route path="/countries/:name" element={<CountryProfile />} />
-            <Route path="/admin" element={<Admin />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/livescores" element={<LiveScores />} />
+            <Route path="/countries" element={<Countries />} />
+            <Route path="/countries/:name" element={<CountryProfile />} />
             <Route path="/map" element={<WorldCupMap />} />
             <Route path="/cities/:name" element={<CityProfile />} />
+            <Route path="/predictions" element={
+              <ProtectedRoute><Predictions /></ProtectedRoute>
+            } />
+            <Route path="/leaderboard" element={
+              <ProtectedRoute><Leaderboard /></ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute adminOnly={true}><Admin /></ProtectedRoute>
+            } />
           </Routes>
         </main>
+        <Footer />
       </div>
     </BrowserRouter>
-    
   )
 }
 
