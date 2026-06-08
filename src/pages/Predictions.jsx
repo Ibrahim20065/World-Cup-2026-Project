@@ -345,6 +345,11 @@ useEffect(() => {
       Object.keys(res.data).forEach(g => { initial[g] = [...res.data[g]] })
       setGroupPredictions(initial)
       setLoading(false)
+      const LOCK_TIME = new Date('2026-06-11T19:00:00Z')
+      if (new Date() >= LOCK_TIME){
+        setLocked(true)
+        setAwardsLocked(true)
+      }
 
       // Load saved predictions if user is logged in
       const token = localStorage.getItem('token')
@@ -372,6 +377,10 @@ useEffect(() => {
 
             // Lock predictions — user already submitted
             setLocked(true)
+
+            if (saved.data.golden_ball || saved.data.golden_boot?.some(v => v)) {
+              setAwardsLocked(true)
+            }
           }
         }).catch(() => {})
       }
@@ -511,7 +520,9 @@ const savePredictions = async () => {
           <span className="text-2xl">🔒</span>
           <div>
             <p className="text-yellow-400 font-bold">Predictions Locked</p>
-            <p className="text-gray-400 text-sm">You've already submitted your predictions. They cannot be changed.</p>
+            <p className="text-gray-400 text-sm">
+              {new Date() >= new Date('2026-06-11T19:00:00Z')
+              ? 'The World Cup has started! Predictions are now locked for everyone. See you at the Second Chance 😉' : "You've already submitted your predictions. They cannot be changed. See you at the Second Chance 😉" }</p> 
           </div>
         </div>
       )}

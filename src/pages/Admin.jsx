@@ -138,6 +138,88 @@ function Admin() {
         ))}
       </div>
 
+
+      {/* Tournament Controls */}
+      <div className="bg-gray-800 rounded-2xl border border-gray-700 p-6 mb-8">
+        <h2 className="text-green-400 font-extrabold text-lg mb-4">⚙️ Tournament Controls</h2>
+        <div className="flex flex-wrap gap-4">
+
+          {/* Score Group Stage */}
+          <div className="flex flex-col gap-2">
+            <p className="text-gray-400 text-xs">Run after June 27 when group stage ends</p>
+            <button
+              onClick={async () => {
+                if (!confirm('Score all group stage predictions now?')) return
+                try {
+                  const res = await axios.post(
+                    'http://127.0.0.1:5000/api/admin/score-groups',
+                    {},
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  )
+                  alert(`✅ Group stage scored! ${res.data.results?.length || 0} users updated.`)
+                  fetchUsers()
+                } catch (err) {
+                  alert('❌ Failed: ' + (err.response?.data?.error || err.message))
+                }
+              }}
+              className="bg-blue-500 hover:bg-blue-400 text-white font-bold px-6 py-3 rounded-full transition"
+            >
+              📊 Score Group Stage
+            </button>
+          </div>
+
+          {/* Force Run Knockout Scoring */}
+          <div className="flex flex-col gap-2">
+            <p className="text-gray-400 text-xs">Manually trigger knockout match scoring</p>
+            <button
+              onClick={async () => {
+                if (!confirm('Run knockout scoring now?')) return
+                try {
+                  const res = await axios.post(
+                    'http://127.0.0.1:5000/api/admin/score-knockouts',
+                    {},
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  )
+                  alert(`✅ Knockout scoring done!`)
+                  fetchUsers()
+                } catch (err) {
+                  alert('❌ Failed: ' + (err.response?.data?.error || err.message))
+                }
+              }}
+              className="bg-purple-500 hover:bg-purple-400 text-white font-bold px-6 py-3 rounded-full transition"
+            >
+              🏆 Score Knockouts
+            </button>
+          </div>
+
+          {/* Reset All Points */}
+          <div className="flex flex-col gap-2">
+            <p className="text-gray-400 text-xs">⚠️ Resets everyone's points to 0</p>
+            <button
+              onClick={async () => {
+                if (!confirm('RESET ALL POINTS? This cannot be undone!')) return
+                if (!confirm('Are you absolutely sure?')) return
+                try {
+                  await axios.post(
+                    'http://127.0.0.1:5000/api/admin/reset-points',
+                    {},
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  )
+                  alert('✅ All points reset to 0')
+                  fetchUsers()
+                } catch (err) {
+                  alert('❌ Failed: ' + (err.response?.data?.error || err.message))
+                }
+              }}
+              className="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded-full transition"
+            >
+              🔄 Reset All Points
+            </button>
+          </div>
+
+        </div>
+      </div>
+
       {/* Search */}
       <input
         type="text"
