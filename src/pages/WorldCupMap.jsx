@@ -15,16 +15,16 @@ function WorldCupMap() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-6 py-10">
+    <div className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 py-8">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-extrabold text-green-400 mb-2"
+        className="text-3xl sm:text-4xl font-extrabold text-green-400 mb-2"
       >
         Host Cities Map 🗺️
       </motion.h1>
-      <p className="text-gray-400 mb-8">
-        16 cities across USA, Mexico and Canada. Click any city to explore it and see its matches.
+      <p className="text-gray-400 text-sm sm:text-base mb-6">
+        16 cities across USA, Mexico and Canada. Tap any city to explore it.
       </p>
 
       {/* Map */}
@@ -32,7 +32,7 @@ function WorldCupMap() {
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{ scale: 380, center: [-100, 40] }}
-          style={{ width: '100%', height: 'auto' }}
+          style={{ width: '100%', height: 'auto', minHeight: '250px' }}
         >
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
@@ -53,7 +53,6 @@ function WorldCupMap() {
             }
           </Geographies>
 
-          {/* City Markers */}
           {Object.entries(CITY_DATA).map(([cityName, city]) => (
             <Marker
               key={cityName}
@@ -63,15 +62,11 @@ function WorldCupMap() {
               onClick={() => goToCity(cityName)}
               style={{ default: { cursor: 'pointer' } }}
             >
-              {/* Pulsing ring */}
               <circle r={hovered === cityName ? 9 : 6} fill="#22c55e" opacity={0.3}>
                 <animate attributeName="r" from="6" to="12" dur="1.5s" repeatCount="indefinite" />
                 <animate attributeName="opacity" from="0.4" to="0" dur="1.5s" repeatCount="indefinite" />
               </circle>
-              {/* Solid dot */}
               <circle r={hovered === cityName ? 6 : 4} fill="#22c55e" stroke="#fff" strokeWidth={1} />
-
-              {/* City label on hover */}
               {hovered === cityName && (
                 <text
                   textAnchor="middle"
@@ -87,12 +82,12 @@ function WorldCupMap() {
       </div>
 
       {/* City quick-list below map */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-6">
         {Object.entries(CITY_DATA).map(([cityName, city]) => (
           <button
             key={cityName}
             onClick={() => goToCity(cityName)}
-            className="bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-green-500 rounded-xl p-3 text-left transition flex items-center gap-3"
+            className="bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 hover:border-green-500 rounded-xl p-3 text-left transition flex items-center gap-2 sm:gap-3"
           >
             <img
               src={`https://flagcdn.com/w40/${city.flag}.png`}
@@ -101,8 +96,8 @@ function WorldCupMap() {
               onError={(e) => { e.target.style.display = 'none' }}
             />
             <div className="min-w-0">
-              <p className="text-white font-bold text-sm truncate">{cityName}</p>
-              <p className="text-gray-500 text-xs truncate">{city.stadium}</p>
+              <p className="text-white font-bold text-xs sm:text-sm truncate">{cityName}</p>
+              <p className="text-gray-500 text-xs truncate hidden sm:block">{city.stadium}</p>
             </div>
           </button>
         ))}

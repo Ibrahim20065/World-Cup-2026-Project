@@ -18,7 +18,7 @@ function CityProfile() {
   // Fetch matches and filter by this city's stadium
   useEffect(() => {
     if (!city) return
-    axios.get('http://127.0.0.1:5000/api/matches').then(res => {
+    axios.get('http://192.168.100.3:5000/api/matches').then(res => {
       const cityMatches = res.data.filter(m =>
         m.venue && (m.venue.includes(city.stadium) || m.venue.includes(cityName))
       )

@@ -10,6 +10,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import PlayerSearch from '../components/PlayerSearch'
 import PLAYERS from '../players'
+import toast from 'react-hot-toast'
 
 // ============================================================
 // FLAG MAP
@@ -284,7 +285,7 @@ function BracketMatch({ match, prediction, onPick }) {
   const team2 = match.team2 || '?'
 
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden w-44 flex-shrink-0">
+    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden w-36 sm:w-44 flex-shrink-0">
       <div className="text-gray-600 text-[10px] text-center py-1 bg-gray-900 font-bold">
         {typeof match.match === 'number' ? `Match ${match.match}` : match.match}
       </div>
@@ -330,7 +331,6 @@ function Predictions() {
   const [u21Award, setU21Award] = useState(['', '', ''])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
   const [activeTab, setActiveTab] = useState('groups')
   const [locked, setLocked] = useState(false)
   const [awardsLocked, setAwardsLocked] = useState(false)
@@ -339,7 +339,7 @@ function Predictions() {
   const sensors = useSensors(useSensor(PointerSensor))
 
 useEffect(() => {
-    axios.get('http://127.0.0.1:5000/api/groups').then(res => {
+    axios.get('http://192.168.100.3:5000/api/groups').then(res => {
       setGroups(res.data)
       const initial = {}
       Object.keys(res.data).forEach(g => { initial[g] = [...res.data[g]] })
@@ -354,7 +354,7 @@ useEffect(() => {
       // Load saved predictions if user is logged in
       const token = localStorage.getItem('token')
       if (token) {
-        axios.get('http://127.0.0.1:5000/api/predictions', {
+        axios.get('http://192.168.100.3:5000/api/predictions', {
           headers: { Authorization: `Bearer ${token}` }
         }).then(saved => {
           if (saved.data.saved) {
@@ -397,11 +397,11 @@ useEffect(() => {
   }
 // Save progress without locking
   const saveProgress = async () => {
-    if (!token) { setMessage('Please login to save!'); return }
-    if (locked) { setMessage('Predictions are locked!'); return }
+    if (!token) { toast.error('Please login to save!'); return }
+    if (locked) { toast.error('Predictions are locked!'); return }
     setSaving(true)
     try {
-      await axios.post('http://127.0.0.1:5000/api/predictions', {
+      await axios.post('http://192.168.100.3:5000/api/predictions', {
         group_predictions: groupPredictions,
         third_place_advancing: thirdPlaceAdvancing,
         knockout_predictions: knockoutPredictions,
@@ -412,16 +412,16 @@ useEffect(() => {
         golden_glove: goldenGlove,
         u21_award: u21Award,
       }, { headers: { Authorization: `Bearer ${token}` } })
-      setMessage('Progress saved! ✅')
+      toast.success('Progress saved! ✅')
     } catch {
-      setMessage('Error saving. Please try again.')
+      toast.error('Error saving. Please try again.')
     }
     setSaving(false)
   }
 
 const savePredictions = async () => {
-    if (!token) { setMessage('Please login to save predictions!'); return }
-    if (locked) { setMessage('Predictions are locked! You already submitted.'); return }
+    if (!token) { toast.error('Please login to save predictions!'); return }
+    if (locked) { toast.success('Predictions are locked! You already submitted.'); return }
     
     const hasKnockout = Object.keys(knockoutPredictions.r32).length > 0
     const hasGroups = Object.values(groupPredictions).some((teams, i) => {
@@ -430,14 +430,14 @@ const savePredictions = async () => {
     })
 
     if (!hasKnockout && !hasGroups) {
-      setMessage('⚠️ Nothing to save! Fill in your predictions first.')
+      toast.error('⚠️ Nothing to save! Fill in your predictions first.')
       return
     }
     
     
     setSaving(true)
     try {
-      await axios.post('http://127.0.0.1:5000/api/predictions', {
+      await axios.post('http://192.168.100.3:5000/api/predictions', {
         group_predictions: groupPredictions,
         third_place_advancing: thirdPlaceAdvancing,
         knockout_predictions: knockoutPredictions,
@@ -448,34 +448,34 @@ const savePredictions = async () => {
         golden_glove: goldenGlove,
         u21_award: u21Award,
       }, { headers: { Authorization: `Bearer ${token}` } })
-      setMessage('Predictions saved and locked! ✅🔒')
+      toast.success('Predictions saved and locked! ✅🔒')
       setLocked(true)
 
       if (goldenBall || goldenBoot.some(v => v)) {
         setAwardsLocked(true)
       }
     } catch {
-      setMessage('Error saving. Please try again.')
+      toast.error('Error saving. Please try again.')
     }
     setSaving(false)
   }
 
   // Save and lock awards independently
   const saveAwards = async () => {
-    if (!token) { setMessage('Please login to save!'); return }
-    if (awardsLocked) { setMessage('Award predictions are locked!'); return }
+    if (!token) { toast.error('Please login to save!'); return }
+    if (awardsLocked) { toast.error('Award predictions are locked!'); return }
 
     const hasAwards = goldenBall || silverBall || bronzeBall ||
       goldenBoot.some(v => v) || goldenGlove.some(v => v) || u21Award.some(v => v)
 
     if (!hasAwards) {
-      setMessage('⚠️ Nothing to save! Pick your award predictions first.')
+      toast.error('⚠️ Nothing to save! Pick your award predictions first.')
       return
     }
 
     setSaving(true)
     try {
-      await axios.post('http://127.0.0.1:5000/api/predictions', {
+      await axios.post('http://192.168.100.3:5000/api/predictions', {
         group_predictions: groupPredictions,
         third_place_advancing: thirdPlaceAdvancing,
         knockout_predictions: knockoutPredictions,
@@ -486,10 +486,10 @@ const savePredictions = async () => {
         golden_glove: goldenGlove,
         u21_award: u21Award,
       }, { headers: { Authorization: `Bearer ${token}` } })
-      setMessage('Award predictions saved and locked! ✅🔒')
+      toast.success('Award predictions saved and locked! ✅🔒')
       setAwardsLocked(true)
     } catch {
-      setMessage('Error saving. Please try again.')
+      toast.error('Error saving. Please try again.')
     }
     setSaving(false)
   }
@@ -507,10 +507,10 @@ const savePredictions = async () => {
   const finalTeams = getFinalTeams(knockoutPredictions.semi)
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-6 py-10">
+    <div className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 py-8">
 
       <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-extrabold text-green-400 mb-2">
+        className="text-3xl sm:text-4xl font-extrabold text-green-400 mb-2">
         Your Predictions 🎯
       </motion.h1>
       <p className="text-gray-400 mb-8">Drag teams to set their group finishing position, then fill in the bracket.</p>
@@ -528,7 +528,7 @@ const savePredictions = async () => {
       )}
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-3 mb-8">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
         {[
           { id: 'groups',   label: '🗂 Group Stage' },
           { id: 'third',    label: '🥉 3rd Place' },
@@ -537,7 +537,7 @@ const savePredictions = async () => {
           { id: 'second',   label: '🔄 Second Chance' },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-2 rounded-full font-bold transition relative ${
+  className={`px-4 sm:px-6 py-2 rounded-full font-bold transition relative flex-shrink-0 text-sm sm:text-base ${
               activeTab === tab.id
                 ? 'bg-green-500 text-black'
                 : 'border border-green-500 text-green-400 hover:bg-green-500 hover:text-black'
@@ -664,7 +664,8 @@ const savePredictions = async () => {
         <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 mb-6">
           <h2 className="text-green-400 font-extrabold text-xl mb-2">Knockout Bracket 🏆</h2>
           <p className="text-gray-400 text-sm">
-            Click a team to advance them. The bracket fills in as you pick. Scroll sideways to see all rounds.
+          Tap a team to advance them. The bracket fills in as you pick.
+          <span className="text-green-400 font-bold"> 👉 Scroll sideways to see all rounds.</span>
           </p>
         </div>
 
@@ -762,11 +763,7 @@ const savePredictions = async () => {
         </div>
         {/* Final Submit */}
           <div className="col-span-full flex flex-col items-center gap-3 mt-6">
-            {message && (
-              <p className={`text-sm font-medium ${message.includes('✅') ? 'text-green-400' : 'text-red-400'}`}>
-                {message}
-              </p>
-            )}
+            
             <button onClick={savePredictions} disabled={saving || locked}
               className={`font-extrabold px-12 py-4 rounded-full text-lg transition disabled:opacity-50 ${
                 locked
@@ -786,7 +783,7 @@ const savePredictions = async () => {
 
       {/* AWARDS */}
       {activeTab === 'awards' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
             <h2 className="text-yellow-400 font-extrabold text-lg mb-4">⚽ Best Players in the World Cup</h2>
@@ -849,11 +846,7 @@ const savePredictions = async () => {
 
 {/* Save Awards Button */}
 <div className="col-span-full flex flex-col items-center gap-3 mt-6">
-  {message && (
-    <p className={`text-sm font-medium ${message.includes('✅') || message.includes('saved') ? 'text-green-400' : 'text-red-400'}`}>
-      {message}
-    </p>
-  )}
+  
   <button onClick={saveAwards} disabled={saving || awardsLocked}
     className={`font-extrabold px-10 py-4 rounded-full text-lg transition disabled:opacity-50 ${
       awardsLocked
@@ -869,11 +862,7 @@ const savePredictions = async () => {
 
 {/* Final Submit */}
           <div className="col-span-full flex flex-col items-center gap-3 mt-6">
-            {message && (
-              <p className={`text-sm font-medium ${message.includes('✅') ? 'text-green-400' : 'text-red-400'}`}>
-                {message}
-              </p>
-            )}
+            
             <button onClick={savePredictions} disabled={saving || locked}
               className={`font-extrabold px-12 py-4 rounded-full text-lg transition disabled:opacity-50 ${
                 locked
