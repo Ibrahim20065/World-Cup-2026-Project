@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 import CITY_DATA from '../cityData'
+import API_URL from '../config'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
@@ -46,8 +47,8 @@ function CityProfile() {
 
   useEffect(() => {
     if (!city) return
-    axios.get('http://192.168.100.3:5000/api/matches').then(res => {
-      const cityMatches = res.data.filter(m =>
+    axios.get(`${API_URL}/api/matches`).then(res => {
+      const cityMatches = (Array.isArray(res.data) ? res.data : []).filter(m =>
         m.venue && (m.venue.includes(city.stadium) || m.venue.includes(cityName))
       )
       setMatches(cityMatches)

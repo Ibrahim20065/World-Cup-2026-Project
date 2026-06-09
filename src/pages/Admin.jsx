@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import API_URL from '../config'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
@@ -26,7 +27,7 @@ function Admin() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://192.168.100.3:5000/api/admin/users', {
+      const res = await axios.get(`${API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setUsers(res.data)
@@ -39,14 +40,14 @@ function Admin() {
   const deleteUser = async (userId, username) => {
     if (!confirm(`Delete ${username}?`)) return
     try {
-      await axios.delete(`http://192.168.100.3:5000/api/admin/users/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`${API_URL}/api/admin/users/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
       setUsers(users.filter(u => u.id !== userId))
     } catch { alert('Failed to delete user') }
   }
 
   const toggleAdmin = async (userId) => {
     try {
-      const res = await axios.post(`http://192.168.100.3:5000/api/admin/users/${userId}/toggle-admin`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.post(`${API_URL}/api/admin/users/${userId}/toggle-admin`, {}, { headers: { Authorization: `Bearer ${token}` } })
       setUsers(users.map(u => u.id === userId ? { ...u, is_admin: res.data.is_admin } : u))
     } catch { alert('Failed to update admin status') }
   }
@@ -55,7 +56,7 @@ function Admin() {
     const points = editPoints[userId]
     if (points === undefined) return
     try {
-      await axios.post(`http://192.168.100.3:5000/api/admin/users/${userId}/points`, { points: parseInt(points) }, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post(`${API_URL}/api/admin/users/${userId}/points`, { points: parseInt(points) }, { headers: { Authorization: `Bearer ${token}` } })
       setUsers(users.map(u => u.id === userId ? { ...u, points: parseInt(points) } : u))
       setEditPoints(prev => ({ ...prev, [userId]: undefined }))
     } catch { alert('Failed to update points') }
@@ -84,7 +85,7 @@ function Admin() {
       action: async () => {
         if (!confirm('Score all group stage predictions now?')) return
         try {
-          const res = await axios.post('http://192.168.100.3:5000/api/admin/score-groups', {}, { headers: { Authorization: `Bearer ${token}` } })
+          const res = await axios.post(`${API_URL}/api/admin/score-groups`, {}, { headers: { Authorization: `Bearer ${token}` } })
           alert(`✅ Group stage scored! ${res.data.results?.length || 0} users updated.`)
           fetchUsers()
         } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
@@ -98,7 +99,7 @@ function Admin() {
       action: async () => {
         if (!confirm('Run knockout scoring now?')) return
         try {
-          await axios.post('http://192.168.100.3:5000/api/admin/score-knockouts', {}, { headers: { Authorization: `Bearer ${token}` } })
+          await axios.post(`${API_URL}/api/admin/score-knockouts`, {}, { headers: { Authorization: `Bearer ${token}` } })
           alert('✅ Knockout scoring done!')
           fetchUsers()
         } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
@@ -113,7 +114,7 @@ function Admin() {
         if (!confirm('RESET ALL POINTS? This cannot be undone!')) return
         if (!confirm('Are you absolutely sure?')) return
         try {
-          await axios.post('http://192.168.100.3:5000/api/admin/reset-points', {}, { headers: { Authorization: `Bearer ${token}` } })
+          await axios.post(`${API_URL}/api/admin/reset-points`, {}, { headers: { Authorization: `Bearer ${token}` } })
           alert('✅ All points reset to 0')
           fetchUsers()
         } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }

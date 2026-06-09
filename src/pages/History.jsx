@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import API_URL from '../config'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import { useAuth } from '../assets/AuthContext'
 import toast from 'react-hot-toast'
+import API_URL from '../config'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
@@ -41,7 +42,7 @@ function Signup() {
     if (password !== confirm) { toast.error('Passwords do not match!'); return }
     setLoading(true)
     try {
-      await axios.post('http://192.168.100.3:5000/api/signup', { username, email, password })
+      await axios.post(`${API_URL}/api/signup`, { username, email, password })
       setPendingEmail(email)
       setStep('verify')
     } catch (err) {
@@ -53,7 +54,7 @@ function Signup() {
   const handleVerify = async () => {
     setLoading(true)
     try {
-      const response = await axios.post('http://192.168.100.3:5000/api/verify', { email: pendingEmail, code })
+      const response = await axios.post(`${API_URL}/api/verify`, { email: pendingEmail, code })
       login(response.data)
       toast.success('Welcome to WC2026! ⚽')
       navigate('/')

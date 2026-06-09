@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 import { useAuth } from '../assets/AuthContext'
+import API_URL from '../config'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
@@ -16,7 +17,7 @@ function Leaderboard() {
   const currentUser = user?.username
 
   useEffect(() => {
-    axios.get('http://192.168.100.3:5000/api/leaderboard')
+    axios.get(`${API_URL}/api/leaderboard`)
       .then(res => { setPlayers(res.data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])

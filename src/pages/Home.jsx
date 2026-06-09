@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../assets/AuthContext'
-
+import API_URL from '../config'
 const STATS = [
   { value: '48', label: 'Nations' },
   { value: '104', label: 'Matches' },

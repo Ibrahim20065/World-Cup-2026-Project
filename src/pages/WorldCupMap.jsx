@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import CITY_DATA from '../cityData'
+import API_URL from '../config'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 

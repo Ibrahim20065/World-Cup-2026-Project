@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import { useAuth } from '../assets/AuthContext'
 import toast from 'react-hot-toast'
+import API_URL from '../config'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
@@ -21,7 +22,7 @@ function Login() {
   const handleLogin = async () => {
     setLoading(true)
     try {
-      const response = await axios.post('http://192.168.100.3:5000/api/login', { email, password })
+      const response = await axios.post(`${API_URL}/api/login`, { email, password })
       login(response.data)
       navigate('/')
     } catch (err) {

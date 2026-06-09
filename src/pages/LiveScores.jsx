@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
+import API_URL from '../config'
 
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
@@ -133,7 +134,7 @@ function MatchModal({ match, onClose }) {
   useEffect(() => {
     if (!match || match.status === 'NS' || !match.api_fixture_id) return
     setEventsLoading(true)
-    axios.get(`http://192.168.100.3:5000/api/match-events/${match.api_fixture_id}`)
+    axios.get(`${API_URL}/api/match-events/${match.api_fixture_id}`)
       .then(res => { setEvents(res.data); setEventsLoading(false) })
       .catch(() => setEventsLoading(false))
   }, [match])
@@ -289,7 +290,7 @@ function LiveScores() {
   const GROUPS = ['ALL', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
 
   const fetchMatches = () => {
-    axios.get('http://192.168.100.3:5000/api/livescores')
+    axios.get(`${API_URL}/api/livescores`)
       .then(res => {
         const wc2026 = res.data.filter(m => m.date && m.date.startsWith('2026'))
         setMatches(wc2026)
