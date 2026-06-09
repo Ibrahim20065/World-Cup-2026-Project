@@ -71,9 +71,10 @@ function CityProfile() {
     <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
-      <div style={{ display: 'flex', height: 3 }}>
-        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
-      </div>
+      <div style={{
+  height: 3,
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+}} />      
 
       {/* Hero */}
       <div style={{

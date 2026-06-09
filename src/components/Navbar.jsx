@@ -15,6 +15,7 @@ const LINKS = [
   { path: '/leaderboard', label: 'Leaderboard' },
   { path: '/countries', label: 'Countries' },
   { path: '/map', label: 'Host Cities' },
+  { path: '/history', label: 'History' },
 ]
 
 function Navbar() {
@@ -39,10 +40,12 @@ function Navbar() {
       position: 'sticky', top: 0, zIndex: 50,
       fontFamily: 'Inter, system-ui, sans-serif',
     }}>
+      
       {/* Rainbow color bar */}
-      <div style={{ display: 'flex', height: 2 }}>
-        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
-      </div>
+<div style={{
+  height: 2,
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+}} />
 
       {/* Main bar */}
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60 }}>

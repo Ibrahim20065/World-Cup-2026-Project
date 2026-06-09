@@ -13,6 +13,7 @@ import Signup from './pages/Signup'
 import CountryProfile from './pages/CountryProfile'
 import WorldCupMap from './pages/WorldCupMap'
 import CityProfile from './pages/CityProfile'
+import History from './pages/History'
  
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Route path="/countries/:name" element={<CountryProfile />} />
             <Route path="/map" element={<WorldCupMap />} />
             <Route path="/cities/:name" element={<CityProfile />} />
+            <Route path="/history" element={<History />} />
             <Route path="/predictions" element={
               <ProtectedRoute><Predictions /></ProtectedRoute>
             } />

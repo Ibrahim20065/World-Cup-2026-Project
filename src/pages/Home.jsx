@@ -83,11 +83,10 @@ export default function Home() {
         }} />
 
         {/* Group color bar */}
-        <div style={{ display: 'flex', height: 4 }}>
-          {GROUP_COLORS.map((c, i) => (
-            <div key={i} style={{ flex: 1, background: c }} />
-          ))}
-        </div>
+        <div style={{
+  height: 2,
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+}} />
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '72px 24px 64px', textAlign: 'center', position: 'relative' }}>
 

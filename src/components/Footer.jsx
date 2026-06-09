@@ -54,9 +54,10 @@ function Footer() {
       marginTop: 'auto',
     }}>
       {/* Bottom color bar */}
-      <div style={{ display: 'flex', height: 2 }}>
-        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
-      </div>
+      <div style={{
+  height: 2,
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+}} />
 
       <div style={{
         maxWidth: 1100, margin: '0 auto', padding: '28px 24px',

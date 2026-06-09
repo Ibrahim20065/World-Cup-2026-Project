@@ -55,26 +55,37 @@ const U21_NAMES = new Set([
 const U21_PLAYERS = PLAYERS.filter(p => U21_NAMES.has(p.name))
 
 // ── SORTABLE TEAM ──
-function SortableTeam({ team, index }) {
+function SortableTeam({ team, index, total, onMove }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: team })
-  const pos = POSITION_CONFIG[index]
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 50 : 'auto' }
+  const pos = POSITION_CONFIG[index]
+
   return (
-    <div ref={setNodeRef} style={{ ...style, display: 'flex', alignItems: 'center', gap: 10,
-      background: isDragging ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10,
-      padding: '10px 12px', cursor: 'grab', transition: 'background 0.15s' }}
-      {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes}
+      className="flex items-center gap-3 bg-gray-700 hover:bg-gray-600 rounded-lg px-3 py-2.5 transition">
       <span style={{ width: 28, height: 28, borderRadius: '50%', background: pos.bg, color: pos.color,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
         {pos.label}
       </span>
       <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team}
-        style={{ width: 32, height: 21, objectFit: 'cover', borderRadius: 3, flexShrink: 0 }}
-        onError={e => { e.target.style.display = 'none' }} />
-      <span style={{ flex: 1, fontWeight: 600, fontSize: 13, color: '#f1f5f9' }}>{team}</span>
-      <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 16, userSelect: 'none' }}>⠿</span>
+        className="w-8 h-5 object-cover rounded-sm flex-shrink-0"
+        onError={(e) => { e.target.style.display = 'none' }} />
+      <span className="flex-1 font-medium text-white text-sm">{team}</span>
+
+      {/* Arrow buttons — mobile only */}
+      <div className="flex flex-col gap-0.5 sm:hidden">
+        <button onClick={() => onMove(index, index - 1)} disabled={index === 0}
+          className="w-6 h-5 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-gray-500 disabled:opacity-20 transition text-xs">
+          ▲
+        </button>
+        <button onClick={() => onMove(index, index + 1)} disabled={index === total - 1}
+          className="w-6 h-5 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-gray-500 disabled:opacity-20 transition text-xs">
+          ▼
+        </button>
+      </div>
+
+      {/* Drag handle — desktop only */}
+      <span {...listeners} className="text-gray-500 text-lg select-none cursor-grab hidden sm:block">⠿</span>
     </div>
   )
 }
@@ -251,7 +262,13 @@ function Predictions() {
   const [awardsLocked, setAwardsLocked] = useState(false)
 
   const token = localStorage.getItem('token')
-  const sensors = useSensors(useSensor(PointerSensor))
+  const sensors = useSensors(
+  useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 8,
+    },
+  })
+)
 
   useEffect(() => {
     axios.get('http://192.168.100.3:5000/api/groups').then(res => {
@@ -367,9 +384,10 @@ function Predictions() {
     <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
-      <div style={{ display: 'flex', height: 3 }}>
-        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
-      </div>
+      <div style={{
+  height: 3,
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+}} />      
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
 
@@ -454,8 +472,21 @@ function Predictions() {
                       <SortableContext items={groupPredictions[groupName] || []} strategy={verticalListSortingStrategy}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {groupPredictions[groupName]?.map((team, index) => (
-                            <SortableTeam key={team} team={team} index={index} />
-                          ))}
+                            <SortableTeam
+                                   key={team}
+                                   team={team}
+                                   index={index}
+                                   total={groupPredictions[groupName].length}
+                                   onMove={(from, to) => {
+                                   if (to < 0 || to >= groupPredictions[groupName].length) return
+                                   setGroupPredictions(prev => ({
+                                   ...prev,
+                                   [groupName]: arrayMove(prev[groupName], from, to)
+                                }))
+                              }}
+                            />
+                           ))}
+                          
                         </div>
                       </SortableContext>
                     </DndContext>
