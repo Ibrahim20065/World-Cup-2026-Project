@@ -218,15 +218,13 @@ const countryName = SPECIAL_NAMES[name] || name
                     <div className="flex flex-col gap-2">
                       {posPlayers.map(player => (
                         <div
-                          key={player.name}
-                          className="flex items-center gap-3 bg-gray-700 rounded-lg px-3 py-2"
-                        >
-                          <img
-                            src={`https://flagcdn.com/w40/${player.flag}.png`}
-                            alt={player.country}
-                            className="w-7 h-5 object-cover rounded-sm"
-                          />
-                          <span className="text-white font-medium text-sm">{player.name}</span>
+                           key={player.name}
+                           className="flex items-center gap-3 bg-gray-700 rounded-lg px-3 py-2"
+                           >
+                        <span className="w-7 h-7 flex items-center justify-center bg-gray-600 rounded-full text-green-400 font-extrabold text-xs flex-shrink-0">
+                        {player.number}
+                        </span>
+                        <span className="text-white font-medium text-sm">{player.name}</span>
                         </div>
                       ))}
                     </div>

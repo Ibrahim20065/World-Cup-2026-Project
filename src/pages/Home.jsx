@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useAuth } from '../assets/AuthContext'
 
 function Home() {
+  const {user} = useAuth()
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       
@@ -33,11 +35,11 @@ function Home() {
           className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0"
         >
           <Link
-            to="/signup"
-            className="bg-green-500 hover:bg-green-400 text-black font-bold px-8 py-3 rounded-full transition text-center"
-          >
-            Get Started
-          </Link>
+  to={user ? '/livescores' : '/signup'}
+  className="bg-green-500 hover:bg-green-400 text-black font-bold px-8 py-3 rounded-full transition text-center"
+>
+  Get Started
+</Link>
           <Link
             to="/predictions"
             className="border border-green-500 hover:bg-green-500 hover:text-black text-green-400 font-bold px-8 py-3 rounded-full transition text-center"
