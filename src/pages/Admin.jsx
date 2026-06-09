@@ -3,18 +3,21 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
+const GROUP_COLORS = [
+  '#ef4444','#f97316','#eab308','#22c55e',
+  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#14b8a6','#f59e0b','#84cc16','#6366f1',
+]
+
 function Admin() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [editPoints, setEditPoints] = useState({})
   const navigate = useNavigate()
-
   const token = localStorage.getItem('token')
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
     const isAdmin = localStorage.getItem('is_admin')
     if (!token) { navigate('/login'); return }
     if (isAdmin !== 'true') { navigate('/'); return }
@@ -22,7 +25,6 @@ function Admin() {
   }, [])
 
   const fetchUsers = async () => {
-    const token = localStorage.getItem('token')
     try {
       const res = await axios.get('http://192.168.100.3:5000/api/admin/users', {
         headers: { Authorization: `Bearer ${token}` }
@@ -30,27 +32,21 @@ function Admin() {
       setUsers(res.data)
       setLoading(false)
     } catch {
-      setError('Failed to load users')
       setLoading(false)
     }
   }
 
   const deleteUser = async (userId, username) => {
-    if (!confirm(`Are you sure you want to delete ${username}?`)) return
+    if (!confirm(`Delete ${username}?`)) return
     try {
-      await axios.delete(`http://192.168.100.3:5000/api/admin/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await axios.delete(`http://192.168.100.3:5000/api/admin/users/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
       setUsers(users.filter(u => u.id !== userId))
     } catch { alert('Failed to delete user') }
   }
 
   const toggleAdmin = async (userId) => {
     try {
-      const res = await axios.post(
-        `http://192.168.100.3:5000/api/admin/users/${userId}/toggle-admin`,
-        {}, { headers: { Authorization: `Bearer ${token}` } }
-      )
+      const res = await axios.post(`http://192.168.100.3:5000/api/admin/users/${userId}/toggle-admin`, {}, { headers: { Authorization: `Bearer ${token}` } })
       setUsers(users.map(u => u.id === userId ? { ...u, is_admin: res.data.is_admin } : u))
     } catch { alert('Failed to update admin status') }
   }
@@ -59,11 +55,7 @@ function Admin() {
     const points = editPoints[userId]
     if (points === undefined) return
     try {
-      await axios.post(
-        `http://192.168.100.3:5000/api/admin/users/${userId}/points`,
-        { points: parseInt(points) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      await axios.post(`http://192.168.100.3:5000/api/admin/users/${userId}/points`, { points: parseInt(points) }, { headers: { Authorization: `Bearer ${token}` } })
       setUsers(users.map(u => u.id === userId ? { ...u, points: parseInt(points) } : u))
       setEditPoints(prev => ({ ...prev, [userId]: undefined }))
     } catch { alert('Failed to update points') }
@@ -75,234 +67,295 @@ function Admin() {
   )
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-green-400 text-xl animate-pulse">Loading admin panel...</p>
+    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 32, marginBottom: 12 }}>⚙️</div>
+        <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading admin panel...</p>
+      </div>
     </div>
   )
 
+  const CONTROLS = [
+    {
+      label: 'Score Group Stage',
+      desc: 'Run after June 27 when group stage ends',
+      color: '#3b82f6',
+      icon: '📊',
+      action: async () => {
+        if (!confirm('Score all group stage predictions now?')) return
+        try {
+          const res = await axios.post('http://192.168.100.3:5000/api/admin/score-groups', {}, { headers: { Authorization: `Bearer ${token}` } })
+          alert(`✅ Group stage scored! ${res.data.results?.length || 0} users updated.`)
+          fetchUsers()
+        } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
+      }
+    },
+    {
+      label: 'Score Knockouts',
+      desc: 'Manually trigger knockout match scoring',
+      color: '#8b5cf6',
+      icon: '🏆',
+      action: async () => {
+        if (!confirm('Run knockout scoring now?')) return
+        try {
+          await axios.post('http://192.168.100.3:5000/api/admin/score-knockouts', {}, { headers: { Authorization: `Bearer ${token}` } })
+          alert('✅ Knockout scoring done!')
+          fetchUsers()
+        } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
+      }
+    },
+    {
+      label: 'Reset All Points',
+      desc: '⚠️ Resets everyone\'s points to 0',
+      color: '#ef4444',
+      icon: '🔄',
+      action: async () => {
+        if (!confirm('RESET ALL POINTS? This cannot be undone!')) return
+        if (!confirm('Are you absolutely sure?')) return
+        try {
+          await axios.post('http://192.168.100.3:5000/api/admin/reset-points', {}, { headers: { Authorization: `Bearer ${token}` } })
+          alert('✅ All points reset to 0')
+          fetchUsers()
+        } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
+      }
+    },
+  ]
+
+  const STATS = [
+    { label: 'Total Users', value: users.length, icon: '👥', color: '#3b82f6' },
+    { label: 'Admins', value: users.filter(u => u.is_admin).length, icon: '⭐', color: '#fbbf24' },
+    { label: 'Top Points', value: Math.max(...users.map(u => u.points), 0), icon: '🏆', color: '#22c55e' },
+    { label: 'Avg Points', value: users.length ? Math.round(users.reduce((a, u) => a + u.points, 0) / users.length) : 0, icon: '📊', color: '#8b5cf6' },
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 py-8">
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl sm:text-4xl font-extrabold text-green-400 mb-2"
-      >
-        Admin Panel ⚙️
-      </motion.h1>
-      <p className="text-gray-400 text-sm mb-6">Manage users, points, and admin privileges.</p>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Total Users', value: users.length, icon: '👥' },
-          { label: 'Admins', value: users.filter(u => u.is_admin).length, icon: '⭐' },
-          { label: 'Top Points', value: Math.max(...users.map(u => u.points), 0), icon: '🏆' },
-          { label: 'Avg Points', value: users.length ? Math.round(users.reduce((a, u) => a + u.points, 0) / users.length) : 0, icon: '📊' },
-        ].map(stat => (
-          <div key={stat.label} className="bg-gray-800 rounded-2xl p-3 sm:p-4 border border-gray-700 text-center">
-            <div className="text-xl sm:text-2xl mb-1">{stat.icon}</div>
-            <div className="text-xl sm:text-2xl font-extrabold text-green-400">{stat.value}</div>
-            <div className="text-gray-400 text-xs mt-1">{stat.label}</div>
-          </div>
-        ))}
+      {/* Top color bar */}
+      <div style={{ display: 'flex', height: 3 }}>
+        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
       </div>
 
-      {/* Tournament Controls */}
-      <div className="bg-gray-800 rounded-2xl border border-gray-700 p-4 sm:p-6 mb-6">
-        <h2 className="text-green-400 font-extrabold text-lg mb-4">⚙️ Tournament Controls</h2>
-        <div className="flex flex-col sm:flex-row flex-wrap gap-4">
-          <div className="flex flex-col gap-2">
-            <p className="text-gray-400 text-xs">Run after June 27 when group stage ends</p>
-            <button
-              onClick={async () => {
-                if (!confirm('Score all group stage predictions now?')) return
-                try {
-                  const res = await axios.post('http://192.168.100.3:5000/api/admin/score-groups', {}, { headers: { Authorization: `Bearer ${token}` } })
-                  alert(`✅ Group stage scored! ${res.data.results?.length || 0} users updated.`)
-                  fetchUsers()
-                } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
-              }}
-              className="bg-blue-500 hover:bg-blue-400 text-white font-bold px-6 py-3 rounded-full transition"
-            >
-              📊 Score Group Stage
-            </button>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
+            FIFA World Cup 2026
           </div>
-
-          <div className="flex flex-col gap-2">
-            <p className="text-gray-400 text-xs">Manually trigger knockout match scoring</p>
-            <button
-              onClick={async () => {
-                if (!confirm('Run knockout scoring now?')) return
-                try {
-                  await axios.post('http://192.168.100.3:5000/api/admin/score-knockouts', {}, { headers: { Authorization: `Bearer ${token}` } })
-                  alert('✅ Knockout scoring done!')
-                  fetchUsers()
-                } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
-              }}
-              className="bg-purple-500 hover:bg-purple-400 text-white font-bold px-6 py-3 rounded-full transition"
-            >
-              🏆 Score Knockouts
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <p className="text-gray-400 text-xs">⚠️ Resets everyone's points to 0</p>
-            <button
-              onClick={async () => {
-                if (!confirm('RESET ALL POINTS? This cannot be undone!')) return
-                if (!confirm('Are you absolutely sure?')) return
-                try {
-                  await axios.post('http://192.168.100.3:5000/api/admin/reset-points', {}, { headers: { Authorization: `Bearer ${token}` } })
-                  alert('✅ All points reset to 0')
-                  fetchUsers()
-                } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
-              }}
-              className="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded-full transition"
-            >
-              🔄 Reset All Points
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <input
-        type="text"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search by username or email..."
-        className="w-full max-w-md bg-gray-800 border border-gray-600 text-white px-5 py-3 rounded-full mb-6 focus:outline-none focus:border-green-500"
-      />
-
-      {/* Desktop Table — hidden on mobile */}
-      <div className="hidden sm:block bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-        <div className="grid grid-cols-12 px-6 py-3 border-b border-gray-700 text-gray-400 text-xs uppercase tracking-wider">
-          <span className="col-span-1">ID</span>
-          <span className="col-span-3">Username</span>
-          <span className="col-span-3">Email</span>
-          <span className="col-span-2">Points</span>
-          <span className="col-span-3">Actions</span>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            Admin Panel <span style={{ color: '#fbbf24' }}>⚙️</span>
+          </h1>
+          <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>Manage users, points, and tournament controls.</p>
         </div>
 
-        {filtered.map((user, index) => (
-          <motion.div
-            key={user.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.05 * index }}
-            className="grid grid-cols-12 px-6 py-4 border-b border-gray-700 last:border-0 items-center hover:bg-gray-700 transition"
-          >
-            <span className="col-span-1 text-gray-500 text-sm">#{user.id}</span>
-            <div className="col-span-3">
-              <span className="text-white font-medium text-sm">{user.username}</span>
-              {user.is_admin && <span className="text-yellow-400 text-xs ml-2">⭐</span>}
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
+          {STATS.map(stat => (
+            <div key={stat.label} style={{
+              background: '#0d1526', border: `1px solid ${stat.color}20`,
+              borderTop: `3px solid ${stat.color}`, borderRadius: 12,
+              padding: '16px 12px', textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 22, marginBottom: 6 }}>{stat.icon}</div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: stat.color, lineHeight: 1 }}>{stat.value}</div>
+              <div style={{ color: '#475569', fontSize: 11, marginTop: 4, fontWeight: 600 }}>{stat.label}</div>
             </div>
-            <span className="col-span-3 text-gray-400 text-sm truncate">{user.email}</span>
-            <div className="col-span-2 flex items-center gap-2">
-              <input
-                type="number"
-                value={editPoints[user.id] !== undefined ? editPoints[user.id] : user.points}
-                onChange={e => setEditPoints(prev => ({ ...prev, [user.id]: e.target.value }))}
-                className="w-16 bg-gray-700 text-white text-sm px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
-              />
-              {editPoints[user.id] !== undefined && (
-                <button onClick={() => updatePoints(user.id)} className="text-green-400 text-xs font-bold">Save</button>
-              )}
-            </div>
-            <div className="col-span-3 flex gap-2">
-              <button
-                onClick={() => toggleAdmin(user.id)}
-                className={`text-xs font-bold px-3 py-1 rounded-full transition ${
-                  user.is_admin ? 'bg-yellow-500 text-black' : 'border border-yellow-500 text-yellow-400'
-                }`}
-              >
-                {user.is_admin ? 'Remove' : 'Make Admin'}
-              </button>
-              <button
-                onClick={() => deleteUser(user.id, user.username)}
-                className="text-xs font-bold px-3 py-1 rounded-full border border-red-500 text-red-400"
-              >
-                Delete
-              </button>
-            </div>
-          </motion.div>
-        ))}
+          ))}
+        </div>
 
-        {filtered.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-gray-500">No users found</p>
+        {/* Tournament Controls */}
+        <div style={{
+          background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 14, padding: 20, marginBottom: 24,
+          borderTop: '3px solid #fbbf24',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>
+            ⚙️ Tournament Controls
           </div>
-        )}
-      </div>
-
-      {/* Mobile Cards — shown only on mobile */}
-      <div className="sm:hidden flex flex-col gap-4">
-        {filtered.map((user, index) => (
-          <motion.div
-            key={user.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * index }}
-            className="bg-gray-800 rounded-2xl p-4 border border-gray-700"
-          >
-            {/* User info */}
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-white font-bold">
-                  {user.username}
-                  {user.is_admin && <span className="text-yellow-400 text-xs ml-2">⭐ Admin</span>}
-                </p>
-                <p className="text-gray-400 text-xs mt-0.5">{user.email}</p>
-              </div>
-              <span className="text-gray-500 text-xs">#{user.id}</span>
-            </div>
-
-            {/* Points editor */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-gray-400 text-sm">Points:</span>
-              <input
-                type="number"
-                value={editPoints[user.id] !== undefined ? editPoints[user.id] : user.points}
-                onChange={e => setEditPoints(prev => ({ ...prev, [user.id]: e.target.value }))}
-                className="w-20 bg-gray-700 text-white text-sm px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
-              />
-              {editPoints[user.id] !== undefined && (
-                <button onClick={() => updatePoints(user.id)} className="text-green-400 text-sm font-bold">
-                  Save
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+            {CONTROLS.map(ctrl => (
+              <div key={ctrl.label} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={{ color: '#334155', fontSize: 11, margin: 0, fontWeight: 600 }}>{ctrl.desc}</p>
+                <button onClick={ctrl.action}
+                  style={{
+                    background: `${ctrl.color}15`, border: `1px solid ${ctrl.color}40`,
+                    color: ctrl.color, fontWeight: 700, fontSize: 13,
+                    padding: '10px 20px', borderRadius: 10, cursor: 'pointer',
+                    transition: 'background 0.15s',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = `${ctrl.color}25`}
+                  onMouseLeave={e => e.currentTarget.style.background = `${ctrl.color}15`}
+                >
+                  {ctrl.icon} {ctrl.label}
                 </button>
-              )}
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => toggleAdmin(user.id)}
-                className={`flex-1 text-xs font-bold px-3 py-2 rounded-full transition ${
-                  user.is_admin
-                    ? 'bg-yellow-500 text-black'
-                    : 'border border-yellow-500 text-yellow-400'
-                }`}
-              >
-                {user.is_admin ? '⭐ Remove Admin' : 'Make Admin'}
-              </button>
-              <button
-                onClick={() => deleteUser(user.id, user.username)}
-                className="flex-1 text-xs font-bold px-3 py-2 rounded-full border border-red-500 text-red-400"
-              >
-                🗑️ Delete
-              </button>
-            </div>
-          </motion.div>
-        ))}
-
-        {filtered.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-gray-500">No users found</p>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
 
+        {/* Search */}
+        <div style={{ position: 'relative', maxWidth: 360, marginBottom: 20 }}>
+          <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, pointerEvents: 'none' }}>🔍</span>
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search by username or email..."
+            style={{
+              width: '100%', background: '#0d1526',
+              border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9',
+              padding: '10px 16px 10px 40px', borderRadius: 10, fontSize: 13,
+              outline: 'none', boxSizing: 'border-box',
+            }}
+            onFocus={e => e.target.style.borderColor = '#3b82f6'}
+            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden sm:block" style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: '50px 1fr 1fr 100px 160px',
+            padding: '10px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+            fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em',
+          }}>
+            <span>ID</span><span>Username</span><span>Email</span><span>Points</span><span>Actions</span>
+          </div>
+
+          {filtered.map((user, i) => (
+            <motion.div key={user.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.03 * i }}
+              style={{
+                display: 'grid', gridTemplateColumns: '50px 1fr 1fr 100px 160px',
+                padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.04)',
+                alignItems: 'center', transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ color: '#334155', fontSize: 12, fontWeight: 600 }}>#{user.id}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: '50%',
+                  background: user.is_admin ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.06)',
+                  border: user.is_admin ? '1px solid rgba(251,191,36,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 12, fontWeight: 800, color: user.is_admin ? '#fbbf24' : '#94a3b8',
+                }}>{user.username.charAt(0).toUpperCase()}</div>
+                <div>
+                  <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13 }}>{user.username}</span>
+                  {user.is_admin && <span style={{ color: '#fbbf24', fontSize: 10, fontWeight: 700, marginLeft: 6 }}>⭐ ADMIN</span>}
+                </div>
+              </div>
+              <span style={{ color: '#475569', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{user.email}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input type="number"
+                  value={editPoints[user.id] !== undefined ? editPoints[user.id] : user.points}
+                  onChange={e => setEditPoints(prev => ({ ...prev, [user.id]: e.target.value }))}
+                  style={{
+                    width: 56, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+                    color: '#f1f5f9', fontSize: 12, padding: '5px 8px', borderRadius: 6, outline: 'none',
+                  }} />
+                {editPoints[user.id] !== undefined && (
+                  <button onClick={() => updatePoints(user.id)}
+                    style={{ background: 'none', border: 'none', color: '#22c55e', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={() => toggleAdmin(user.id)}
+                  style={{
+                    fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
+                    background: user.is_admin ? 'rgba(251,191,36,0.15)' : 'transparent',
+                    border: `1px solid ${user.is_admin ? 'rgba(251,191,36,0.4)' : 'rgba(251,191,36,0.25)'}`,
+                    color: '#fbbf24', transition: 'background 0.15s',
+                  }}>
+                  {user.is_admin ? 'Remove' : 'Admin'}
+                </button>
+                <button onClick={() => deleteUser(user.id, user.username)}
+                  style={{
+                    fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
+                    background: 'transparent', border: '1px solid rgba(239,68,68,0.25)',
+                    color: '#f87171', transition: 'background 0.15s',
+                  }}>
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          ))}
+
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+              <p style={{ color: '#334155', fontSize: 14, fontWeight: 600 }}>No users found</p>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="sm:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {filtered.map((user, i) => (
+            <motion.div key={user.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 * i }}
+              style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: user.is_admin ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.06)',
+                    border: `1px solid ${user.is_admin ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 800, color: user.is_admin ? '#fbbf24' : '#94a3b8',
+                  }}>{user.username.charAt(0).toUpperCase()}</div>
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9', margin: 0 }}>
+                      {user.username}
+                      {user.is_admin && <span style={{ color: '#fbbf24', fontSize: 10, fontWeight: 700, marginLeft: 6 }}>⭐</span>}
+                    </p>
+                    <p style={{ color: '#334155', fontSize: 12, margin: 0 }}>{user.email}</p>
+                  </div>
+                </div>
+                <span style={{ color: '#334155', fontSize: 11, fontWeight: 600 }}>#{user.id}</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ color: '#475569', fontSize: 13 }}>Points:</span>
+                <input type="number"
+                  value={editPoints[user.id] !== undefined ? editPoints[user.id] : user.points}
+                  onChange={e => setEditPoints(prev => ({ ...prev, [user.id]: e.target.value }))}
+                  style={{
+                    width: 64, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+                    color: '#f1f5f9', fontSize: 13, padding: '6px 10px', borderRadius: 8, outline: 'none',
+                  }} />
+                {editPoints[user.id] !== undefined && (
+                  <button onClick={() => updatePoints(user.id)}
+                    style={{ background: 'none', border: 'none', color: '#22c55e', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => toggleAdmin(user.id)}
+                  style={{
+                    flex: 1, fontSize: 12, fontWeight: 700, padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+                    background: user.is_admin ? 'rgba(251,191,36,0.15)' : 'transparent',
+                    border: `1px solid ${user.is_admin ? 'rgba(251,191,36,0.4)' : 'rgba(251,191,36,0.25)'}`,
+                    color: '#fbbf24',
+                  }}>
+                  {user.is_admin ? '⭐ Remove Admin' : 'Make Admin'}
+                </button>
+                <button onClick={() => deleteUser(user.id, user.username)}
+                  style={{
+                    flex: 1, fontSize: 12, fontWeight: 700, padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+                    background: 'transparent', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171',
+                  }}>
+                  🗑️ Delete
+                </button>
+              </div>
+            </motion.div>
+          ))}
+
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+              <p style={{ color: '#334155', fontSize: 14, fontWeight: 600 }}>No users found</p>
+            </div>
+          )}
+        </div>
+
+      </div>
     </div>
   )
 }

@@ -33,6 +33,13 @@ const GROUPS = {
   'L': ['England', 'Croatia', 'Ghana', 'Panama'],
 }
 
+const GROUP_COLORS = [
+  '#ef4444','#f97316','#eab308','#22c55e',
+  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#14b8a6','#f59e0b','#84cc16','#6366f1',
+]
+const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
+
 function Countries() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
@@ -48,74 +55,143 @@ function Countries() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 py-8">
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-      {/* Title */}
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl sm:text-4xl font-extrabold text-green-400 mb-2"
-      >
-        Countries 🌍
-      </motion.h1>
-      <p className="text-gray-400 text-sm sm:text-base mb-6">
-        All 48 nations at World Cup 2026 — tap a country to see their full profile.
-      </p>
+      {/* Top color bar */}
+      <div style={{ display: 'flex', height: 3 }}>
+        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
+      </div>
 
-      {/* Search */}
-      <input
-        type="text"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search a country..."
-        className="w-full max-w-md bg-gray-800 border border-gray-600 text-white px-5 py-3 rounded-full mb-8 focus:outline-none focus:border-green-500"
-      />
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
 
-      {/* Groups Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {Object.entries(filteredGroups).map(([group, teams]) => (
-          <motion.div
-            key={group}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-700"
-          >
-            <h2 className="text-green-400 font-extrabold text-lg mb-3">
-              Group {group}
-            </h2>
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
+            FIFA World Cup 2026
+          </div>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            Countries <span style={{ color: '#3b82f6' }}>🌍</span>
+          </h1>
+          <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>
+            All 48 nations at World Cup 2026 — tap a country to see their full profile.
+          </p>
+        </div>
 
-            <div className="flex flex-col gap-2">
-              {teams.map(team => {
-                const hasData = !!COUNTRY_DATA[team]
-                return (
-                  <button
-                    key={team}
-                    onClick={() => handleCountryClick(team)}
-                    disabled={!hasData}
-                    className={`flex items-center gap-3 p-3 rounded-xl transition text-left w-full ${
-                      hasData
-                        ? 'hover:bg-gray-700 active:bg-gray-600 cursor-pointer'
-                        : 'opacity-60 cursor-not-allowed'
-                    }`}
-                  >
-                    <img
-                      src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`}
-                      alt={team}
-                      className="w-9 h-6 object-cover rounded-sm flex-shrink-0"
-                      onError={(e) => { e.target.style.display = 'none' }}
-                    />
-                    <span className="text-white font-medium flex-1 text-sm sm:text-base">{team}</span>
-                    {hasData ? (
-                      <span className="text-green-400 text-xs flex-shrink-0">View →</span>
-                    ) : (
-                      <span className="text-gray-600 text-xs flex-shrink-0">Soon</span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </motion.div>
-        ))}
+        {/* Search */}
+        <div style={{ position: 'relative', maxWidth: 360, marginBottom: 32 }}>
+          <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 15, pointerEvents: 'none' }}>🔍</span>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search a country..."
+            style={{
+              width: '100%', background: '#0d1526',
+              border: '1px solid rgba(255,255,255,0.08)',
+              color: '#f1f5f9', padding: '10px 16px 10px 40px',
+              borderRadius: 10, fontSize: 14, outline: 'none',
+              boxSizing: 'border-box',
+              transition: 'border-color 0.2s',
+            }}
+            onFocus={e => e.target.style.borderColor = '#3b82f6'}
+            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
+          />
+        </div>
+
+        {/* Groups grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+          {Object.entries(filteredGroups).map(([group, teams], gi) => {
+            const color = GROUP_COLORS[GROUP_LETTERS.indexOf(group)] || '#3b82f6'
+            return (
+              <motion.div
+                key={group}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: gi * 0.04 }}
+                style={{
+                  background: '#0d1526',
+                  border: `1px solid ${color}25`,
+                  borderTop: `3px solid ${color}`,
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Group header */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '14px 16px 12px',
+                  borderBottom: `1px solid ${color}15`,
+                }}>
+                  <span style={{
+                    width: 30, height: 30, borderRadius: 8,
+                    background: color, color: '#000',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 13, fontWeight: 900, flexShrink: 0,
+                  }}>{group}</span>
+                  <span style={{ fontWeight: 800, fontSize: 15, color: '#f1f5f9' }}>Group {group}</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#334155', fontWeight: 600 }}>
+                    {teams.length} teams
+                  </span>
+                </div>
+
+                {/* Team list */}
+                <div style={{ padding: '8px 0' }}>
+                  {teams.map((team, ti) => {
+                    const hasData = !!COUNTRY_DATA[team]
+                    return (
+                      <button
+                        key={team}
+                        onClick={() => hasData && handleCountryClick(team)}
+                        disabled={!hasData}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '10px 16px', background: 'transparent', border: 'none',
+                          cursor: hasData ? 'pointer' : 'not-allowed',
+                          opacity: hasData ? 1 : 0.45,
+                          transition: 'background 0.15s',
+                          textAlign: 'left',
+                        }}
+                        onMouseEnter={e => { if (hasData) e.currentTarget.style.background = `${color}10` }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                      >
+                        {/* Position badge */}
+                        <span style={{
+                          width: 20, height: 20, borderRadius: 5,
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 10, fontWeight: 700, color: '#475569', flexShrink: 0,
+                        }}>{ti + 1}</span>
+
+                        <img
+                          src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`}
+                          alt={team}
+                          style={{ width: 34, height: 23, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+                          onError={e => { e.target.style.display = 'none' }}
+                        />
+
+                        <span style={{ flex: 1, fontWeight: 600, fontSize: 13, color: '#e2e8f0' }}>{team}</span>
+
+                        {hasData ? (
+                          <span style={{ fontSize: 11, fontWeight: 700, color: color, flexShrink: 0 }}>View →</span>
+                        ) : (
+                          <span style={{ fontSize: 10, fontWeight: 600, color: '#334155', flexShrink: 0 }}>Soon</span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+
+        {Object.keys(filteredGroups).length === 0 && (
+          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
+            <p style={{ color: '#475569', fontSize: 16, fontWeight: 600 }}>No countries found for "{search}"</p>
+          </div>
+        )}
       </div>
     </div>
   )

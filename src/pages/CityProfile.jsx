@@ -4,18 +4,46 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import CITY_DATA from '../cityData'
 
+const GROUP_COLORS = [
+  '#ef4444','#f97316','#eab308','#22c55e',
+  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#14b8a6','#f59e0b','#84cc16','#6366f1',
+]
+const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
+
+function getGroupColor(group) {
+  const idx = GROUP_LETTERS.indexOf(group)
+  return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
+}
+
+const FLAGS = {
+  'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
+  'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia': 'ba',
+  'Brazil': 'br', 'Scotland': 'gb-sct', 'Morocco': 'ma', 'Haiti': 'ht',
+  'USA': 'us', 'Australia': 'au', 'Paraguay': 'py', 'Turkey': 'tr',
+  'Germany': 'de', 'Ecuador': 'ec', 'Ivory Coast': 'ci', 'Curacao': 'cw',
+  'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
+  'Belgium': 'be', 'New Zealand': 'nz', 'Egypt': 'eg', 'Iran': 'ir',
+  'Spain': 'es', 'Uruguay': 'uy', 'Saudi Arabia': 'sa', 'Cape Verde': 'cv',
+  'France': 'fr', 'Norway': 'no', 'Senegal': 'sn', 'Iraq': 'iq',
+  'Argentina': 'ar', 'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz',
+  'Portugal': 'pt', 'Colombia': 'co', 'Uzbekistan': 'uz', 'DR Congo': 'cd',
+  'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
+}
+
+const COUNTRY_ACCENT = { us: '#3b82f6', mx: '#22c55e', ca: '#ef4444' }
+
 function CityProfile() {
   const { name } = useParams()
   const navigate = useNavigate()
   const [matches, setMatches] = useState([])
 
-  // Convert URL param back to city name
   const cityName = Object.keys(CITY_DATA).find(
     c => c.toLowerCase().replace(/ /g, '-') === name
   )
   const city = cityName ? CITY_DATA[cityName] : null
+  const accent = city ? (COUNTRY_ACCENT[city.flag] || '#3b82f6') : '#3b82f6'
 
-  // Fetch matches and filter by this city's stadium
   useEffect(() => {
     if (!city) return
     axios.get('http://192.168.100.3:5000/api/matches').then(res => {
@@ -28,10 +56,11 @@ function CityProfile() {
 
   if (!city) {
     return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white gap-4">
-        <p className="text-2xl font-bold text-gray-400">City not found 🚧</p>
+      <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: '#fff' }}>
+        <div style={{ fontSize: 48 }}>🚧</div>
+        <p style={{ color: '#64748b', fontSize: 18, fontWeight: 600 }}>City not found</p>
         <button onClick={() => navigate('/map')}
-          className="bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-3 rounded-full">
+          style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 100, border: 'none', cursor: 'pointer' }}>
           ← Back to Map
         </button>
       </div>
@@ -39,95 +68,185 @@ function CityProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+
+      {/* Top color bar */}
+      <div style={{ display: 'flex', height: 3 }}>
+        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
+      </div>
+
       {/* Hero */}
-      <div className="bg-gray-800 border-b border-gray-700 px-8 py-12">
-        <button onClick={() => navigate('/map')}
-          className="text-gray-400 hover:text-green-400 text-sm mb-6 transition">
-          ← Back to Map
-        </button>
-        <div className="flex items-center gap-6">
-          <img src={`https://flagcdn.com/w160/${city.flag}.png`} alt={city.country}
-            className="w-28 h-18 object-cover rounded-xl shadow-2xl border-2 border-gray-600"
-            onError={(e) => { e.target.style.display = 'none' }} />
-          <div>
-            <h1 className="text-5xl font-extrabold mb-1">{cityName}</h1>
-            <p className="text-green-400 font-bold text-lg">🏟️ {city.stadium}</p>
-            <div className="flex gap-4 text-gray-400 text-sm mt-2">
-              <span>👥 {city.population || 'TBD'}</span>
-              <span>🪑 {city.capacity.toLocaleString()} capacity</span>
-              <span className="text-yellow-400">{city.hosts}</span>
+      <div style={{
+        background: `linear-gradient(180deg, ${accent}15 0%, transparent 100%)`,
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        padding: '28px 24px 32px',
+      }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <button onClick={() => navigate('/map')}
+            style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6, padding: 0 }}
+            onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
+            onMouseLeave={e => e.currentTarget.style.color = '#475569'}>
+            ← Back to Map
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+            {/* Flag */}
+            <img src={`https://flagcdn.com/w160/${city.flag}.png`} alt={city.country}
+              style={{ width: 112, height: 75, objectFit: 'cover', borderRadius: 12, flexShrink: 0, boxShadow: `0 8px 32px ${accent}30`, border: `2px solid ${accent}40` }}
+              onError={e => { e.target.style.display = 'none' }} />
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, color: accent,
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  background: `${accent}15`, border: `1px solid ${accent}30`,
+                  borderRadius: 100, padding: '3px 10px',
+                }}>{city.country}</span>
+              </div>
+              <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 900, margin: '0 0 10px', letterSpacing: '-0.02em' }}>{cityName}</h1>
+              <p style={{ color: accent, fontWeight: 700, fontSize: 15, margin: '0 0 10px' }}>🏟️ {city.stadium}</p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {[
+                  city.population && `👥 ${city.population}`,
+                  `🪑 ${city.capacity?.toLocaleString()} seats`,
+                  city.hosts,
+                ].filter(Boolean).map((item, i) => (
+                  <span key={i} style={{
+                    fontSize: 12, fontWeight: 600, color: '#64748b',
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: 100, padding: '4px 10px',
+                  }}>{item}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-8 py-10 max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* City Info */}
-        <div>
-          <h2 className="text-2xl font-extrabold text-green-400 mb-4">About {cityName}</h2>
-          <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700 flex flex-col gap-4">
-            {city.founded && (
-              <div className="flex justify-between border-b border-gray-700 pb-3">
-                <span className="text-gray-400 text-sm">Founded</span>
-                <span className="text-white font-medium text-sm">{city.founded}</span>
-              </div>
-            )}
-            {city.funFact && (
-              <div className="border-b border-gray-700 pb-3">
-                <p className="text-gray-400 text-sm mb-1">Did you know?</p>
-                <p className="text-white text-sm">{city.funFact}</p>
-              </div>
-            )}
-            {city.teams.length > 0 && (
-              <div className="border-b border-gray-700 pb-3">
-                <p className="text-gray-400 text-sm mb-2">🏆 Local Teams</p>
-                <div className="flex flex-wrap gap-2">
-                  {city.teams.map(team => (
-                    <span key={team} className="bg-gray-700 text-white text-xs px-3 py-1 rounded-full">{team}</span>
-                  ))}
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 24px 80px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+
+          {/* City Info */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>
+              About {cityName}
+            </div>
+            <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden', borderTop: `3px solid ${accent}` }}>
+
+              {city.founded && (
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#475569', fontSize: 13 }}>📅 Founded</span>
+                  <span style={{ color: '#cbd5e1', fontSize: 13, fontWeight: 600 }}>{city.founded}</span>
                 </div>
-              </div>
-            )}
-            {city.attractions.length > 0 && (
-              <div>
-                <p className="text-gray-400 text-sm mb-2">📍 Attractions</p>
-                <div className="flex flex-wrap gap-2">
-                  {city.attractions.map(a => (
-                    <span key={a} className="bg-green-500 bg-opacity-20 text-green-400 text-xs px-3 py-1 rounded-full">{a}</span>
-                  ))}
+              )}
+
+              {city.funFact && (
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <p style={{ color: '#475569', fontSize: 12, margin: '0 0 6px', fontWeight: 600 }}>💡 Did you know?</p>
+                  <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.6 }}>{city.funFact}</p>
                 </div>
+              )}
+
+              {city.teams?.length > 0 && (
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <p style={{ color: '#475569', fontSize: 12, margin: '0 0 10px', fontWeight: 600 }}>🏆 Local Teams</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {city.teams.map(team => (
+                      <span key={team} style={{
+                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#94a3b8', fontSize: 12, fontWeight: 600,
+                        padding: '4px 10px', borderRadius: 100,
+                      }}>{team}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {city.attractions?.length > 0 && (
+                <div style={{ padding: '14px 16px' }}>
+                  <p style={{ color: '#475569', fontSize: 12, margin: '0 0 10px', fontWeight: 600 }}>📍 Attractions</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {city.attractions.map(a => (
+                      <span key={a} style={{
+                        background: `${accent}12`,
+                        border: `1px solid ${accent}30`,
+                        color: accent, fontSize: 12, fontWeight: 600,
+                        padding: '4px 10px', borderRadius: 100,
+                      }}>{a}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Matches */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Matches Hosted
+              </div>
+              <span style={{
+                background: `${accent}15`, border: `1px solid ${accent}30`,
+                color: accent, fontSize: 11, fontWeight: 800,
+                padding: '2px 8px', borderRadius: 100,
+              }}>{matches.length}</span>
+            </div>
+
+            {matches.length === 0 ? (
+              <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '40px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>⚽</div>
+                <p style={{ color: '#334155', fontSize: 14, fontWeight: 600 }}>No matches found for this venue.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {matches.map((match, i) => {
+                  const gc = getGroupColor(match.group)
+                  return (
+                    <motion.div key={match.id}
+                      initial={{ opacity: 0, x: 12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      style={{
+                        background: '#0d1526',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        borderLeft: `3px solid ${gc}`,
+                        borderRadius: 10, padding: '12px 14px',
+                      }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{
+                          fontSize: 10, fontWeight: 800, color: gc,
+                          textTransform: 'uppercase', letterSpacing: '0.08em',
+                        }}>
+                          {match.group ? `Group ${match.group}` : 'Knockout'} · Match {match.id}
+                        </span>
+                        <span style={{ color: '#334155', fontSize: 11, fontWeight: 600 }}>
+                          {match.date} · {match.time}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
+                          <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13 }}>{match.home}</span>
+                          <img src={`https://flagcdn.com/w40/${FLAGS[match.home] || 'un'}.png`} alt={match.home}
+                            style={{ width: 22, height: 15, objectFit: 'cover', borderRadius: 2 }}
+                            onError={e => { e.target.style.display = 'none' }} />
+                        </div>
+                        <span style={{ color: '#334155', fontWeight: 800, fontSize: 12, flexShrink: 0 }}>vs</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                          <img src={`https://flagcdn.com/w40/${FLAGS[match.away] || 'un'}.png`} alt={match.away}
+                            style={{ width: 22, height: 15, objectFit: 'cover', borderRadius: 2 }}
+                            onError={e => { e.target.style.display = 'none' }} />
+                          <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13 }}>{match.away}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
               </div>
             )}
           </div>
-        </div>
-
-        {/* Matches Hosted */}
-        <div>
-          <h2 className="text-2xl font-extrabold text-green-400 mb-4">
-            Matches Hosted ({matches.length})
-          </h2>
-          {matches.length === 0 ? (
-            <p className="text-gray-500 text-sm">No matches found for this venue.</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {matches.map(match => (
-                <motion.div key={match.id}
-                  initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
-                  className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-xs font-bold">Group {match.group} · Match {match.id}</span>
-                    <span className="text-gray-500 text-xs">{match.date} · {match.time}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-3 mt-2">
-                    <span className="text-white font-bold text-sm">{match.home}</span>
-                    <span className="text-green-400 text-xs">vs</span>
-                    <span className="text-white font-bold text-sm">{match.away}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>

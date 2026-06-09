@@ -3,12 +3,11 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import { useAuth } from '../assets/AuthContext'
 
-function RankBadge({ rank }) {
-  if (rank === 1) return <span className="text-2xl">🥇</span>
-  if (rank === 2) return <span className="text-2xl">🥈</span>
-  if (rank === 3) return <span className="text-2xl">🥉</span>
-  return <span className="text-gray-400 font-bold w-8 text-center text-sm">#{rank}</span>
-}
+const GROUP_COLORS = [
+  '#ef4444','#f97316','#eab308','#22c55e',
+  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#14b8a6','#f59e0b','#84cc16','#6366f1',
+]
 
 function Leaderboard() {
   const [players, setPlayers] = useState([])
@@ -25,181 +24,223 @@ function Leaderboard() {
   const myRank = players.find(p => p.username === currentUser)
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-green-400 text-xl animate-pulse">Loading leaderboard...</p>
+    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 32, marginBottom: 12 }}>🏅</div>
+        <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading leaderboard...</p>
+      </div>
     </div>
   )
 
+  const top3 = players.slice(0, 3)
+  const rest = players.slice(3)
+
+  const PODIUM_CONFIG = [
+    { index: 1, height: 150, medal: '🥈', color: '#94a3b8', border: 'rgba(148,163,184,0.3)', delay: 0.2 },
+    { index: 0, height: 200, medal: '🥇', color: '#fbbf24', border: 'rgba(251,191,36,0.4)', delay: 0.1 },
+    { index: 2, height: 110, medal: '🥉', color: '#fb923c', border: 'rgba(251,146,60,0.3)', delay: 0.3 },
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 py-8">
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-      {/* Title */}
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl sm:text-4xl font-extrabold text-green-400 mb-2"
-      >
-        Leaderboard 🏅
-      </motion.h1>
-      <p className="text-gray-400 text-sm mb-6">
-        Rankings update automatically as predictions come true.
-      </p>
+      {/* Top color bar */}
+      <div style={{ display: 'flex', height: 3 }}>
+        {GROUP_COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
+      </div>
 
-      {/* My Rank Card */}
-      {myRank && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800 border border-green-500 rounded-2xl p-4 mb-6 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <RankBadge rank={myRank.rank} />
-            <div>
-              <p className="text-green-400 font-bold">{myRank.username}</p>
-              <p className="text-gray-400 text-xs">Your current rank</p>
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px 80px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
+            FIFA World Cup 2026
+          </div>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+            Leaderboard <span style={{ color: '#fbbf24' }}>🏅</span>
+          </h1>
+          <p style={{ color: '#475569', marginTop: 6, fontSize: 14 }}>
+            Rankings update automatically as predictions come true.
+          </p>
+        </div>
+
+        {/* My Rank Card */}
+        {myRank && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)',
+              borderRadius: 14, padding: '16px 20px', marginBottom: 28,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              borderLeft: '4px solid #22c55e',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 16, fontWeight: 900, color: '#000', flexShrink: 0,
+              }}>
+                {myRank.username.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p style={{ fontWeight: 800, color: '#22c55e', margin: 0, fontSize: 15 }}>{myRank.username}</p>
+                <p style={{ color: '#475569', margin: 0, fontSize: 12 }}>Rank #{myRank.rank} · Your position</p>
+              </div>
             </div>
-          </div>
-          <div className="text-right">
-            <p className="text-2xl sm:text-3xl font-extrabold text-white">{myRank.points}</p>
-            <p className="text-gray-400 text-xs">points</p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Top 3 Podium */}
-      {players.length >= 3 && (
-        <div className="flex items-end justify-center gap-2 sm:gap-4 mb-8">
-
-          {/* 2nd Place */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col items-center bg-gray-800 rounded-2xl p-3 sm:p-5 flex-1 sm:w-32 sm:flex-none border border-gray-600"
-            style={{ height: '150px', justifyContent: 'flex-end' }}
-          >
-            <span className="text-2xl sm:text-3xl mb-1">🥈</span>
-            <p className="text-white font-bold text-xs sm:text-sm text-center truncate w-full">
-              {players[1]?.username}
-            </p>
-            <p className="text-gray-400 text-xs">{players[1]?.points} pts</p>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ fontSize: 28, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1 }}>{myRank.points}</p>
+              <p style={{ color: '#475569', margin: 0, fontSize: 12 }}>points</p>
+            </div>
           </motion.div>
-
-          {/* 1st Place */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex flex-col items-center bg-gray-800 rounded-2xl p-3 sm:p-5 flex-1 sm:w-36 sm:flex-none border border-yellow-500"
-            style={{ height: '190px', justifyContent: 'flex-end' }}
-          >
-            <span className="text-3xl sm:text-4xl mb-1">🥇</span>
-            <p className="text-yellow-400 font-extrabold text-xs sm:text-sm text-center truncate w-full">
-              {players[0]?.username}
-            </p>
-            <p className="text-gray-400 text-xs">{players[0]?.points} pts</p>
-          </motion.div>
-
-          {/* 3rd Place */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col items-center bg-gray-800 rounded-2xl p-3 sm:p-5 flex-1 sm:w-32 sm:flex-none border border-gray-600"
-            style={{ height: '120px', justifyContent: 'flex-end' }}
-          >
-            <span className="text-2xl sm:text-3xl mb-1">🥉</span>
-            <p className="text-white font-bold text-xs sm:text-sm text-center truncate w-full">
-              {players[2]?.username}
-            </p>
-            <p className="text-gray-400 text-xs">{players[2]?.points} pts</p>
-          </motion.div>
-
-        </div>
-      )}
-
-      {/* Full Rankings Table */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden"
-      >
-        {/* Table Header */}
-        <div className="grid grid-cols-12 px-4 sm:px-6 py-3 border-b border-gray-700 text-gray-400 text-xs uppercase tracking-wider">
-          <span className="col-span-2 sm:col-span-1">Rank</span>
-          <span className="col-span-7 sm:col-span-8">Player</span>
-          <span className="col-span-3 text-right">Points</span>
-        </div>
-
-        {players.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">No players yet 👀</p>
-            <p className="text-gray-600 text-sm mt-2">Be the first to sign up!</p>
-          </div>
-        ) : (
-          players.map((player, index) => (
-            <motion.div
-              key={player.username}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.05 * index }}
-              className={`grid grid-cols-12 px-4 sm:px-6 py-3 border-b border-gray-700 last:border-0 items-center transition ${
-                player.username === currentUser
-                  ? 'bg-green-500 bg-opacity-10 border-l-4 border-l-green-500'
-                  : 'hover:bg-gray-700'
-              }`}
-            >
-              {/* Rank */}
-              <div className="col-span-2 sm:col-span-1 flex items-center">
-                <RankBadge rank={player.rank} />
-              </div>
-
-              {/* Username */}
-              <div className="col-span-7 sm:col-span-8 flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${
-                  player.rank === 1 ? 'bg-yellow-500 text-black' :
-                  player.rank === 2 ? 'bg-gray-400 text-black' :
-                  player.rank === 3 ? 'bg-orange-500 text-white' :
-                  'bg-gray-700 text-white'
-                }`}>
-                  {player.username.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className={`font-bold text-sm truncate ${
-                    player.username === currentUser ? 'text-green-400' : 'text-white'
-                  }`}>
-                    {player.username}
-                    {player.username === currentUser && (
-                      <span className="text-green-500 text-xs ml-1">(You)</span>
-                    )}
-                  </p>
-                  {player.is_admin && (
-                    <p className="text-yellow-400 text-xs">⭐ Admin</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Points */}
-              <div className="col-span-3 text-right">
-                <span className={`font-extrabold text-base sm:text-lg ${
-                  player.rank === 1 ? 'text-yellow-400' :
-                  player.rank === 2 ? 'text-gray-300' :
-                  player.rank === 3 ? 'text-orange-400' :
-                  'text-white'
-                }`}>
-                  {player.points}
-                </span>
-                <span className="text-gray-500 text-xs ml-1">pts</span>
-              </div>
-            </motion.div>
-          ))
         )}
-      </motion.div>
 
-      <p className="text-gray-600 text-xs text-center mt-6">
-        Points are awarded automatically when predictions match real results ⚡
-      </p>
+        {/* Podium */}
+        {players.length >= 3 && (
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 8, marginBottom: 36 }}>
+            {PODIUM_CONFIG.map(({ index, height, medal, color, border, delay }) => {
+              const p = players[index]
+              if (!p) return null
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay }}
+                  style={{
+                    flex: 1, maxWidth: index === 0 ? 160 : 130,
+                    height, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'flex-end',
+                    background: `${color}10`,
+                    border: `1px solid ${border}`,
+                    borderBottom: `3px solid ${color}`,
+                    borderRadius: '12px 12px 0 0',
+                    padding: '12px 8px 14px',
+                  }}
+                >
+                  <span style={{ fontSize: index === 0 ? 32 : 24, marginBottom: 6 }}>{medal}</span>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: `${color}20`, border: `2px solid ${color}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 900, color, marginBottom: 6,
+                  }}>
+                    {p.username.charAt(0).toUpperCase()}
+                  </div>
+                  <p style={{ fontWeight: 800, fontSize: 12, color: '#f1f5f9', margin: 0, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.username}
+                  </p>
+                  <p style={{ color, fontWeight: 800, fontSize: 13, margin: '2px 0 0' }}>{p.points} pts</p>
+                </motion.div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Full Table */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden' }}
+        >
+          {/* Table header */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '48px 1fr 80px',
+            padding: '10px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+            fontSize: 11, fontWeight: 700, color: '#475569',
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+          }}>
+            <span>Rank</span>
+            <span>Player</span>
+            <span style={{ textAlign: 'right' }}>Points</span>
+          </div>
+
+          {players.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>👀</div>
+              <p style={{ color: '#475569', fontSize: 16, fontWeight: 600, margin: 0 }}>No players yet</p>
+              <p style={{ color: '#334155', fontSize: 13, marginTop: 6 }}>Be the first to sign up!</p>
+            </div>
+          ) : (
+            players.map((player, i) => {
+              const isMe = player.username === currentUser
+              const rankColor = player.rank === 1 ? '#fbbf24' : player.rank === 2 ? '#94a3b8' : player.rank === 3 ? '#fb923c' : '#64748b'
+              const avatarBg = player.rank === 1 ? 'linear-gradient(135deg,#fbbf24,#d97706)' :
+                               player.rank === 2 ? 'linear-gradient(135deg,#94a3b8,#64748b)' :
+                               player.rank === 3 ? 'linear-gradient(135deg,#fb923c,#ea580c)' :
+                               'rgba(255,255,255,0.06)'
+              const avatarColor = player.rank <= 3 ? '#000' : '#94a3b8'
+
+              return (
+                <motion.div
+                  key={player.username}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.03 * i }}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '48px 1fr 80px',
+                    padding: '12px 20px',
+                    borderBottom: i < players.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                    alignItems: 'center',
+                    background: isMe ? 'rgba(34,197,94,0.06)' : 'transparent',
+                    borderLeft: isMe ? '3px solid #22c55e' : '3px solid transparent',
+                    transition: 'background 0.15s',
+                  }}
+                >
+                  {/* Rank */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {player.rank <= 3 ? (
+                      <span style={{ fontSize: 18 }}>
+                        {player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : '🥉'}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>#{player.rank}</span>
+                    )}
+                  </div>
+
+                  {/* Player */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <div style={{
+                      width: 34, height: 34, borderRadius: '50%',
+                      background: avatarBg, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 13, fontWeight: 800, color: avatarColor,
+                    }}>
+                      {player.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{
+                        fontWeight: 700, fontSize: 14, margin: 0,
+                        color: isMe ? '#22c55e' : '#f1f5f9',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {player.username}
+                        {isMe && <span style={{ color: '#22c55e', fontSize: 11, fontWeight: 600, marginLeft: 6 }}>(You)</span>}
+                      </p>
+                      {player.is_admin && (
+                        <p style={{ color: '#fbbf24', fontSize: 11, margin: 0, fontWeight: 600 }}>⭐ Admin</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Points */}
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: 16, fontWeight: 900, color: rankColor }}>{player.points}</span>
+                    <span style={{ color: '#475569', fontSize: 11, marginLeft: 4 }}>pts</span>
+                  </div>
+                </motion.div>
+              )
+            })
+          )}
+        </motion.div>
+
+        <p style={{ color: '#334155', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+          Points awarded automatically when predictions match real results ⚡
+        </p>
+      </div>
     </div>
   )
 }
