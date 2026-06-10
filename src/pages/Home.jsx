@@ -71,7 +71,7 @@ export default function Home() {
   const { user } = useAuth()
 
   return (
-    <div style={{ background: '#080d1a', minHeight: '100vh', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ background: '#080d1a', minHeight: '100vh', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* ── HERO ── */}
       <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -272,7 +272,7 @@ export default function Home() {
           }}
         >
           <div style={{ fontSize: 'clamp(20px, 4vw, 30px)', fontWeight: 800, marginBottom: 12 }}>
-            Ready to predict the champion? 🏆
+            Ready to predict the champion?
           </div>
           <div style={{ color: '#94a3b8', fontSize: 14, marginBottom: 28, maxWidth: 400, margin: '0 auto 28px' }}>
             Predictions lock when the first match kicks off on June 11 at 19:00 UTC.

@@ -56,7 +56,7 @@ function Countries() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
@@ -71,7 +71,7 @@ function Countries() {
           <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
             FIFA World Cup 2026
           </div>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
             Countries <span style={{ color: '#3b82f6' }}>🌍</span>
           </h1>
           <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>
@@ -162,7 +162,7 @@ function Countries() {
                           background: 'rgba(255,255,255,0.04)',
                           border: '1px solid rgba(255,255,255,0.06)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 10, fontWeight: 700, color: '#475569', flexShrink: 0,
+                          fontSize: 20, fontWeight: 700, color: '#475569', flexShrink: 0,
                         }}>{ti + 1}</span>
 
                         <img

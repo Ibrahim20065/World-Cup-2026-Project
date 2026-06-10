@@ -67,7 +67,7 @@ function CountryProfile() {
   const groupColor = getGroupColor(data.group_2026)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
@@ -107,7 +107,7 @@ function CountryProfile() {
                 }}>{data.group_2026}</span>
                 <span style={{ fontSize: 11, fontWeight: 700, color: groupColor, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Group {data.group_2026}</span>
               </div>
-              <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.02em' }}>{countryName}</h1>
+              <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.02em',fontFamily: 'Bebas Neue, sans-serif' }}>{countryName}</h1>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 {[
                   { label: data.confederation },

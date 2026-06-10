@@ -94,14 +94,14 @@ function Leaderboard() {
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 32, marginBottom: 12 }}>🏅</div>
+        <div style={{ fontSize: 32, marginBottom: 12 }}></div>
         <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading leaderboard...</p>
       </div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
 
@@ -113,7 +113,7 @@ function Leaderboard() {
             <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
               FIFA World Cup 2026
             </div>
-            <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
               Leaderboard <span style={{ color: '#fbbf24' }}>🏅</span>
             </h1>
             <p style={{ color: '#475569', marginTop: 6, fontSize: 14 }}>
@@ -190,7 +190,7 @@ function Leaderboard() {
                     {p.username.charAt(0).toUpperCase()}
                   </div>
                   <p style={{ fontWeight: 800, fontSize: 12, color: '#f1f5f9', margin: 0, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.username}</p>
-                  <p style={{ color, fontWeight: 800, fontSize: 13, margin: '2px 0 0' }}>{p.points} pts</p>
+                  <p style={{ color, fontWeight: 800, fontSize: 13, margin: '2px 0 0', fontFamily:'Bebas Neue, sans-serif' }}>{p.points} pts</p>
                 </motion.div>
               )
             })}

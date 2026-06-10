@@ -39,7 +39,7 @@ function Navbar() {
       backdropFilter: 'blur(12px)',
       borderBottom: '1px solid rgba(255,255,255,0.06)',
       position: 'sticky', top: 0, zIndex: 50,
-      fontFamily: 'Inter, system-ui, sans-serif',
+      fontFamily: 'Barlow, system-ui, sans-serif',
     }}>
       
       {/* Rainbow color bar */}

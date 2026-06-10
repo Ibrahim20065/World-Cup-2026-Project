@@ -202,7 +202,7 @@ export default function History() {
   const selected = TOURNAMENTS.find(t => t.year === selectedYear)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
@@ -217,7 +217,7 @@ export default function History() {
           <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
             FIFA World Cup
           </div>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
             Tournament History <span style={{ color: '#fbbf24' }}>🏆</span>
           </h1>
           <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>
@@ -286,7 +286,7 @@ export default function History() {
                     padding: '14px 18px', cursor: 'pointer',
                     transition: 'all 0.15s',
                     display: 'grid',
-                    gridTemplateColumns: '60px 1fr 1fr auto',
+                    gridTemplateColumns: '60px 1fr 140px 80px',
                     alignItems: 'center', gap: 12,
                   }}>
 
@@ -329,11 +329,15 @@ export default function History() {
                   </div>
 
                   {/* Awards preview */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
-                    <div style={{ textAlign: 'right', display: 'none' }} className="awards-preview">
-                      <div style={{ fontSize: 11, color: '#475569' }}>👟 {t.goldenBoot.player.split('/')[0].trim().split(' ').slice(-1)[0]}</div>
-                      <div style={{ fontSize: 11, color: '#475569' }}>⚽ {t.goldenBall.player.split(' ').slice(-1)[0]}</div>
-                    </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, justifyContent: 'center' }}>
+                    <div style={{ fontSize: 11, color: '#475569', display: 'flex', alignItems:'center', gap: '4' }} >
+                      <span>👟</span>
+                      <span>{t.goldenBoot.player.split('/')[0].trim().split(' ').slice(-1)[0]}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: '#475569', display: 'flex', alignItems:'center', gap: 4 }}>
+                        <span>⚽</span>
+                        <span>{t.goldenBall.player.split(' ').slice(-1)[0]}</span>
+                        </div>
                     <span style={{ color: isSelected ? '#94a3b8' : '#334155', fontSize: 16, transition: 'transform 0.2s', display: 'inline-block', transform: isSelected ? 'rotate(180deg)' : 'none' }}>▼</span>
                   </div>
                 </div>
@@ -360,7 +364,7 @@ export default function History() {
                           style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2 }} />
                         <span style={{ fontWeight: 800, fontSize: 13, color: champColor }}>{t.champion}</span>
                       </div>
-                      <div style={{ fontWeight: 900, fontSize: 20, color: '#f1f5f9', margin: '4px 0', letterSpacing: '0.05em' }}>{t.score}</div>
+                      <div style={{ fontWeight: 900, fontSize: 20, color: '#f1f5f9', margin: '8px 0', letterSpacing: '0.05em', textAlign: 'center' }}>{t.score}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <img src={`https://flagcdn.com/w40/${FLAGS[t.runnerUp] || 'un'}.png`} alt={t.runnerUp}
                           style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2 }} />
@@ -370,7 +374,7 @@ export default function History() {
 
                     {/* Golden Boot */}
                     <div style={{ background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.15)', borderRadius: 10, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#fb923c', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>👟 Golden Boot</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#fb923c', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, display:'flex', alignItems: 'center', gap: 4 }}><span>👟</span><span>Golden Boot</span></div>
                       <div style={{ fontWeight: 800, fontSize: 14, color: '#f1f5f9', marginBottom: 4 }}>{t.goldenBoot.player}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         {t.goldenBoot.country && (
@@ -385,7 +389,7 @@ export default function History() {
 
                     {/* Golden Ball */}
                     <div style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.15)', borderRadius: 10, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>⚽ Golden Ball</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, display:'flex', alignItems: 'center', gap:4 }}><span>⚽</span><span>Golden Ball</span></div>
                       <div style={{ fontWeight: 800, fontSize: 14, color: '#f1f5f9', marginBottom: 4 }}>{t.goldenBall.player}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <img src={`https://flagcdn.com/w40/${FLAGS[t.goldenBall.country] || 'un'}.png`} alt={t.goldenBall.country}

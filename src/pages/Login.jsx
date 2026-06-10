@@ -35,7 +35,7 @@ function Login() {
   const handleKeyDown = (e) => { if (e.key === 'Enter') handleLogin() }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{

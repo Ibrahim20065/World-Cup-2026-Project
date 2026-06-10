@@ -327,6 +327,9 @@ function MatchPicks({ token }) {
                       color: '#f1f5f9', fontSize: 22, fontWeight: 900,
                       borderRadius: 10, outline: 'none',
                       cursor: locked ? 'not-allowed' : 'text',
+                      MozAppearance: 'textfield',
+                      WebkitAppearance: 'none',
+                      appearance: 'none',
                     }}
                     onFocus={e => { if (!locked) e.target.style.borderColor = gc }}
                     onBlur={e => { e.target.style.borderColor = hasSaved ? gc + '50' : 'rgba(255,255,255,0.1)' }}
@@ -695,22 +698,22 @@ function Predictions() {
   const finalTeams = getFinalTeams(knockoutPredictions.semi)
 
   const TABS = [
-    { id: 'groups',  label: 'Group Stage',   icon: '🗂' },
-    { id: 'third',   label: '3rd Place',      icon: '🥉' },
-    { id: 'knockout',label: 'Knockout',       icon: '🏆' },
-    { id: 'awards',  label: 'Awards',         icon: '🎖' },
-    { id: 'picks',   label: 'Match Picks',    icon: '⚽' },
-    { id: 'second',  label: 'Second Chance',  icon: '🔄', soon: true },
+    { id: 'groups',  label: 'Group Stage' },
+    { id: 'third',   label: '3rd Place' },
+    { id: 'knockout',label: 'Knockout' },
+    { id: 'awards',  label: 'Awards' },
+    { id: 'picks',   label: 'Match Picks' },
+    { id: 'second',  label: 'Second Chance', soon: true },
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
       <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
         <div style={{ marginBottom: 28 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>FIFA World Cup 2026</div>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
             Your Predictions <span style={{ color: '#3b82f6' }}>🎯</span>
           </h1>
           <p style={{ color: '#64748b', marginTop: 6, fontSize: 14 }}>Drag teams to rank each group, then fill in the knockout bracket.</p>
@@ -911,73 +914,80 @@ function Predictions() {
           </div>
         )}
 
-        {/* ── AWARDS ── */}
-        {activeTab === 'awards' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              style={{ background: '#0d1526', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #fbbf24' }}>
-              <h2 style={{ color: '#fbbf24', fontWeight: 800, fontSize: 16, margin: '0 0 16px' }}>⚽ Best Players</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {[
-                  { label: '🥇 Golden Ball (15pts)', value: goldenBall, setter: setGoldenBall, ring: 'focus-within:ring-yellow-400' },
-                  { label: '🥈 Silver Ball (10pts)', value: silverBall, setter: setSilverBall, ring: 'focus-within:ring-gray-400' },
-                  { label: '🥉 Bronze Ball (5pts)', value: bronzeBall, setter: setBronzeBall, ring: 'focus-within:ring-orange-400' },
-                ].map(({ label, value, setter, ring }) => (
-                  <div key={label}>
-                    <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={value} onChange={val => setter(val)} placeholder="Search player..." ringColor={ring} />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-              style={{ background: '#0d1526', border: '1px solid rgba(251,146,60,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #fb923c' }}>
-              <h2 style={{ color: '#fb923c', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>👟 Golden Boot</h2>
-              <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
-                  <div key={label}>
-                    <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={goldenBoot[i]} onChange={val => { const u = [...goldenBoot]; u[i] = val; setGoldenBoot(u) }} placeholder="Search player..." ringColor="focus-within:ring-orange-400" />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #3b82f6' }}>
-              <h2 style={{ color: '#60a5fa', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>🧤 Golden Glove</h2>
-              <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
-                  <div key={label}>
-                    <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={goldenGlove[i]} onChange={val => { const u = [...goldenGlove]; u[i] = val; setGoldenGlove(u) }} placeholder="Search player..." ringColor="focus-within:ring-blue-400" />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-              style={{ background: '#0d1526', border: '1px solid rgba(168,85,247,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #a855f7' }}>
-              <h2 style={{ color: '#c084fc', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>🌟 Best U21 Player</h2>
-              <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts — Born Jan 1, 2005 or later</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
-                  <div key={label}>
-                    <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={u21Award[i]} onChange={val => { const u = [...u21Award]; u[i] = val; setU21Award(u) }} placeholder="Search U21 player..." ringColor="focus-within:ring-purple-400" playerList={U21_PLAYERS} />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: 8 }}>
-              <button onClick={saveAwards} disabled={saving || awardsLocked}
-                style={{ background: awardsLocked ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #a855f7, #7c3aed)', color: awardsLocked ? '#64748b' : '#fff', fontWeight: 800, fontSize: 15, padding: '14px 36px', borderRadius: 100, border: 'none', cursor: awardsLocked ? 'not-allowed' : 'pointer', boxShadow: awardsLocked ? 'none' : '0 4px 20px rgba(168,85,247,0.3)', opacity: saving ? 0.7 : 1 }}>
-                {awardsLocked ? '🔒 Awards Locked' : saving ? 'Saving...' : '🔒 Submit & Lock Award Predictions'}
-              </button>
-              {!awardsLocked && <p style={{ color: '#475569', fontSize: 12 }}>⚠️ Once submitted, award predictions cannot be changed</p>}
-            </div>
+      {/* ── AWARDS ── */}
+{activeTab === 'awards' && (
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 480px))', gap: 16, justifyContent: 'center' }}>
+    
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      style={{ background: '#0d1526', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #fbbf24' }}>
+      <h2 style={{ color: '#fbbf24', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>Best Players</h2>
+      <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>Best overall players of the tournament voted by FIFA</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {[
+          { label: '🥇 Golden Ball (15pts)', value: goldenBall, setter: setGoldenBall, ring: 'focus-within:ring-yellow-400' },
+          { label: '🥈 Silver Ball (10pts)', value: silverBall, setter: setSilverBall, ring: 'focus-within:ring-gray-400' },
+          { label: '🥉 Bronze Ball (5pts)', value: bronzeBall, setter: setBronzeBall, ring: 'focus-within:ring-orange-400' },
+        ].map(({ label, value, setter, ring }) => (
+          <div key={label}>
+            <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
+            <PlayerSearch value={value} onChange={val => setter(val)} placeholder="Search player..." ringColor={ring} />
           </div>
-        )}
+        ))}
+      </div>
+    </motion.div>
+
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+      style={{ background: '#0d1526', border: '1px solid rgba(251,146,60,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #fb923c' }}>
+      <h2 style={{ color: '#fb923c', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>Golden Boot</h2>
+      <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
+          <div key={label}>
+            <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
+            <PlayerSearch value={goldenBoot[i]} onChange={val => { const u = [...goldenBoot]; u[i] = val; setGoldenBoot(u) }} placeholder="Search player..." ringColor="focus-within:ring-orange-400" />
+          </div>
+        ))}
+      </div>
+    </motion.div>
+
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+      style={{ background: '#0d1526', border: '1px solid rgba(168,85,247,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #a855f7' }}>
+      <h2 style={{ color: '#c084fc', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>🌟 Best U21 Player</h2>
+      <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts — Born Jan 1, 2005 or later</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
+          <div key={label}>
+            <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
+            <PlayerSearch value={u21Award[i]} onChange={val => { const u = [...u21Award]; u[i] = val; setU21Award(u) }} placeholder="Search U21 player..." ringColor="focus-within:ring-purple-400" playerList={U21_PLAYERS} />
+          </div>
+        ))}
+      </div>
+    </motion.div>
+
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+      style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #3b82f6' }}>
+      <h2 style={{ color: '#60a5fa', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>Golden Glove</h2>
+      <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
+          <div key={label}>
+            <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
+            <PlayerSearch value={goldenGlove[i]} onChange={val => { const u = [...goldenGlove]; u[i] = val; setGoldenGlove(u) }} placeholder="Search player..." ringColor="focus-within:ring-blue-400" />
+          </div>
+        ))}
+      </div>
+    </motion.div>
+
+    <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: 8 }}>
+      <button onClick={saveAwards} disabled={saving || awardsLocked}
+        style={{ background: awardsLocked ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #a855f7, #7c3aed)', color: awardsLocked ? '#64748b' : '#fff', fontWeight: 800, fontSize: 15, padding: '14px 36px', borderRadius: 100, border: 'none', cursor: awardsLocked ? 'not-allowed' : 'pointer', boxShadow: awardsLocked ? 'none' : '0 4px 20px rgba(168,85,247,0.3)', opacity: saving ? 0.7 : 1 }}>
+        {awardsLocked ? '🔒 Awards Locked' : saving ? 'Saving...' : '🔒 Submit & Lock Award Predictions'}
+      </button>
+      {!awardsLocked && <p style={{ color: '#475569', fontSize: 12 }}>⚠️ Once submitted, award predictions cannot be changed</p>}
+    </div>
+  </div>
+)}
+            
 
         {/* ── SECOND CHANCE ── */}
         {activeTab === 'second' && (
@@ -997,7 +1007,7 @@ function Predictions() {
           </div>
         )}
       </div>
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} } input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; } input[type=number] { -moz-appearance: textfield; }`}</style>
     </div>
   )
 }

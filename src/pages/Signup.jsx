@@ -67,7 +67,7 @@ function Signup() {
   // ── VERIFY SCREEN ──
   if (step === 'verify') {
     return (
-      <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', fontFamily: 'Barlow, system-ui, sans-serif' }}>
         <div style={{
   height: 3,
   background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
@@ -86,7 +86,7 @@ function Signup() {
                 fontSize: 26, margin: '0 auto 20px',
               }}>📧</div>
 
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 8px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
                 Check your email
               </h1>
               <p style={{ color: '#475569', fontSize: 14, margin: '0 0 6px' }}>We sent a 6-digit code to:</p>
@@ -149,7 +149,7 @@ function Signup() {
 
   // ── SIGNUP SCREEN ──
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       <div style={{
   height: 3,
@@ -172,7 +172,7 @@ function Signup() {
                 fontSize: 24, margin: '0 auto 14px',
                 boxShadow: '0 8px 24px rgba(59,130,246,0.3)',
               }}>⚽</div>
-              <h1 style={{ fontSize: 24, fontWeight: 900, color: '#f1f5f9', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: 24, fontWeight: 900, color: '#f1f5f9', margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
                 Join WC2026
               </h1>
               <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>

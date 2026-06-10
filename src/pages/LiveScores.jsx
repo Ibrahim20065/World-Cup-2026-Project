@@ -87,7 +87,7 @@ function MatchCard({ match, onClick }) {
         background: '#0d1526',
         border: `1px solid ${isLive ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.06)'}`,
         borderTop: `3px solid ${isLive ? '#ef4444' : groupColor}`,
-        borderRadius: 14, padding: 16, cursor: 'pointer',
+        borderRadius: 14, padding: 20, cursor: 'pointer',
         transition: 'border-color 0.2s, transform 0.15s',
         boxShadow: isLive ? '0 0 20px rgba(239,68,68,0.1)' : 'none',
       }}
@@ -108,7 +108,7 @@ function MatchCard({ match, onClick }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1 }}>
           <img src={`https://flagcdn.com/w80/${FLAGS[match.home] || 'un'}.png`} alt={match.home}
-            style={{ width: 48, height: 32, objectFit: 'cover', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+            style={{ width: 64, height: 43, objectFit: 'cover', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
             onError={e => { e.target.style.display = 'none' }} />
           <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 12, textAlign: 'center', lineHeight: 1.3 }}>{match.home}</span>
         </div>
@@ -120,7 +120,7 @@ function MatchCard({ match, onClick }) {
               <span style={{ color: '#334155', fontSize: 10, fontWeight: 600 }}>Local Time</span>
             </>
           ) : (
-            <span style={{ color: '#fff', fontWeight: 900, fontSize: 24, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+            <span style={{ color: '#fff', fontWeight: 900, fontSize: 30, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
               {match.home_score ?? 0} – {match.away_score ?? 0}
             </span>
           )}
@@ -128,7 +128,7 @@ function MatchCard({ match, onClick }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1 }}>
           <img src={`https://flagcdn.com/w80/${FLAGS[match.away] || 'un'}.png`} alt={match.away}
-            style={{ width: 48, height: 32, objectFit: 'cover', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+            style={{ width: 64, height: 43, objectFit: 'cover', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
             onError={e => { e.target.style.display = 'none' }} />
           <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 12, textAlign: 'center', lineHeight: 1.3 }}>{match.away}</span>
         </div>
@@ -344,7 +344,7 @@ function LiveScores() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
@@ -360,8 +360,8 @@ function LiveScores() {
             <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
               FIFA World Cup 2026
             </div>
-            <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 10 }}>
-              Live Scores
+            <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Bebas Neue, sans-serif' }}>
+              Live Scores ⚡
               {liveCount > 0 && (
                 <span style={{
                   background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
@@ -406,7 +406,7 @@ function LiveScores() {
                     transition: 'all 0.15s',
                     boxShadow: active ? `0 2px 10px ${color}40` : 'none',
                   }}>
-                  {g === 'ALL' ? 'All Groups' : `Grp ${g}`}
+                  {g === 'ALL' ? 'All Groups' : `Group ${g}`}
                 </button>
               )
             })}
@@ -436,7 +436,7 @@ function LiveScores() {
               display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
               paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
-              <span style={{ fontSize: 13, fontWeight: 800, color: '#94a3b8' }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: '#94a3b8' }}>
                 {new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
                   weekday: 'long', month: 'long', day: 'numeric',
                 })}
@@ -449,7 +449,7 @@ function LiveScores() {
                 {byDate[date].length} match{byDate[date].length !== 1 ? 'es' : ''}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
               {byDate[date].map(match => (
                 <MatchCard key={match.id} match={match} onClick={setSelectedMatch} />
               ))}

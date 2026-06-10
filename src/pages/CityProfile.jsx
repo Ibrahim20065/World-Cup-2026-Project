@@ -69,7 +69,7 @@ function CityProfile() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
@@ -107,7 +107,7 @@ function CityProfile() {
                   borderRadius: 100, padding: '3px 10px',
                 }}>{city.country}</span>
               </div>
-              <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 900, margin: '0 0 10px', letterSpacing: '-0.02em' }}>{cityName}</h1>
+              <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 900, margin: '0 0 10px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>{cityName}</h1>
               <p style={{ color: accent, fontWeight: 700, fontSize: 15, margin: '0 0 10px' }}>🏟️ {city.stadium}</p>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {[

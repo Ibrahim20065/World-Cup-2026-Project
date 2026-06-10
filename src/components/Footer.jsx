@@ -51,7 +51,7 @@ function Footer() {
     <footer style={{
       background: '#080d1a',
       borderTop: '1px solid rgba(255,255,255,0.06)',
-      fontFamily: 'Inter, system-ui, sans-serif',
+      fontFamily: 'Barlow, system-ui, sans-serif',
       marginTop: 'auto',
     }}>
       {/* Bottom color bar */}
