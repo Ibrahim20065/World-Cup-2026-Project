@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../assets/AuthContext'
+import wc2026 from '../assets/wc2026-logo.png'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
@@ -52,14 +53,12 @@ function Navbar() {
 
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, boxShadow: '0 2px 8px rgba(59,130,246,0.3)',
-            flexShrink: 0,
-          }}>⚽</div>
-          <span style={{ fontWeight: 900, fontSize: 18, color: '#f1f5f9', letterSpacing: '-0.02em' }}>WC2026</span>
+        <img 
+           src={wc2026}
+           alt="WC2026"
+           style={{ width: 36, height: 36, objectFit: 'contain' }}
+         />
+        <span style={{ fontWeight: 900, fontSize: 18, color: '#f1f5f9', letterSpacing: '-0.02em' }}>WC2026</span>
         </Link>
 
         {/* Desktop nav links */}

@@ -30,6 +30,20 @@ function getGroupColor(group) {
   return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
 }
 
+function toLocalTime(date, time) {
+  try {
+    // times are ET (UTC-4), convert by adding 4 hours
+    const [h, m] = time.split(':').map(Number)
+    const etOffsetHours = 4 // ET = UTC-4 in summer
+    const utcHour = h + etOffsetHours
+    const d = new Date(date + 'T00:00:00Z')
+    d.setUTCHours(utcHour, m, 0, 0)
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  } catch {
+    return time
+  }
+}
+
 function StatusBadge({ status, minute }) {
   if (status === 'LIVE') return (
     <span style={{
@@ -102,8 +116,8 @@ function MatchCard({ match, onClick }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '0 4px' }}>
           {isNS ? (
             <>
-              <span style={{ color: '#22c55e', fontWeight: 800, fontSize: 17 }}>{match.time}</span>
-              <span style={{ color: '#334155', fontSize: 10, fontWeight: 600 }}>UTC</span>
+              <span style={{ color: '#22c55e', fontWeight: 800, fontSize: 17 }}>{toLocalTime(match.date, match.time)}</span>
+              <span style={{ color: '#334155', fontSize: 10, fontWeight: 600 }}>Local Time</span>
             </>
           ) : (
             <span style={{ color: '#fff', fontWeight: 900, fontSize: 24, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
@@ -204,8 +218,8 @@ function MatchModal({ match, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               {match.status === 'NS' ? (
                 <>
-                  <span style={{ color: '#22c55e', fontWeight: 900, fontSize: 24 }}>{match.time}</span>
-                  <span style={{ color: '#334155', fontSize: 12 }}>Kick Off (UTC)</span>
+                  <span style={{ color: '#22c55e', fontWeight: 900, fontSize: 24 }}>{toLocalTime(match.date, match.time)}</span>
+                  <span style={{ color: '#334155', fontSize: 12 }}>Local Time</span>
                 </>
               ) : (
                 <>

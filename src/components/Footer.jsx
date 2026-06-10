@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import wc2026 from '../assets/wc2026-logo.png'
 
 const WC_START = new Date('2026-06-11T19:00:00Z')
 
@@ -68,12 +69,11 @@ function Footer() {
         {/* Brand */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: 7,
-              background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, flexShrink: 0,
-            }}>⚽</div>
+            <img 
+                src={wc2026}
+                alt="WC2026"
+                style={{ width: 36, height: 36, objectFit: 'contain' }}
+              />
             <span style={{ fontWeight: 900, fontSize: 16, color: '#f1f5f9', letterSpacing: '-0.02em' }}>WC2026</span>
           </div>
           <span style={{ fontSize: 11, color: '#334155' }}>
