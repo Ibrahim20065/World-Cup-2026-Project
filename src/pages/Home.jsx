@@ -2,12 +2,60 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../assets/AuthContext'
 import API_URL from '../config'
+import axios from 'axios'
+import { useState } from 'react'
 const STATS = [
   { value: '48', label: 'Nations' },
   { value: '104', label: 'Matches' },
   { value: '16', label: 'Host Cities' },
   { value: '3', label: 'Countries' },
 ]
+
+function FeedbackForm() {
+  const [name, setName] = useState('')
+  const [message, setMessage] = useState('')
+  const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+
+  const handleSubmit = async () => {
+    if (!name.trim() || !message.trim()) return
+    setSending(true)
+    try {
+      await axios.post(`${API_URL}/api/feedback`, { name, message })
+      setSent(true)
+    } catch {
+      alert('Something went wrong. Try again!')
+    }
+    setSending(false)
+  }
+
+  if (sent) return (
+    <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 12, padding: '20px', textAlign: 'center' }}>
+      <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
+      <p style={{ color: '#22c55e', fontWeight: 700, margin: 0 }}>Thanks for your feedback!</p>
+    </div>
+  )
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <input type="text" value={name} onChange={e => setName(e.target.value)}
+        placeholder="Your name"
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9', padding: '10px 14px', borderRadius: 10, fontSize: 14, outline: 'none' }}
+        onFocus={e => e.target.style.borderColor = '#3b82f6'}
+        onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+      <textarea value={message} onChange={e => setMessage(e.target.value)}
+        placeholder="Your feedback..."
+        rows={4}
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9', padding: '10px 14px', borderRadius: 10, fontSize: 14, outline: 'none', resize: 'none' }}
+        onFocus={e => e.target.style.borderColor = '#3b82f6'}
+        onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+      <button onClick={handleSubmit} disabled={sending || !name.trim() || !message.trim()}
+        style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 10, border: 'none', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
+        {sending ? 'Sending...' : 'Send Feedback'}
+      </button>
+    </div>
+  )
+}
 
 const FEATURES = [
   {
@@ -293,6 +341,42 @@ export default function Home() {
             {user ? 'Go to Predictions' : 'Sign Up Free'}
           </Link>
         </motion.div>
+
+        {/* ── ABOUT SECTION ── */}
+<div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px' }}>
+  <div style={{
+    background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: 20, padding: '40px 32px',
+  }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center' }}>
+      
+      {/* Left — About text */}
+      <div style={{ flex: 1, minWidth: 260 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+          About
+        </div>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#f1f5f9', margin: '0 0 12px', letterSpacing: '-0.02em' }}>
+          Built by Ibrahim Mohammad
+        </h2>
+        <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.7, margin: '0 0 16px' }}>
+          This is my first ever full-stack project — built from scratch during the FIFA World Cup 2026. 
+          A passion project combining my love for football and software development.
+        </p>
+        <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.7, margin: 0 }}>
+          Built with React, Flask, and a lot of late nights. If you enjoy it, share it with your friends and fight against each other to see who fnishes on top of the leaderboard!
+        </p>
+      </div>
+
+      {/* Right — Feedback form */}
+      <div style={{ flex: 1, minWidth: 260 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+          Send Feedback
+        </div>
+        <FeedbackForm />
+      </div>
+    </div>
+  </div>
+</div>
       </div>
 
       <style>{`
