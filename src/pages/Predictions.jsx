@@ -153,7 +153,7 @@ function MatchPicks({ token }) {
     const [h, min] = firstTime.split(':').map(Number)
 // Times are in ET (UTC-4), convert to UTC by adding 4 hours
     const utcHour = h + 4
-    const lock = new Date(Date.UTC(
+    const lockDate = new Date(Date.UTC(
       parseInt(activeDate.split('-')[0]),
       parseInt(activeDate.split('-')[1]) - 1,
       parseInt(activeDate.split('-')[2]),
