@@ -148,20 +148,22 @@ function MatchPicks({ token }) {
   const todayMatches = SCHEDULE.filter(m => m.date === activeDate)
 
   useEffect(() => {
-    if (todayMatches.length === 0) return
-    const firstTime = todayMatches.map(m => m.time).sort()[0]
-    const [h, min] = firstTime.split(':').map(Number)
-// Times are in ET (UTC-4), convert to UTC by adding 4 hours
-    const utcHour = h + 4
-    const lockDate = new Date(Date.UTC(
-      parseInt(activeDate.split('-')[0]),
-      parseInt(activeDate.split('-')[1]) - 1,
-      parseInt(activeDate.split('-')[2]),
-  utcHour, min, 0
-))
-    setLockTime(lockDate)
-    setLocked(new Date() >= lockDate)
-  }, [activeDate])
+  if (todayMatches.length === 0) return
+  const firstTime = todayMatches.map(m => m.time).sort()[0]
+  const [h, min] = firstTime.split(':').map(Number)
+  const utcHour = h + 4
+  const lockDate = new Date(Date.UTC(
+    parseInt(activeDate.split('-')[0]),
+    parseInt(activeDate.split('-')[1]) - 1,
+    parseInt(activeDate.split('-')[2]),
+    utcHour, min - 10, 0
+  ))
+  console.log('Lock time:', lockDate)
+  console.log('Now:', new Date())
+  console.log('Is locked:', new Date() >= lockDate)
+  setLockTime(lockDate)
+  setLocked(new Date() >= lockDate)
+}, [activeDate])
 
   useEffect(() => {
     if (!lockTime || locked) return
@@ -633,7 +635,7 @@ function Predictions() {
       Object.keys(res.data).forEach(g => { initial[g] = [...res.data[g]] })
       setGroupPredictions(initial)
       setLoading(false)
-      if (new Date() >= new Date('2026-06-11T20:30:00Z')) { setLocked(true); setAwardsLocked(true) }
+      if (new Date() >= new Date('2026-06-13T20:30:00Z')) { setLocked(true); setAwardsLocked(true) }
       const token = localStorage.getItem('token')
       if (token) {
         axios.get(`${API_URL}/api/predictions`, { headers: { Authorization: `Bearer ${token}` } })
