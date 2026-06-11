@@ -15,6 +15,7 @@ import WorldCupMap from './pages/WorldCupMap'
 import CityProfile from './pages/CityProfile'
 import History from './pages/History'
 import { ColorProvider } from './assets/ColorContext'
+import Standings from './pages/Standings'
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
               <Route path="/map" element={<WorldCupMap />} />
               <Route path="/cities/:name" element={<CityProfile />} />
               <Route path="/history" element={<History />} />
+              <Route path="/standings" element={<Standings/>} />
               <Route path="/predictions" element={
                 <ProtectedRoute><Predictions /></ProtectedRoute>
               } />

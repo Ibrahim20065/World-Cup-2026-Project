@@ -14,6 +14,7 @@ const LINKS = [
   { path: '/', label: 'Home' },
   { path: '/predictions', label: 'Predictions' },
   { path: '/livescores', label: 'Live Scores' },
+  {path: '/standings', label: 'Standings'},
   { path: '/leaderboard', label: 'Leaderboard' },
   { path: '/countries', label: 'Countries' },
   { path: '/map', label: 'Host Cities' },
