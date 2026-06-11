@@ -1,3 +1,5 @@
+// PASTE THIS ENTIRE FILE OVER YOUR Predictions.jsx
+
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
@@ -13,8 +15,6 @@ import PLAYERS from '../players'
 import toast from 'react-hot-toast'
 import API_URL from '../config'
 import { useColor } from '../assets/ColorContext'
-
-
 
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
@@ -33,14 +33,14 @@ const FLAGS = {
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
+  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 const POSITION_CONFIG = [
   { label: '1st', bg: '#22c55e', color: '#000' },
-  { label: '2nd', bg: 'var(--accent)', color: '#fff' },
+  { label: '2nd', bg: '#3b82f6', color: '#fff' },
   { label: '3rd', bg: '#f59e0b', color: '#000' },
   { label: '4th', bg: '#ef4444', color: '#fff' },
 ]
@@ -148,22 +148,19 @@ function MatchPicks({ token }) {
   const todayMatches = SCHEDULE.filter(m => m.date === activeDate)
 
   useEffect(() => {
-  if (todayMatches.length === 0) return
-  const firstTime = todayMatches.map(m => m.time).sort()[0]
-  const [h, min] = firstTime.split(':').map(Number)
-  const utcHour = h + 4
-  const lockDate = new Date(Date.UTC(
-    parseInt(activeDate.split('-')[0]),
-    parseInt(activeDate.split('-')[1]) - 1,
-    parseInt(activeDate.split('-')[2]),
-    utcHour, min - 10, 0
-  ))
-  console.log('Lock time:', lockDate)
-  console.log('Now:', new Date())
-  console.log('Is locked:', new Date() >= lockDate)
-  setLockTime(lockDate)
-  setLocked(new Date() >= lockDate)
-}, [activeDate])
+    if (todayMatches.length === 0) return
+    const firstTime = todayMatches.map(m => m.time).sort()[0]
+    const [h, min] = firstTime.split(':').map(Number)
+    const utcHour = h + 4
+    const lockDate = new Date(Date.UTC(
+      parseInt(activeDate.split('-')[0]),
+      parseInt(activeDate.split('-')[1]) - 1,
+      parseInt(activeDate.split('-')[2]),
+      utcHour, min - 10, 0
+    ))
+    setLockTime(lockDate)
+    setLocked(new Date() >= lockDate)
+  }, [activeDate])
 
   useEffect(() => {
     if (!lockTime || locked) return
@@ -213,7 +210,7 @@ function MatchPicks({ token }) {
 
   const groupColor = (group) => {
     const idx = GROUP_LETTERS.indexOf(group)
-    return idx >= 0 ? GROUP_COLORS[idx] : 'var(--accent)'
+    return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
   }
 
   if (!token) return (
@@ -230,7 +227,7 @@ function MatchPicks({ token }) {
 
   return (
     <div>
-      <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid var(--accent)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #3b82f6', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 18, color: '#93c5fd', margin: '0 0 4px' }}>Match Picks</h2>
           <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
@@ -266,18 +263,22 @@ function MatchPicks({ token }) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[match.home] || 'un'}.png`} alt={match.home} style={{ width: 44, height: 30, objectFit: 'cover', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }} onError={e => { e.target.style.display = 'none' }} />
+                  <img src={`https://flagcdn.com/w80/${FLAGS[match.home] || 'un'}.png`} alt={match.home} style={{ width: 44, height: 30, objectFit: 'cover', borderRadius: 4 }} onError={e => { e.target.style.display = 'none' }} />
                   <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center' }}>{match.home}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  <input type="number" min="0" max="20" value={pick.home} onChange={e => setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, home: e.target.value } }))} disabled={locked} placeholder="0"
+                  <input type="number" min="0" max="20" value={pick.home}
+                    onChange={e => !locked && setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, home: e.target.value } }))}
+                    disabled={locked} placeholder="0"
                     style={{ width: 48, height: 48, textAlign: 'center', background: locked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)', border: `2px solid ${hasSaved ? gc + '50' : 'rgba(255,255,255,0.1)'}`, color: '#f1f5f9', fontSize: 22, fontWeight: 900, borderRadius: 10, outline: 'none', cursor: locked ? 'not-allowed' : 'text', MozAppearance: 'textfield', WebkitAppearance: 'none', appearance: 'none' }} />
                   <span style={{ color: '#334155', fontWeight: 900, fontSize: 18 }}>–</span>
-                  <input type="number" min="0" max="20" value={pick.away} onChange={e => setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, away: e.target.value } }))} disabled={locked} placeholder="0"
+                  <input type="number" min="0" max="20" value={pick.away}
+                    onChange={e => !locked && setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, away: e.target.value } }))}
+                    disabled={locked} placeholder="0"
                     style={{ width: 48, height: 48, textAlign: 'center', background: locked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)', border: `2px solid ${hasSaved ? gc + '50' : 'rgba(255,255,255,0.1)'}`, color: '#f1f5f9', fontSize: 22, fontWeight: 900, borderRadius: 10, outline: 'none', cursor: locked ? 'not-allowed' : 'text' }} />
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[match.away] || 'un'}.png`} alt={match.away} style={{ width: 44, height: 30, objectFit: 'cover', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }} onError={e => { e.target.style.display = 'none' }} />
+                  <img src={`https://flagcdn.com/w80/${FLAGS[match.away] || 'un'}.png`} alt={match.away} style={{ width: 44, height: 30, objectFit: 'cover', borderRadius: 4 }} onError={e => { e.target.style.display = 'none' }} />
                   <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center' }}>{match.away}</span>
                 </div>
               </div>
@@ -291,7 +292,7 @@ function MatchPicks({ token }) {
                 ) : <span />}
                 {!locked && (
                   <button onClick={() => savePick(match.id)} disabled={isSaving}
-                    style={{ background: hasSaved ? `${gc}15` : 'linear-gradient(135deg, var(--accent), #1d4ed8)', border: hasSaved ? `1px solid ${gc}40` : 'none', color: hasSaved ? gc : '#fff', fontWeight: 700, fontSize: 13, padding: '7px 18px', borderRadius: 8, cursor: 'pointer', opacity: isSaving ? 0.6 : 1 }}>
+                    style={{ background: hasSaved ? `${gc}15` : 'linear-gradient(135deg, #3b82f6, #1d4ed8)', border: hasSaved ? `1px solid ${gc}40` : 'none', color: hasSaved ? gc : '#fff', fontWeight: 700, fontSize: 13, padding: '7px 18px', borderRadius: 8, cursor: 'pointer', opacity: isSaving ? 0.6 : 1 }}>
                     {isSaving ? 'Saving...' : hasSaved ? '✓ Update Pick' : 'Save Pick'}
                   </button>
                 )}
@@ -305,7 +306,7 @@ function MatchPicks({ token }) {
 }
 
 // ── SORTABLE TEAM ──
-function SortableTeam({ team, index, total, onMove }) {
+function SortableTeam({ team, index, total, onMove, disabled }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: team })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 50 : 'auto' }
   const pos = POSITION_CONFIG[index]
@@ -314,11 +315,14 @@ function SortableTeam({ team, index, total, onMove }) {
       <span style={{ width: 28, height: 28, borderRadius: '50%', background: pos.bg, color: pos.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{pos.label}</span>
       <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} className="w-8 h-5 object-cover rounded-sm flex-shrink-0" onError={(e) => { e.target.style.display = 'none' }} />
       <span className="flex-1 font-medium text-white text-sm">{team}</span>
-      <div className="flex flex-col gap-0.5 sm:hidden">
-        <button onClick={() => onMove(index, index - 1)} disabled={index === 0} className="w-6 h-5 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-gray-500 disabled:opacity-20 transition text-xs">▲</button>
-        <button onClick={() => onMove(index, index + 1)} disabled={index === total - 1} className="w-6 h-5 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-gray-500 disabled:opacity-20 transition text-xs">▼</button>
-      </div>
-      <span {...listeners} className="text-gray-500 text-lg select-none cursor-grab hidden sm:block">⠿</span>
+      {!disabled && (
+        <div className="flex flex-col gap-0.5 sm:hidden">
+          <button onClick={() => onMove(index, index - 1)} disabled={index === 0} className="w-6 h-5 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-gray-500 disabled:opacity-20 transition text-xs">▲</button>
+          <button onClick={() => onMove(index, index + 1)} disabled={index === total - 1} className="w-6 h-5 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-gray-500 disabled:opacity-20 transition text-xs">▼</button>
+        </div>
+      )}
+      {!disabled && <span {...listeners} className="text-gray-500 text-lg select-none cursor-grab hidden sm:block">⠿</span>}
+      {disabled && <span className="text-gray-600 text-lg hidden sm:block">⠿</span>}
     </div>
   )
 }
@@ -420,29 +424,14 @@ function getFinalTeams(sfPreds) {
 }
 
 // ── BRACKET COMPONENTS ──
-const CARD_H = 56  // height of each match card in px
-const CARD_W = 130 // width of each match card in px
-const COL_GAP = 10 // gap between columns
+const CARD_H = 56
+const CARD_W = 130
+const COL_GAP = 10
 
-function MatchCard({ match, prediction, onPick }) {
+function MatchCard({ match, prediction, onPick, locked }) {
   return (
-    <div style={{
-      background: '#0f1729',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 6,
-      overflow: 'hidden',
-      width: CARD_W,
-    }}>
-      <div style={{
-        background: 'rgba(255,255,255,0.04)',
-        padding: '2px 6px',
-        fontSize: 8,
-        fontWeight: 700,
-        color: '#64748b',
-        textAlign: 'center',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-      }}>
+    <div style={{ background: '#0f1729', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden', width: CARD_W }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#64748b', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {typeof match.match === 'number' ? `M${match.match}` : match.match}
       </div>
       {[match.team1, match.team2].map((team, i) => {
@@ -452,39 +441,11 @@ function MatchCard({ match, prediction, onPick }) {
           <div key={i}>
             {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
             <button
-              onClick={() => !tbd && onPick(match.id, team)}
-              disabled={tbd}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '4px 6px',
-                background: sel ? 'rgba(34,197,94,0.15)' : 'transparent',
-                borderLeft: `2px solid ${sel ? '#22c55e' : 'transparent'}`,
-                border: 'none',
-                cursor: tbd ? 'default' : 'pointer',
-                opacity: tbd ? 0.3 : 1,
-              }}
-            >
-              {!tbd && (
-                <img
-                  src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`}
-                  alt={team}
-                  style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }}
-                  onError={e => { e.target.style.display = 'none' }}
-                />
-              )}
-              <span style={{
-                flex: 1,
-                fontSize: 9,
-                fontWeight: 700,
-                color: sel ? '#22c55e' : tbd ? '#475569' : '#e2e8f0',
-                textAlign: 'left',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
+              onClick={() => !tbd && !locked && onPick(match.id, team)}
+              disabled={tbd || locked}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', background: sel ? 'rgba(34,197,94,0.15)' : 'transparent', borderLeft: `2px solid ${sel ? '#22c55e' : 'transparent'}`, border: 'none', cursor: tbd || locked ? 'default' : 'pointer', opacity: tbd ? 0.3 : 1 }}>
+              {!tbd && <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />}
+              <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: sel ? '#22c55e' : tbd ? '#475569' : '#e2e8f0', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {tbd ? 'TBD' : team}
               </span>
               {sel && <span style={{ color: '#22c55e', fontSize: 8 }}>✓</span>}
@@ -496,29 +457,18 @@ function MatchCard({ match, prediction, onPick }) {
   )
 }
 
-// A single column of matches positioned so each match is
-// vertically centered between its two "parent" matches
-function BracketCol({ title, matches, predictions, onPick, totalH }) {
+function BracketCol({ title, matches, predictions, onPick, totalH, locked }) {
   const n = matches.length
-  // Each match occupies an equal slot of totalH
   const slotH = totalH / n
   return (
     <div style={{ flexShrink: 0, width: CARD_W }}>
-      <div style={{
-        fontSize: 8,
-        fontWeight: 800,
-        color: 'var(--accent)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.08em',
-        textAlign: 'center',
-        marginBottom: 6,
-      }}>{title}</div>
+      <div style={{ fontSize: 8, fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 6 }}>{title}</div>
       <div style={{ position: 'relative', height: totalH }}>
         {matches.map((match, i) => {
           const top = i * slotH + (slotH - CARD_H) / 2
           return (
             <div key={match.id} style={{ position: 'absolute', top, left: 0 }}>
-              <MatchCard match={match} prediction={predictions[match.id]} onPick={onPick} />
+              <MatchCard match={match} prediction={predictions[match.id]} onPick={onPick} locked={locked} />
             </div>
           )
         })}
@@ -527,45 +477,32 @@ function BracketCol({ title, matches, predictions, onPick, totalH }) {
   )
 }
 
-function KnockoutBracket({ r32Matches, r16Matches, qfMatches, sfMatches, finalTeams, knockoutPredictions, setKnockoutPredictions }) {
-  // Total height is determined by 8 R32 matches per side
-  const N = 8 // matches per side in R32
-  const totalH = N * CARD_H + (N - 1) * 8 // 8px gap between cards
+function KnockoutBracket({ r32Matches, r16Matches, qfMatches, sfMatches, finalTeams, knockoutPredictions, setKnockoutPredictions, locked }) {
+  const N = 8
+  const totalH = N * CARD_H + (N - 1) * 8
 
-  const setR32 = (id, team) => setKnockoutPredictions(p => ({ ...p, r32: { ...p.r32, [id]: team } }))
-  const setR16 = (id, team) => setKnockoutPredictions(p => ({ ...p, r16: { ...p.r16, [id]: team } }))
-  const setQF  = (id, team) => setKnockoutPredictions(p => ({ ...p, quarter: { ...p.quarter, [id]: team } }))
-  const setSF  = (id, team) => setKnockoutPredictions(p => ({ ...p, semi: { ...p.semi, [id]: team } }))
+  const setR32 = (id, team) => !locked && setKnockoutPredictions(p => ({ ...p, r32: { ...p.r32, [id]: team } }))
+  const setR16 = (id, team) => !locked && setKnockoutPredictions(p => ({ ...p, r16: { ...p.r16, [id]: team } }))
+  const setQF  = (id, team) => !locked && setKnockoutPredictions(p => ({ ...p, quarter: { ...p.quarter, [id]: team } }))
+  const setSF  = (id, team) => !locked && setKnockoutPredictions(p => ({ ...p, semi: { ...p.semi, [id]: team } }))
 
   return (
     <div style={{ overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
       <div style={{ display: 'flex', gap: COL_GAP, alignItems: 'flex-start', paddingBottom: 8 }}>
+        <BracketCol title="Round of 32" matches={r32Matches.slice(0, 8)}  predictions={knockoutPredictions.r32}     onPick={setR32} totalH={totalH} locked={locked} />
+        <BracketCol title="Round of 16" matches={r16Matches.slice(0, 4)}  predictions={knockoutPredictions.r16}     onPick={setR16} totalH={totalH} locked={locked} />
+        <BracketCol title="Quarter Finals" matches={qfMatches.slice(0, 2)} predictions={knockoutPredictions.quarter} onPick={setQF}  totalH={totalH} locked={locked} />
+        <BracketCol title="Semi Finals"  matches={sfMatches.slice(0, 1)}  predictions={knockoutPredictions.semi}    onPick={setSF}  totalH={totalH} locked={locked} />
 
-        {/* LEFT: R32 → R16 → QF → SF */}
-        <BracketCol title="Round of 32" matches={r32Matches.slice(0, 8)}  predictions={knockoutPredictions.r32}     onPick={setR32} totalH={totalH} />
-        <BracketCol title="Round of 16" matches={r16Matches.slice(0, 4)}  predictions={knockoutPredictions.r16}     onPick={setR16} totalH={totalH} />
-        <BracketCol title="Quarter Finals" matches={qfMatches.slice(0, 2)} predictions={knockoutPredictions.quarter} onPick={setQF}  totalH={totalH} />
-        <BracketCol title="Semi Finals"  matches={sfMatches.slice(0, 1)}  predictions={knockoutPredictions.semi}    onPick={setSF}  totalH={totalH} />
-
-        {/* CENTER: Final + 3rd */}
-        <div style={{
-          flexShrink: 0,
-          width: CARD_W + 20,
-          height: totalH + 28, // +28 for title row
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 12,
-        }}>
-          {/* Final */}
+        <div style={{ flexShrink: 0, width: CARD_W + 20, height: totalH + 28, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
           <div>
             <div style={{ fontSize: 8, fontWeight: 800, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 4 }}>🏆 Final</div>
             <div style={{ background: '#0f1729', border: '2px solid #fbbf24', borderRadius: 6, overflow: 'hidden', width: CARD_W + 20 }}>
               <div style={{ background: 'rgba(251,191,36,0.1)', padding: '2px 6px', fontSize: 8, fontWeight: 800, color: '#fbbf24', textAlign: 'center' }}>CHAMPION</div>
               {finalTeams.length === 2 ? finalTeams.map(team => (
-                <button key={team} onClick={() => setKnockoutPredictions(p => ({ ...p, final: team }))}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', background: knockoutPredictions.final === team ? 'rgba(251,191,36,0.15)' : 'transparent', borderLeft: `2px solid ${knockoutPredictions.final === team ? '#fbbf24' : 'transparent'}`, border: 'none', cursor: 'pointer' }}>
+                <button key={team} onClick={() => !locked && setKnockoutPredictions(p => ({ ...p, final: team }))}
+                  disabled={locked}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', background: knockoutPredictions.final === team ? 'rgba(251,191,36,0.15)' : 'transparent', borderLeft: `2px solid ${knockoutPredictions.final === team ? '#fbbf24' : 'transparent'}`, border: 'none', cursor: locked ? 'default' : 'pointer' }}>
                   <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1 }} />
                   <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: knockoutPredictions.final === team ? '#fbbf24' : '#e2e8f0', textAlign: 'left' }}>{team}</span>
                   {knockoutPredictions.final === team && <span style={{ color: '#fbbf24', fontSize: 9 }}>🏆</span>}
@@ -573,8 +510,6 @@ function KnockoutBracket({ r32Matches, r16Matches, qfMatches, sfMatches, finalTe
               )) : <p style={{ color: '#475569', fontSize: 9, textAlign: 'center', padding: '8px', fontStyle: 'italic', margin: 0 }}>Complete Semis</p>}
             </div>
           </div>
-
-          {/* 3rd Place */}
           <div>
             <div style={{ fontSize: 8, fontWeight: 800, color: '#fb923c', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 4 }}>🥉 3rd Place</div>
             <div style={{ background: '#0f1729', border: '1px solid rgba(251,146,60,0.4)', borderRadius: 6, overflow: 'hidden', width: CARD_W + 20 }}>
@@ -584,8 +519,9 @@ function KnockoutBracket({ r32Matches, r16Matches, qfMatches, sfMatches, finalTe
                 const loser = winner === sfMatch.team1 ? sfMatch.team2 : sfMatch.team1
                 if (!loser || loser === '?') return null
                 return (
-                  <button key={sfMatch.id} onClick={() => setKnockoutPredictions(p => ({ ...p, third_place: loser }))}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', background: knockoutPredictions.third_place === loser ? 'rgba(251,146,60,0.15)' : 'transparent', borderLeft: `2px solid ${knockoutPredictions.third_place === loser ? '#fb923c' : 'transparent'}`, border: 'none', cursor: 'pointer' }}>
+                  <button key={sfMatch.id} onClick={() => !locked && setKnockoutPredictions(p => ({ ...p, third_place: loser }))}
+                    disabled={locked}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', background: knockoutPredictions.third_place === loser ? 'rgba(251,146,60,0.15)' : 'transparent', borderLeft: `2px solid ${knockoutPredictions.third_place === loser ? '#fb923c' : 'transparent'}`, border: 'none', cursor: locked ? 'default' : 'pointer' }}>
                     <img src={`https://flagcdn.com/w40/${FLAGS[loser] || 'un'}.png`} alt={loser} style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1 }} />
                     <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: knockoutPredictions.third_place === loser ? '#fb923c' : '#e2e8f0', textAlign: 'left' }}>{loser}</span>
                     {knockoutPredictions.third_place === loser && <span style={{ color: '#fb923c', fontSize: 9 }}>🥉</span>}
@@ -596,12 +532,10 @@ function KnockoutBracket({ r32Matches, r16Matches, qfMatches, sfMatches, finalTe
           </div>
         </div>
 
-        {/* RIGHT: SF → QF → R16 → R32 */}
-        <BracketCol title="Semi Finals"   matches={sfMatches.slice(1, 2)}  predictions={knockoutPredictions.semi}    onPick={setSF}  totalH={totalH} />
-        <BracketCol title="Quarter Finals" matches={qfMatches.slice(2, 4)} predictions={knockoutPredictions.quarter} onPick={setQF}  totalH={totalH} />
-        <BracketCol title="Round of 16"   matches={r16Matches.slice(4, 8)} predictions={knockoutPredictions.r16}     onPick={setR16} totalH={totalH} />
-        <BracketCol title="Round of 32"   matches={r32Matches.slice(8, 16)} predictions={knockoutPredictions.r32}    onPick={setR32} totalH={totalH} />
-
+        <BracketCol title="Semi Finals"   matches={sfMatches.slice(1, 2)}  predictions={knockoutPredictions.semi}    onPick={setSF}  totalH={totalH} locked={locked} />
+        <BracketCol title="Quarter Finals" matches={qfMatches.slice(2, 4)} predictions={knockoutPredictions.quarter} onPick={setQF}  totalH={totalH} locked={locked} />
+        <BracketCol title="Round of 16"   matches={r16Matches.slice(4, 8)} predictions={knockoutPredictions.r16}     onPick={setR16} totalH={totalH} locked={locked} />
+        <BracketCol title="Round of 32"   matches={r32Matches.slice(8, 16)} predictions={knockoutPredictions.r32}    onPick={setR32} totalH={totalH} locked={locked} />
       </div>
     </div>
   )
@@ -659,6 +593,7 @@ function Predictions() {
   }, [])
 
   const handleDragEnd = (groupName, event) => {
+    if (locked) return
     const { active, over } = event
     if (!over || active.id === over.id) return
     const teams = groupPredictions[groupName]
@@ -671,24 +606,36 @@ function Predictions() {
     bronze_ball: bronzeBall, golden_boot: goldenBoot, golden_glove: goldenGlove, u21_award: u21Award,
   })
 
-  const saveProgress = async () => {
+  // Save group stage WITHOUT locking
+  const saveGroupStage = async () => {
     if (!token) { toast.error('Please login to save!'); return }
-    if (locked) { toast.error('Predictions are locked!'); return }
     setSaving(true)
     try {
       await axios.post(`${API_URL}/api/predictions`, payload(), { headers: { Authorization: `Bearer ${token}` } })
-      toast.success('Progress saved!')
+      toast.success('Group stage saved! ✅')
     } catch { toast.error('Error saving. Please try again.') }
     setSaving(false)
   }
 
-  const savePredictions = async () => {
-    if (!token) { toast.error('Please login to save predictions!'); return }
-    if (locked) { toast.error('Predictions are locked!'); return }
+  // Save 3rd place WITHOUT locking
+  const saveThirdPlace = async () => {
+    if (!token) { toast.error('Please login to save!'); return }
     setSaving(true)
     try {
       await axios.post(`${API_URL}/api/predictions`, payload(), { headers: { Authorization: `Bearer ${token}` } })
-      toast.success('Predictions saved and locked! 🔒')
+      toast.success('3rd place picks saved! ✅')
+    } catch { toast.error('Error saving. Please try again.') }
+    setSaving(false)
+  }
+
+  // Submit knockout — LOCKS everything
+  const submitPredictions = async () => {
+    if (!token) { toast.error('Please login to save predictions!'); return }
+    if (locked) { toast.error('Predictions are already locked!'); return }
+    setSaving(true)
+    try {
+      await axios.post(`${API_URL}/api/predictions`, payload(), { headers: { Authorization: `Bearer ${token}` } })
+      toast.success('Predictions submitted and locked! 🔒')
       setLocked(true)
       if (goldenBall || goldenBoot.some(v => v)) setAwardsLocked(true)
     } catch { toast.error('Error saving. Please try again.') }
@@ -708,8 +655,8 @@ function Predictions() {
   }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>Loading predictions...</p>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading predictions...</p>
     </div>
   )
 
@@ -729,8 +676,8 @@ function Predictions() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
 
       <div style={{ maxWidth: '100%', margin: '0 auto', padding: '32px 16px 80px' }}>
         <div style={{ marginBottom: 28 }}>
@@ -755,7 +702,7 @@ function Predictions() {
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 24, scrollbarWidth: 'none' }}>
           {TABS.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ position: 'relative', flexShrink: 0, padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.15s', border: 'none', background: activeTab === tab.id ? 'var(--accent)' : 'rgba(255,255,255,0.05)', color: activeTab === tab.id ? '#fff' : '#94a3b8', boxShadow: activeTab === tab.id ? '0 4px 16px rgba(59,130,246,0.3)' : 'none' }}>
+              style={{ position: 'relative', flexShrink: 0, padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.15s', border: 'none', background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: activeTab === tab.id ? '#fff' : '#94a3b8', boxShadow: activeTab === tab.id ? '0 4px 16px rgba(59,130,246,0.3)' : 'none' }}>
               {tab.label}
               {tab.soon && <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 20 }}>SOON</span>}
             </button>
@@ -770,7 +717,7 @@ function Predictions() {
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
               {Object.entries(groups).map(([groupName], gi) => {
-                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || 'var(--accent)'
+                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || '#3b82f6'
                 return (
                   <motion.div key={groupName} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: gi * 0.04 }}
                     style={{ background: '#0d1526', border: `1px solid ${color}30`, borderRadius: 14, padding: 18, borderTop: `3px solid ${color}` }}>
@@ -783,7 +730,9 @@ function Predictions() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {groupPredictions[groupName]?.map((team, index) => (
                             <SortableTeam key={team} team={team} index={index} total={groupPredictions[groupName].length}
+                              disabled={locked}
                               onMove={(from, to) => {
+                                if (locked) return
                                 if (to < 0 || to >= groupPredictions[groupName].length) return
                                 setGroupPredictions(prev => ({ ...prev, [groupName]: arrayMove(prev[groupName], from, to) }))
                               }} />
@@ -799,13 +748,13 @@ function Predictions() {
                 )
               })}
             </div>
-            {!locked && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
-                <button onClick={saveProgress} disabled={saving} style={{ background: 'linear-gradient(135deg, var(--accent), #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(59,130,246,0.3)', opacity: saving ? 0.6 : 1 }}>
-                  {saving ? 'Saving...' : '💾 Save Group Stage'}
-                </button>
-              </div>
-            )}
+            {/* Save Group Stage button — never locks */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+              <button onClick={saveGroupStage} disabled={saving || locked}
+                style={{ background: locked ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: locked ? '#64748b' : '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: locked ? 'not-allowed' : 'pointer', boxShadow: locked ? 'none' : '0 4px 16px rgba(59,130,246,0.3)', opacity: saving ? 0.6 : 1 }}>
+                {locked ? '🔒 Predictions Locked' : saving ? 'Saving...' : '💾 Save Group Stage'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -824,14 +773,15 @@ function Predictions() {
                 const thirdTeam = groupPredictions[groupName]?.[2]
                 if (!thirdTeam) return null
                 const isSelected = thirdPlaceAdvancing.includes(thirdTeam)
-                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || 'var(--accent)'
+                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || '#3b82f6'
                 return (
                   <motion.div key={groupName} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: gi * 0.04 }}
                     onClick={() => {
+                      if (locked) return
                       if (isSelected) { setThirdPlaceAdvancing(prev => prev.filter(t => t !== thirdTeam)) }
                       else { if (thirdPlaceAdvancing.length >= 8) { toast.error('You can only select 8!'); return } setThirdPlaceAdvancing(prev => [...prev, thirdTeam]) }
                     }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, cursor: 'pointer', background: isSelected ? `${color}12` : '#0d1526', border: `2px solid ${isSelected ? color : 'rgba(255,255,255,0.06)'}`, transition: 'all 0.15s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, cursor: locked ? 'default' : 'pointer', background: isSelected ? `${color}12` : '#0d1526', border: `2px solid ${isSelected ? color : 'rgba(255,255,255,0.06)'}`, transition: 'all 0.15s' }}>
                     <span style={{ width: 32, height: 32, borderRadius: 8, background: isSelected ? color : 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, color: isSelected ? '#000' : '#64748b', flexShrink: 0 }}>{groupName}</span>
                     <img src={`https://flagcdn.com/w40/${FLAGS[thirdTeam] || 'un'}.png`} alt={thirdTeam} style={{ width: 36, height: 24, objectFit: 'cover', borderRadius: 3, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -843,13 +793,13 @@ function Predictions() {
                 )
               })}
             </div>
-            {!locked && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
-                <button onClick={saveProgress} disabled={saving} style={{ background: 'linear-gradient(135deg, var(--accent), #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(59,130,246,0.3)', opacity: saving ? 0.6 : 1 }}>
-                  {saving ? 'Saving...' : '💾 Save 3rd Place Picks'}
-                </button>
-              </div>
-            )}
+            {/* Save 3rd Place button — never locks */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+              <button onClick={saveThirdPlace} disabled={saving || locked}
+                style={{ background: locked ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #f59e0b, #d97706)', color: locked ? '#64748b' : '#000', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: locked ? 'not-allowed' : 'pointer', boxShadow: locked ? 'none' : '0 4px 16px rgba(245,158,11,0.3)', opacity: saving ? 0.6 : 1 }}>
+                {locked ? '🔒 Predictions Locked' : saving ? 'Saving...' : '💾 Save 3rd Place Picks'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -862,9 +812,9 @@ function Predictions() {
               <div style={{ textAlign: 'center', padding: '80px 20px' }}><p style={{ color: '#fbbf24', fontWeight: 700, fontSize: 16 }}>Select all 8 third-place teams first!</p></div>
             ) : (
               <>
-                <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 18, marginBottom: 20, borderTop: '3px solid var(--accent)' }}>
+                <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 18, marginBottom: 20, borderTop: '3px solid #3b82f6' }}>
                   <h2 style={{ fontWeight: 800, fontSize: 18, color: '#93c5fd', margin: '0 0 4px' }}>Knockout Bracket</h2>
-                  <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>Tap a team to advance them through the bracket.</p>
+                  <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>Tap a team to advance them. Once you submit, predictions are locked forever!</p>
                 </div>
 
                 <KnockoutBracket
@@ -875,12 +825,14 @@ function Predictions() {
                   finalTeams={finalTeams}
                   knockoutPredictions={knockoutPredictions}
                   setKnockoutPredictions={setKnockoutPredictions}
+                  locked={locked}
                 />
 
+                {/* Submit button — LOCKS everything */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: 24 }}>
-                  <button onClick={savePredictions} disabled={saving || locked}
+                  <button onClick={submitPredictions} disabled={saving || locked}
                     style={{ background: locked ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: locked ? '#64748b' : '#000', fontWeight: 800, fontSize: 15, padding: '14px 40px', borderRadius: 100, border: 'none', cursor: locked ? 'not-allowed' : 'pointer', boxShadow: locked ? 'none' : '0 4px 20px rgba(34,197,94,0.3)', opacity: saving ? 0.7 : 1 }}>
-                    {locked ? '🔒 Predictions Locked' : saving ? 'Saving...' : '🔒 Submit & Lock All Predictions'}
+                    {locked ? '🔒 Predictions Locked' : saving ? 'Saving...' : '🔒 Submit Predictions'}
                   </button>
                   {!locked && <p style={{ color: '#475569', fontSize: 12 }}>Once submitted, predictions cannot be changed</p>}
                 </div>
@@ -904,7 +856,7 @@ function Predictions() {
                 ].map(({ label, value, setter, ring }) => (
                   <div key={label}>
                     <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={value} onChange={val => setter(val)} placeholder="Search player..." ringColor={ring} />
+                    <PlayerSearch value={value} onChange={val => !awardsLocked && setter(val)} placeholder="Search player..." ringColor={ring} />
                   </div>
                 ))}
               </div>
@@ -918,7 +870,7 @@ function Predictions() {
                 {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
                   <div key={label}>
                     <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={goldenBoot[i]} onChange={val => { const u = [...goldenBoot]; u[i] = val; setGoldenBoot(u) }} placeholder="Search player..." ringColor="focus-within:ring-orange-400" />
+                    <PlayerSearch value={goldenBoot[i]} onChange={val => { if (awardsLocked) return; const u = [...goldenBoot]; u[i] = val; setGoldenBoot(u) }} placeholder="Search player..." ringColor="focus-within:ring-orange-400" />
                   </div>
                 ))}
               </div>
@@ -932,21 +884,21 @@ function Predictions() {
                 {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
                   <div key={label}>
                     <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={u21Award[i]} onChange={val => { const u = [...u21Award]; u[i] = val; setU21Award(u) }} placeholder="Search U21 player..." ringColor="focus-within:ring-purple-400" playerList={U21_PLAYERS} />
+                    <PlayerSearch value={u21Award[i]} onChange={val => { if (awardsLocked) return; const u = [...u21Award]; u[i] = val; setU21Award(u) }} placeholder="Search U21 player..." ringColor="focus-within:ring-purple-400" playerList={U21_PLAYERS} />
                   </div>
                 ))}
               </div>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid var(--accent)' }}>
+              style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #3b82f6' }}>
               <h2 style={{ color: '#60a5fa', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>Golden Glove</h2>
               <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
                   <div key={label}>
                     <label style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                    <PlayerSearch value={goldenGlove[i]} onChange={val => { const u = [...goldenGlove]; u[i] = val; setGoldenGlove(u) }} placeholder="Search player..." ringColor="focus-within:ring-blue-400" />
+                    <PlayerSearch value={goldenGlove[i]} onChange={val => { if (awardsLocked) return; const u = [...goldenGlove]; u[i] = val; setGoldenGlove(u) }} placeholder="Search player..." ringColor="focus-within:ring-blue-400" />
                   </div>
                 ))}
               </div>
