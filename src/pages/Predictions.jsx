@@ -148,8 +148,17 @@ function MatchPicks({ token }) {
     if (todayMatches.length === 0) return
     const firstTime = todayMatches.map(m => m.time).sort()[0]
     const [h, min] = firstTime.split(':').map(Number)
-    const lock = new Date(`${activeDate}T${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}:00Z`)
-    lock.setMinutes(lock.getMinutes() - 5)
+// Times are in ET (UTC-4), convert to UTC by adding 4 hours
+    const utcHour = h + 4
+    const lock = new Date(Date.UTC(
+      parseInt(activeDate.split('-')[0]),
+      parseInt(activeDate.split('-')[1]) - 1,
+      parseInt(activeDate.split('-')[2]),
+  utcHour, min, 0
+))
+lock.setMinutes(lock.getMinutes() - 10)
+setLockTime(lock)
+setLocked(new Date() >= lock)
     setLockTime(lock)
     setLocked(new Date() >= lock)
   }, [activeDate])
@@ -624,7 +633,7 @@ function Predictions() {
       Object.keys(res.data).forEach(g => { initial[g] = [...res.data[g]] })
       setGroupPredictions(initial)
       setLoading(false)
-      if (new Date() >= new Date('2026-06-11T19:00:00Z')) { setLocked(true); setAwardsLocked(true) }
+      if (new Date() >= new Date('2026-06-11T20:30:00Z')) { setLocked(true); setAwardsLocked(true) }
       const token = localStorage.getItem('token')
       if (token) {
         axios.get(`${API_URL}/api/predictions`, { headers: { Authorization: `Bearer ${token}` } })
