@@ -128,6 +128,31 @@ export default function Home() {
       {/* ── HERO ── */}
       <div style={{ position: 'relative', overflow: 'hidden' }}>
 
+      <div style={{
+  maxWidth: 600, margin: '0 auto 32px', padding: '16px 20px',
+  background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)',
+  borderLeft: '4px solid #3b82f6', borderRadius: 12,
+}}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+    <span style={{ fontSize: 16 }}>🆕</span>
+    <span style={{ fontWeight: 800, fontSize: 15, color: '#93c5fd' }}>Update v1.01</span>
+    <span style={{ fontSize: 11, color: '#334155', fontWeight: 600, marginLeft: 'auto' }}>June 12, 2026</span>
+  </div>
+  <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    {[
+      '📊 Group Standings page — live tables updated after each match',
+      '🎨 Theme color changer — pick your accent color in the navbar',
+      '⚽ Live Scores — now powered by TheSportsDB, updates after FT',
+      '🔒 Prediction locking — Group Stage & 3rd Place save without locking, Knockout submits lock permanently',
+      '🏆 Mini Leagues — create and join private leagues with invite codes',
+      '🌍 Background color — changes with your selected theme',
+      '📧 Email verification — secure signup with 6-digit code',
+    ].map((item, i) => (
+      <li key={i} style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>{item}</li>
+    ))}
+  </ul>
+</div>
+
         {/* Background glow */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
