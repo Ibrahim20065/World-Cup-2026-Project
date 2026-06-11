@@ -8,7 +8,7 @@ import API_URL from '../config'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 
@@ -35,12 +35,12 @@ function Login() {
   const handleKeyDown = (e) => { if (e.key === 'Enter') handleLogin() }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', flexDirection: 'column', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
   height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />      
 
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
@@ -69,7 +69,7 @@ function Login() {
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
               <div style={{
                 width: 52, height: 52, borderRadius: 14,
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                background: 'linear-gradient(135deg, var(--accent), #1d4ed8)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 24, margin: '0 auto 14px',
                 boxShadow: '0 8px 24px rgba(59,130,246,0.3)',
@@ -101,7 +101,7 @@ function Login() {
                     borderRadius: 10, fontSize: 14, outline: 'none',
                     boxSizing: 'border-box', transition: 'border-color 0.2s',
                   }}
-                  onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                  onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                   onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
                 />
               </div>
@@ -122,7 +122,7 @@ function Login() {
                     borderRadius: 10, fontSize: 14, outline: 'none',
                     boxSizing: 'border-box', transition: 'border-color 0.2s',
                   }}
-                  onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                  onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                   onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
                 />
               </div>
@@ -131,7 +131,7 @@ function Login() {
                 onClick={handleLogin}
                 disabled={loading}
                 style={{
-                  background: loading ? 'rgba(59,130,246,0.5)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  background: loading ? 'rgba(59,130,246,0.5)' : 'linear-gradient(135deg, var(--accent), #1d4ed8)',
                   color: '#fff', fontWeight: 800, fontSize: 15,
                   padding: '13px', borderRadius: 10, border: 'none',
                   cursor: loading ? 'not-allowed' : 'pointer',

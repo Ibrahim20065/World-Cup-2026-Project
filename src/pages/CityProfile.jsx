@@ -4,17 +4,20 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import CITY_DATA from '../cityData'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 function getGroupColor(group) {
   const idx = GROUP_LETTERS.indexOf(group)
-  return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
+  return idx >= 0 ? GROUP_COLORS[idx] : 'var(--accent)'
 }
 
 const FLAGS = {
@@ -32,7 +35,7 @@ const FLAGS = {
   'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
 }
 
-const COUNTRY_ACCENT = { us: '#3b82f6', mx: '#22c55e', ca: '#ef4444' }
+const COUNTRY_ACCENT = { us: 'var(--accent)', mx: '#22c55e', ca: '#ef4444' }
 
 function CityProfile() {
   const { name } = useParams()
@@ -43,7 +46,7 @@ function CityProfile() {
     c => c.toLowerCase().replace(/ /g, '-') === name
   )
   const city = cityName ? CITY_DATA[cityName] : null
-  const accent = city ? (COUNTRY_ACCENT[city.flag] || '#3b82f6') : '#3b82f6'
+  const accent = city ? (COUNTRY_ACCENT[city.flag] || 'var(--accent)') : 'var(--accent)'
 
   useEffect(() => {
     if (!city) return
@@ -57,11 +60,11 @@ function CityProfile() {
 
   if (!city) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: '#fff' }}>
+      <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: '#fff' }}>
         <div style={{ fontSize: 48 }}>🚧</div>
         <p style={{ color: '#64748b', fontSize: 18, fontWeight: 600 }}>City not found</p>
         <button onClick={() => navigate('/map')}
-          style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 100, border: 'none', cursor: 'pointer' }}>
+          style={{ background: 'linear-gradient(135deg,var(--accent),#1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 100, border: 'none', cursor: 'pointer' }}>
           ← Back to Map
         </button>
       </div>
@@ -69,12 +72,12 @@ function CityProfile() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
   height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />      
 
       {/* Hero */}

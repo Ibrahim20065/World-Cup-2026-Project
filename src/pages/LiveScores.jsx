@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
@@ -20,14 +23,14 @@ const FLAGS = {
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 function getGroupColor(group) {
   const idx = GROUP_LETTERS.indexOf(group)
-  return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
+  return idx >= 0 ? GROUP_COLORS[idx] : 'var(--accent)'
 }
 
 function toLocalTime(date, time) {
@@ -76,7 +79,7 @@ function StatusBadge({ status, minute }) {
 function MatchCard({ match, onClick }) {
   const isNS = match.status === 'NS'
   const isLive = match.status === 'LIVE'
-  const groupColor = match.group ? getGroupColor(match.group) : '#3b82f6'
+  const groupColor = match.group ? getGroupColor(match.group) : 'var(--accent)'
 
   return (
     <motion.div
@@ -166,7 +169,7 @@ function MatchModal({ match, onClose }) {
     match.home.toLowerCase().includes(e.team.toLowerCase()) ||
     e.team.toLowerCase().includes(match.home.toLowerCase())
   )
-  const groupColor = match.group ? getGroupColor(match.group) : '#3b82f6'
+  const groupColor = match.group ? getGroupColor(match.group) : 'var(--accent)'
 
   return (
     <AnimatePresence>
@@ -335,21 +338,21 @@ function LiveScores() {
   }, {})
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
-        <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading matches...</p>
+        <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>Loading matches...</p>
       </div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
   height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />      
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
@@ -394,7 +397,7 @@ function LiveScores() {
           {/* Group pills */}
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
             {GROUPS.map(g => {
-              const color = g === 'ALL' ? '#3b82f6' : getGroupColor(g)
+              const color = g === 'ALL' ? 'var(--accent)' : getGroupColor(g)
               const active = filter === g
               return (
                 <button key={g} onClick={() => setFilter(g)}

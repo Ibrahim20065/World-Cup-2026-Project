@@ -4,6 +4,10 @@ import { useAuth } from '../assets/AuthContext'
 import API_URL from '../config'
 import axios from 'axios'
 import { useState } from 'react'
+import { useColor } from '../assets/ColorContext'
+
+
+
 const STATS = [
   { value: '48', label: 'Nations' },
   { value: '104', label: 'Matches' },
@@ -41,16 +45,16 @@ function FeedbackForm() {
       <input type="text" value={name} onChange={e => setName(e.target.value)}
         placeholder="Your name"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9', padding: '10px 14px', borderRadius: 10, fontSize: 14, outline: 'none' }}
-        onFocus={e => e.target.style.borderColor = '#3b82f6'}
+        onFocus={e => e.target.style.borderColor = 'var(--accent)'}
         onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
       <textarea value={message} onChange={e => setMessage(e.target.value)}
         placeholder="Your feedback..."
         rows={4}
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9', padding: '10px 14px', borderRadius: 10, fontSize: 14, outline: 'none', resize: 'none' }}
-        onFocus={e => e.target.style.borderColor = '#3b82f6'}
+        onFocus={e => e.target.style.borderColor = 'var(--accent)'}
         onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
       <button onClick={handleSubmit} disabled={sending || !name.trim() || !message.trim()}
-        style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 10, border: 'none', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
+        style={{ background: 'linear-gradient(135deg, var(--accent), #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 10, border: 'none', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
         {sending ? 'Sending...' : 'Send Feedback'}
       </button>
     </div>
@@ -62,7 +66,7 @@ const FEATURES = [
     icon: '🎯',
     title: 'Predict',
     desc: 'Pick every group, every bracket match, and every award — then watch your score climb in real time.',
-    color: '#3b82f6',
+    color: 'var(--accent)',
     bg: 'rgba(59,130,246,0.08)',
     border: 'rgba(59,130,246,0.25)',
   },
@@ -110,7 +114,7 @@ const FEATURES = [
 
 const GROUP_COLORS = [
   '#ef4444', '#f97316', '#eab308', '#22c55e',
-  '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+  '#06b6d4', 'var(--accent)', '#8b5cf6', '#ec4899',
   '#14b8a6', '#f59e0b', '#84cc16', '#6366f1',
 ]
 const GROUPS = ['A','B','C','D','E','F','G','H','I','J','K','L']
@@ -119,7 +123,7 @@ export default function Home() {
   const { user } = useAuth()
 
   return (
-    <div style={{ background: '#080d1a', minHeight: '100vh', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ background: '#var(--bg)', minHeight: '100vh', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* ── HERO ── */}
       <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -133,7 +137,7 @@ export default function Home() {
         {/* Group color bar */}
         <div style={{
   height: 2,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '72px 24px 64px', textAlign: 'center', position: 'relative' }}>
@@ -165,7 +169,7 @@ export default function Home() {
             <span style={{ color: '#fff' }}>FIFA World Cup</span>
             <br />
             <span style={{
-              background: 'linear-gradient(90deg, #3b82f6, #22c55e)',
+              background: 'linear-gradient(90deg, var(--accent), #22c55e)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>
               2026 Predictions
@@ -192,7 +196,7 @@ export default function Home() {
             <Link
               to={user ? '/livescores' : '/signup'}
               style={{
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                background: 'linear-gradient(135deg, var(--accent), #1d4ed8)',
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 padding: '14px 32px', borderRadius: 100,
                 textDecoration: 'none', transition: 'opacity 0.2s',

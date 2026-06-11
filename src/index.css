@@ -1,1 +1,6 @@
+:root {
+    --accent: var(--accent);
+    --bg: #var(--bg);
+}
+
 @import "tailwindcss";

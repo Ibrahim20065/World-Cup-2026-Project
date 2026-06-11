@@ -3,17 +3,20 @@ import { motion } from 'framer-motion'
 import COUNTRY_DATA from '../countryData'
 import PLAYERS from '../players'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 function getGroupColor(group) {
   const idx = GROUP_LETTERS.indexOf(group)
-  return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
+  return idx >= 0 ? GROUP_COLORS[idx] : 'var(--accent)'
 }
 
 function resultStyle(result) {
@@ -29,7 +32,7 @@ function resultStyle(result) {
 
 const POS_CONFIG = {
   'Goalkeeper': { icon: '🧤', color: '#f59e0b' },
-  'Defender':   { icon: '🛡️', color: '#3b82f6' },
+  'Defender':   { icon: '🛡️', color: 'var(--accent)' },
   'Midfielder': { icon: '⚙️', color: '#22c55e' },
   'Forward':    { icon: '⚡', color: '#ef4444' },
 }
@@ -51,11 +54,11 @@ function CountryProfile() {
 
   if (!data) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: '#fff' }}>
+      <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: '#fff' }}>
         <div style={{ fontSize: 48 }}>🚧</div>
         <p style={{ color: '#64748b', fontSize: 18, fontWeight: 600 }}>Profile coming soon for {countryName}</p>
         <button onClick={() => navigate('/countries')}
-          style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 100, border: 'none', cursor: 'pointer' }}>
+          style={{ background: 'linear-gradient(135deg,var(--accent),#1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 100, border: 'none', cursor: 'pointer' }}>
           ← Back to Countries
         </button>
       </div>
@@ -67,12 +70,12 @@ function CountryProfile() {
   const groupColor = getGroupColor(data.group_2026)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
   height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />      
 
       {/* Hero */}
@@ -133,7 +136,7 @@ function CountryProfile() {
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 36 }}>
           {[
             { label: 'Titles', value: data.titles, icon: '🏆', color: '#fbbf24' },
-            { label: 'Appearances', value: data.all_time_appearances, icon: '🌍', color: '#3b82f6' },
+            { label: 'Appearances', value: data.all_time_appearances, icon: '🌍', color: 'var(--accent)' },
             { label: 'Total Wins', value: data.total_wins, icon: '✅', color: '#22c55e' },
             { label: 'Goals Scored', value: data.goals_scored, icon: '⚽', color: '#f97316' },
           ].map(stat => (

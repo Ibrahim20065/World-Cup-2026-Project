@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 
@@ -184,7 +187,7 @@ const CHAMPION_TITLES = TOURNAMENTS.reduce((acc, t) => {
 }, {})
 
 const TITLE_COLORS = {
-  'Brazil': '#22c55e', 'Germany': '#3b82f6', 'Italy': '#06b6d4',
+  'Brazil': '#22c55e', 'Germany': 'var(--accent)', 'Italy': '#06b6d4',
   'Argentina': '#60a5fa', 'France': '#8b5cf6', 'Uruguay': '#f59e0b',
   'England': '#ef4444', 'Spain': '#f97316',
 }
@@ -202,12 +205,12 @@ export default function History() {
   const selected = TOURNAMENTS.find(t => t.year === selectedYear)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
   height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />      
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>

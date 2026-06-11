@@ -14,37 +14,40 @@ import CountryProfile from './pages/CountryProfile'
 import WorldCupMap from './pages/WorldCupMap'
 import CityProfile from './pages/CityProfile'
 import History from './pages/History'
- 
+import { ColorProvider } from './assets/ColorContext'
+
 function App() {
   return (
-    <BrowserRouter>
-      <div className="bg-gray-900 min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/livescores" element={<LiveScores />} />
-            <Route path="/countries" element={<Countries />} />
-            <Route path="/countries/:name" element={<CountryProfile />} />
-            <Route path="/map" element={<WorldCupMap />} />
-            <Route path="/cities/:name" element={<CityProfile />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/predictions" element={
-              <ProtectedRoute><Predictions /></ProtectedRoute>
-            } />
-            <Route path="/leaderboard" element={
-              <ProtectedRoute><Leaderboard /></ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute adminOnly={true}><Admin /></ProtectedRoute>
-            } />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <ColorProvider>
+      <BrowserRouter>
+        <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex flex-col">
+          <Navbar />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/livescores" element={<LiveScores />} />
+              <Route path="/countries" element={<Countries />} />
+              <Route path="/countries/:name" element={<CountryProfile />} />
+              <Route path="/map" element={<WorldCupMap />} />
+              <Route path="/cities/:name" element={<CityProfile />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/predictions" element={
+                <ProtectedRoute><Predictions /></ProtectedRoute>
+              } />
+              <Route path="/leaderboard" element={
+                <ProtectedRoute><Leaderboard /></ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute adminOnly={true}><Admin /></ProtectedRoute>
+              } />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </ColorProvider>
   )
 }
 

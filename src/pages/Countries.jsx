@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import COUNTRY_DATA from '../countryData'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
@@ -36,7 +39,7 @@ const GROUPS = {
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
@@ -56,12 +59,12 @@ function Countries() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
   height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />      
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
@@ -72,7 +75,7 @@ function Countries() {
             FIFA World Cup 2026
           </div>
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
-            Countries <span style={{ color: '#3b82f6' }}>🌍</span>
+            Countries <span style={{ color: 'var(--accent)' }}>🌍</span>
           </h1>
           <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>
             All 48 nations at World Cup 2026 — tap a country to see their full profile.
@@ -95,7 +98,7 @@ function Countries() {
               boxSizing: 'border-box',
               transition: 'border-color 0.2s',
             }}
-            onFocus={e => e.target.style.borderColor = '#3b82f6'}
+            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
           />
         </div>
@@ -103,7 +106,7 @@ function Countries() {
         {/* Groups grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
           {Object.entries(filteredGroups).map(([group, teams], gi) => {
-            const color = GROUP_COLORS[GROUP_LETTERS.indexOf(group)] || '#3b82f6'
+            const color = GROUP_COLORS[GROUP_LETTERS.indexOf(group)] || 'var(--accent)'
             return (
               <motion.div
                 key={group}

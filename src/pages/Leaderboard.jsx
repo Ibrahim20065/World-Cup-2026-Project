@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { useAuth } from '../assets/AuthContext'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 
@@ -92,18 +94,18 @@ function Leaderboard() {
   ]
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}></div>
-        <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading leaderboard...</p>
+        <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>Loading leaderboard...</p>
       </div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
+      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
 
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px 80px' }}>
 
@@ -126,7 +128,7 @@ function Leaderboard() {
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
               <button onClick={() => setShowCreateModal(true)}
                 style={{
-                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  background: 'linear-gradient(135deg, var(--accent), #1d4ed8)',
                   color: '#fff', fontWeight: 700, fontSize: 13,
                   padding: '9px 16px', borderRadius: 10, border: 'none',
                   cursor: 'pointer', boxShadow: '0 4px 14px rgba(59,130,246,0.3)',
@@ -250,7 +252,7 @@ function Leaderboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {leagues.map((league, li) => (
                 <motion.div key={league.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: li * 0.08 }}
-                  style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, overflow: 'hidden', borderTop: '3px solid #3b82f6' }}>
+                  style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, overflow: 'hidden', borderTop: '3px solid var(--accent)' }}>
 
                   {/* League header */}
                   <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
@@ -343,7 +345,7 @@ function Leaderboard() {
             onClick={() => setShowCreateModal(false)}>
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 20, padding: 28, width: '100%', maxWidth: 400, borderTop: '3px solid #3b82f6' }}>
+              style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 20, padding: 28, width: '100%', maxWidth: 400, borderTop: '3px solid var(--accent)' }}>
               <h2 style={{ fontWeight: 900, fontSize: 20, color: '#f1f5f9', margin: '0 0 6px' }}>🏆 Create a League</h2>
               <p style={{ color: '#475569', fontSize: 13, margin: '0 0 20px' }}>Give your league a name — your friends will join using the invite code.</p>
               <label style={{ color: '#64748b', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>League Name</label>
@@ -353,7 +355,7 @@ function Leaderboard() {
                 maxLength={50}
                 onKeyDown={e => { if (e.key === 'Enter') createLeague() }}
                 style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', padding: '12px 14px', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 20 }}
-                onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                 onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                 autoFocus
               />
@@ -363,7 +365,7 @@ function Leaderboard() {
                   Cancel
                 </button>
                 <button onClick={createLeague} disabled={modalLoading || !leagueName.trim()}
-                  style={{ flex: 2, background: leagueName.trim() ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 'rgba(255,255,255,0.05)', color: leagueName.trim() ? '#fff' : '#475569', fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 10, border: 'none', cursor: leagueName.trim() ? 'pointer' : 'not-allowed', boxShadow: leagueName.trim() ? '0 4px 14px rgba(59,130,246,0.3)' : 'none' }}>
+                  style={{ flex: 2, background: leagueName.trim() ? 'linear-gradient(135deg, var(--accent), #1d4ed8)' : 'rgba(255,255,255,0.05)', color: leagueName.trim() ? '#fff' : '#475569', fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 10, border: 'none', cursor: leagueName.trim() ? 'pointer' : 'not-allowed', boxShadow: leagueName.trim() ? '0 4px 14px rgba(59,130,246,0.3)' : 'none' }}>
                   {modalLoading ? 'Creating...' : '🏆 Create League'}
                 </button>
               </div>

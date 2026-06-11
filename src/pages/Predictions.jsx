@@ -12,6 +12,9 @@ import PlayerSearch from '../components/PlayerSearch'
 import PLAYERS from '../players'
 import toast from 'react-hot-toast'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
@@ -30,14 +33,14 @@ const FLAGS = {
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 const POSITION_CONFIG = [
   { label: '1st', bg: '#22c55e', color: '#000' },
-  { label: '2nd', bg: '#3b82f6', color: '#fff' },
+  { label: '2nd', bg: 'var(--accent)', color: '#fff' },
   { label: '3rd', bg: '#f59e0b', color: '#000' },
   { label: '4th', bg: '#ef4444', color: '#fff' },
 ]
@@ -156,11 +159,8 @@ function MatchPicks({ token }) {
       parseInt(activeDate.split('-')[2]),
   utcHour, min, 0
 ))
-lock.setMinutes(lock.getMinutes() - 10)
-setLockTime(lock)
-setLocked(new Date() >= lock)
-    setLockTime(lock)
-    setLocked(new Date() >= lock)
+    setLockTime(lockDate)
+    setLocked(new Date() >= lockDate)
   }, [activeDate])
 
   useEffect(() => {
@@ -211,7 +211,7 @@ setLocked(new Date() >= lock)
 
   const groupColor = (group) => {
     const idx = GROUP_LETTERS.indexOf(group)
-    return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
+    return idx >= 0 ? GROUP_COLORS[idx] : 'var(--accent)'
   }
 
   if (!token) return (
@@ -228,7 +228,7 @@ setLocked(new Date() >= lock)
 
   return (
     <div>
-      <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #3b82f6', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid var(--accent)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 18, color: '#93c5fd', margin: '0 0 4px' }}>Match Picks</h2>
           <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
@@ -289,7 +289,7 @@ setLocked(new Date() >= lock)
                 ) : <span />}
                 {!locked && (
                   <button onClick={() => savePick(match.id)} disabled={isSaving}
-                    style={{ background: hasSaved ? `${gc}15` : 'linear-gradient(135deg, #3b82f6, #1d4ed8)', border: hasSaved ? `1px solid ${gc}40` : 'none', color: hasSaved ? gc : '#fff', fontWeight: 700, fontSize: 13, padding: '7px 18px', borderRadius: 8, cursor: 'pointer', opacity: isSaving ? 0.6 : 1 }}>
+                    style={{ background: hasSaved ? `${gc}15` : 'linear-gradient(135deg, var(--accent), #1d4ed8)', border: hasSaved ? `1px solid ${gc}40` : 'none', color: hasSaved ? gc : '#fff', fontWeight: 700, fontSize: 13, padding: '7px 18px', borderRadius: 8, cursor: 'pointer', opacity: isSaving ? 0.6 : 1 }}>
                     {isSaving ? 'Saving...' : hasSaved ? '✓ Update Pick' : 'Save Pick'}
                   </button>
                 )}
@@ -505,7 +505,7 @@ function BracketCol({ title, matches, predictions, onPick, totalH }) {
       <div style={{
         fontSize: 8,
         fontWeight: 800,
-        color: '#3b82f6',
+        color: 'var(--accent)',
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
         textAlign: 'center',
@@ -706,8 +706,8 @@ function Predictions() {
   }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading predictions...</p>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>Loading predictions...</p>
     </div>
   )
 
@@ -727,8 +727,8 @@ function Predictions() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
 
       <div style={{ maxWidth: '100%', margin: '0 auto', padding: '32px 16px 80px' }}>
         <div style={{ marginBottom: 28 }}>
@@ -753,7 +753,7 @@ function Predictions() {
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 24, scrollbarWidth: 'none' }}>
           {TABS.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ position: 'relative', flexShrink: 0, padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.15s', border: 'none', background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: activeTab === tab.id ? '#fff' : '#94a3b8', boxShadow: activeTab === tab.id ? '0 4px 16px rgba(59,130,246,0.3)' : 'none' }}>
+              style={{ position: 'relative', flexShrink: 0, padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.15s', border: 'none', background: activeTab === tab.id ? 'var(--accent)' : 'rgba(255,255,255,0.05)', color: activeTab === tab.id ? '#fff' : '#94a3b8', boxShadow: activeTab === tab.id ? '0 4px 16px rgba(59,130,246,0.3)' : 'none' }}>
               {tab.label}
               {tab.soon && <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 20 }}>SOON</span>}
             </button>
@@ -768,7 +768,7 @@ function Predictions() {
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
               {Object.entries(groups).map(([groupName], gi) => {
-                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || '#3b82f6'
+                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || 'var(--accent)'
                 return (
                   <motion.div key={groupName} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: gi * 0.04 }}
                     style={{ background: '#0d1526', border: `1px solid ${color}30`, borderRadius: 14, padding: 18, borderTop: `3px solid ${color}` }}>
@@ -799,7 +799,7 @@ function Predictions() {
             </div>
             {!locked && (
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
-                <button onClick={saveProgress} disabled={saving} style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(59,130,246,0.3)', opacity: saving ? 0.6 : 1 }}>
+                <button onClick={saveProgress} disabled={saving} style={{ background: 'linear-gradient(135deg, var(--accent), #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(59,130,246,0.3)', opacity: saving ? 0.6 : 1 }}>
                   {saving ? 'Saving...' : '💾 Save Group Stage'}
                 </button>
               </div>
@@ -822,7 +822,7 @@ function Predictions() {
                 const thirdTeam = groupPredictions[groupName]?.[2]
                 if (!thirdTeam) return null
                 const isSelected = thirdPlaceAdvancing.includes(thirdTeam)
-                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || '#3b82f6'
+                const color = GROUP_COLORS[GROUP_LETTERS.indexOf(groupName)] || 'var(--accent)'
                 return (
                   <motion.div key={groupName} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: gi * 0.04 }}
                     onClick={() => {
@@ -843,7 +843,7 @@ function Predictions() {
             </div>
             {!locked && (
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
-                <button onClick={saveProgress} disabled={saving} style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(59,130,246,0.3)', opacity: saving ? 0.6 : 1 }}>
+                <button onClick={saveProgress} disabled={saving} style={{ background: 'linear-gradient(135deg, var(--accent), #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 100, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(59,130,246,0.3)', opacity: saving ? 0.6 : 1 }}>
                   {saving ? 'Saving...' : '💾 Save 3rd Place Picks'}
                 </button>
               </div>
@@ -860,7 +860,7 @@ function Predictions() {
               <div style={{ textAlign: 'center', padding: '80px 20px' }}><p style={{ color: '#fbbf24', fontWeight: 700, fontSize: 16 }}>Select all 8 third-place teams first!</p></div>
             ) : (
               <>
-                <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 18, marginBottom: 20, borderTop: '3px solid #3b82f6' }}>
+                <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 18, marginBottom: 20, borderTop: '3px solid var(--accent)' }}>
                   <h2 style={{ fontWeight: 800, fontSize: 18, color: '#93c5fd', margin: '0 0 4px' }}>Knockout Bracket</h2>
                   <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>Tap a team to advance them through the bracket.</p>
                 </div>
@@ -937,7 +937,7 @@ function Predictions() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #3b82f6' }}>
+              style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid var(--accent)' }}>
               <h2 style={{ color: '#60a5fa', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>Golden Glove</h2>
               <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>1st: 12pts · 2nd: 8pts · 3rd: 4pts</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

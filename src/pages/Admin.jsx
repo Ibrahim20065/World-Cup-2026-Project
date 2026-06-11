@@ -3,10 +3,13 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 
@@ -88,7 +91,7 @@ function Admin() {
   const CONTROLS = [
     {
       label: 'Score Group Stage', desc: 'Run after June 27 when group stage ends',
-      color: '#3b82f6', icon: '📊',
+      color: 'var(--accent)', icon: '📊',
       action: async () => {
         if (!confirm('Score all group stage predictions now?')) return
         try {
@@ -126,24 +129,24 @@ function Admin() {
   ]
 
   const STATS = [
-    { label: 'Total Users', value: users.length, icon: '👥', color: '#3b82f6' },
+    { label: 'Total Users', value: users.length, icon: '👥', color: 'var(--accent)' },
     { label: 'Admins', value: users.filter(u => u.is_admin).length, icon: '⭐', color: '#fbbf24' },
     { label: 'Top Points', value: Math.max(...users.map(u => u.points), 0), icon: '🏆', color: '#22c55e' },
     { label: 'Mini Leagues', value: leagues.length, icon: '🏅', color: '#8b5cf6' },
   ]
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>⚙️</div>
-        <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading admin panel...</p>
+        <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>Loading admin panel...</p>
       </div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
 
@@ -195,7 +198,7 @@ function Admin() {
               style={{
                 padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13,
                 cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-                background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)',
+                background: activeTab === tab.id ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
                 color: activeTab === tab.id ? '#fff' : '#94a3b8',
                 boxShadow: activeTab === tab.id ? '0 4px 14px rgba(59,130,246,0.3)' : 'none',
               }}>
@@ -217,7 +220,7 @@ function Admin() {
               <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search by username or email..."
                 style={{ width: '100%', background: '#0d1526', border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9', padding: '10px 16px 10px 40px', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-                onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                 onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
             </div>
 

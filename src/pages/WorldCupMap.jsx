@@ -4,17 +4,20 @@ import { motion } from 'framer-motion'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import CITY_DATA from '../cityData'
 import API_URL from '../config'
+import { useColor } from '../assets/ColorContext'
+
+
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
-  '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+  '#06b6d4','var(--accent)','#8b5cf6','#ec4899',
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 
 // Country accent colors
-const COUNTRY_COLORS = { us: '#3b82f6', mx: '#22c55e', ca: '#ef4444' }
+const COUNTRY_COLORS = { us: 'var(--accent)', mx: '#22c55e', ca: '#ef4444' }
 
 function WorldCupMap() {
   const navigate = useNavigate()
@@ -33,12 +36,12 @@ function WorldCupMap() {
   }, {})
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
 
       {/* Top color bar */}
       <div style={{
   height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />      
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
@@ -49,7 +52,7 @@ function WorldCupMap() {
             FIFA World Cup 2026
           </div>
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
-            Host Cities <span style={{ color: '#3b82f6' }}>🗺️</span>
+            Host Cities <span style={{ color: 'var(--accent)' }}>🗺️</span>
           </h1>
           <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>
             16 cities across USA, Mexico and Canada — tap any city to explore it.
@@ -108,7 +111,7 @@ function WorldCupMap() {
 
             {Object.entries(CITY_DATA).map(([cityName, city]) => {
               const isHovered = hovered === cityName
-              const dotColor = city.flag === 'mx' ? '#22c55e' : city.flag === 'ca' ? '#ef4444' : '#3b82f6'
+              const dotColor = city.flag === 'mx' ? '#22c55e' : city.flag === 'ca' ? '#ef4444' : 'var(--accent)'
               return (
                 <Marker
                   key={cityName}
@@ -145,8 +148,8 @@ function WorldCupMap() {
         {/* City grid — grouped by country */}
         {Object.entries(byCountry).map(([country, cities]) => {
           const flagMap = { 'USA': 'us', 'Mexico': 'mx', 'Canada': 'ca' }
-          const accentMap = { 'USA': '#3b82f6', 'Mexico': '#22c55e', 'Canada': '#ef4444' }
-          const accent = accentMap[country] || '#3b82f6'
+          const accentMap = { 'USA': 'var(--accent)', 'Mexico': '#22c55e', 'Canada': '#ef4444' }
+          const accent = accentMap[country] || 'var(--accent)'
           const flagCode = flagMap[country] || 'us'
 
           return (

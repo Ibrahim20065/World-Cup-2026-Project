@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../assets/AuthContext'
 import wc2026 from '../assets/wc2026-logo.png'
+import { useColor } from '../assets/ColorContext'
 
 const GROUP_COLORS = [
   '#ef4444','#f97316','#eab308','#22c55e',
@@ -24,6 +25,18 @@ function Navbar() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { accent, changeColor } = useColor()
+  const [showPicker, setShowPicker] = useState(false)
+
+  const COLORS = [
+  { color: '#3b82f6', label: 'Blue' },
+  { color: '#22c55e', label: 'Green' },
+  { color: '#8b5cf6', label: 'Purple' },
+  { color: '#ef4444', label: 'Red' },
+  { color: '#f97316', label: 'Orange' },
+  { color: '#fbbf24', label: 'Gold' },
+  
+]
 
   const handleLogout = () => {
     logout()
@@ -45,7 +58,7 @@ function Navbar() {
       {/* Rainbow color bar */}
 <div style={{
   height: 2,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
+  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
 }} />
 
       {/* Main bar */}
@@ -60,6 +73,36 @@ function Navbar() {
          />
         <span style={{ fontWeight: 900, fontSize: 18, color: '#f1f5f9', letterSpacing: '-0.02em' }}>WC2026</span>
         </Link>
+
+        <div style={{ position: 'relative' }}>
+        <button onClick={() => setShowPicker(!showPicker)}
+    style={{
+      width: 28, height: 28, borderRadius: '50%',
+      background: accent, border: '2px solid rgba(255,255,255,0.2)',
+      cursor: 'pointer', flexShrink: 0,
+    }} />
+  {showPicker && (
+    <div style={{
+      position: 'absolute', top: 40, right: 0,
+      background: '#0d1526', border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 12, padding: 10,
+      display: 'flex', gap: 8, zIndex: 100,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+    }}>
+      {COLORS.map(({ color, label }) => (
+        <button key={color} onClick={() => { changeColor(color); setShowPicker(false) }}
+          title={label}
+          style={{
+            width: 28, height: 28, borderRadius: '50%',
+            background: color, cursor: 'pointer',
+            border: accent === color ? '3px solid #fff' : '2px solid rgba(255,255,255,0.1)',
+            transition: 'transform 0.15s',
+            transform: accent === color ? 'scale(1.2)' : 'scale(1)',
+          }} />
+      ))}
+    </div>
+  )}
+</div>
 
         {/* Desktop nav links */}
         <div style={{ display: 'none' }} className="md-nav">
@@ -77,7 +120,7 @@ function Navbar() {
             >
               {link.label}
               {isActive(link.path) && (
-                <span style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: 16, height: 2, background: '#3b82f6', borderRadius: 1 }} />
+                <span style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: 16, height: 2, background: 'var(--accent)', borderRadius: 1 }} />
               )}
             </Link>
           ))}
@@ -135,7 +178,7 @@ function Navbar() {
               <Link to="/signup" style={{
                 textDecoration: 'none', fontSize: 13, fontWeight: 700, color: '#fff',
                 padding: '6px 14px', borderRadius: 8,
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                background: 'linear-gradient(135deg, var(--accent), #1d4ed8)',
                 boxShadow: '0 2px 8px rgba(59,130,246,0.3)',
                 transition: 'opacity 0.15s',
               }}
@@ -214,7 +257,7 @@ function Navbar() {
                   color: isActive(link.path) ? '#f1f5f9' : '#64748b',
                   padding: '10px 12px', borderRadius: 8,
                   background: isActive(link.path) ? 'rgba(59,130,246,0.1)' : 'transparent',
-                  borderLeft: isActive(link.path) ? '3px solid #3b82f6' : '3px solid transparent',
+                  borderLeft: isActive(link.path) ? '3px solid var(--accent)' : '3px solid transparent',
                   display: 'flex', alignItems: 'center',
                   transition: 'all 0.15s',
                 }}>
@@ -250,7 +293,7 @@ function Navbar() {
                 <Link to="/signup" onClick={() => setMenuOpen(false)} style={{
                   textDecoration: 'none', textAlign: 'center', fontSize: 13, fontWeight: 700,
                   color: '#fff', padding: '10px', borderRadius: 10,
-                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  background: 'linear-gradient(135deg, var(--accent), #1d4ed8)',
                   boxShadow: '0 2px 8px rgba(59,130,246,0.3)',
                 }}>Create Account</Link>
               </>
