@@ -239,7 +239,7 @@ function Standings() {
         </div>
 
         {/* Group tables */}
-        <div style={{
+        <div className="standings-grid" style={{
           display: 'grid',
           gridTemplateColumns: filter === 'ALL' ? 'repeat(auto-fill, minmax(480px, 1fr))' : '1fr',
           gap: 16,
