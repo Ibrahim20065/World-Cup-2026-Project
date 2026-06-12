@@ -111,7 +111,7 @@ function Navbar() {
             <Link key={link.path} to={link.path} style={{
               textDecoration: 'none', fontSize: 13, fontWeight: 600,
               color: isActive(link.path) ? '#f1f5f9' : '#64748b',
-              padding: '6px 12px', borderRadius: 8,
+              padding: '6px 16px', borderRadius: 8,
               background: isActive(link.path) ? 'rgba(255,255,255,0.06)' : 'transparent',
               transition: 'color 0.15s, background 0.15s',
               position: 'relative',
@@ -330,7 +330,7 @@ function Navbar() {
 
       <style>{`
         @media (min-width: 768px) {
-          .md-nav { display: flex !important; align-items: center; gap: 8px; }
+          .md-nav { display: flex !important; align-items: center; gap: 12px; }
           .md-auth { display: flex !important; }
           .mobile-controls { display: none !important; }
         }
