@@ -254,11 +254,35 @@ function Standings() {
           ))}
         </div>
 
+        <style>{`
+  @media (max-width: 640px) {
+    .standings-grid > div > div {
+      grid-template-columns: 20px 1fr 26px 26px 26px 32px !important;
+    }
+    .standings-grid > div > div span:nth-child(4),
+    .standings-grid > div > div span:nth-child(5) {
+      display: none;
+    }
+  }
+`}</style>
+
+<div className="standings-grid" style={{
+  display: 'grid',
+  gridTemplateColumns: filter === 'ALL' ? 'repeat(auto-fill, minmax(480px, 1fr))' : '1fr',
+  gap: 16,
+}}></div>
+
         {/* Last updated note */}
         <p style={{ color: '#334155', fontSize: 12, textAlign: 'center', marginTop: 32 }}>
           Standings are updated manually by the admin after each match. Refresh for the latest! 🔄
         </p>
       </div>
+
+      <style>{`
+  @media (max-width: 640px) {
+    .standings-grid { grid-template-columns: 1fr !important; }
+  }
+`}</style>
     </div>
   )
 }
