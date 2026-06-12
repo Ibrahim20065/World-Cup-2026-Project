@@ -269,7 +269,7 @@ function Navbar() {
                   } }>⚙️ Settings</Link>
 
           {/* Nav links */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
             {LINKS.map(link => (
               <Link key={link.path} to={link.path} onClick={() => setMenuOpen(false)}
                 style={{
