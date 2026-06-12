@@ -63,7 +63,7 @@ function Navbar() {
 }} />
 
       {/* Main bar */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60 }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 20, height: 60 }}>
 
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, marginRight: 30 }}>
@@ -75,7 +75,7 @@ function Navbar() {
         <span style={{ fontWeight: 900, fontSize: 18, color: '#f1f5f9', letterSpacing: '-0.02em' }}>WC2026</span>
         </Link>
 
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', marginRight: 16 }}>
         <button onClick={() => setShowPicker(!showPicker)}
     style={{
       width: 28, height: 28, borderRadius: '50%',
