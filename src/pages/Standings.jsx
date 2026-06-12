@@ -276,13 +276,13 @@ function Standings() {
         <p style={{ color: '#334155', fontSize: 12, textAlign: 'center', marginTop: 32 }}>
           Standings are updated manually by the admin after each match. Refresh for the latest! 🔄
         </p>
-      </div>
+        <style>{`
+          @media (max-width: 640px) {
+            .standings-grid { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
 
-      <style>{`
-  @media (max-width: 640px) {
-    .standings-grid { grid-template-columns: 1fr !important; }
-  }
-`}</style>
+      </div>
     </div>
   )
 }
