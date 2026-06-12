@@ -86,7 +86,7 @@ function GroupTable({ group, standings, color }) {
       </div>
 
       {/* Table header */}
-      <div style={{
+      <div className="table-header" style={{
         display: 'grid',
         gridTemplateColumns: '24px 1fr 32px 32px 32px 32px 32px 32px 40px',
         padding: '6px 14px',
@@ -96,13 +96,13 @@ function GroupTable({ group, standings, color }) {
       }}>
         <span>#</span>
         <span>Team</span>
-        <span style={{ textAlign: 'center' }}>P</span>
-        <span style={{ textAlign: 'center' }}>W</span>
-        <span style={{ textAlign: 'center' }}>D</span>
-        <span style={{ textAlign: 'center' }}>L</span>
-        <span style={{ textAlign: 'center' }}>GD</span>
-        <span style={{ textAlign: 'center' }}>GF</span>
-        <span style={{ textAlign: 'center' }}>Pts</span>
+        <span className="stat-value" style={{ textAlign: 'center' }}>P</span>
+        <span className="stat-value" style={{ textAlign: 'center' }}>W</span>
+        <span className="stat-value" style={{ textAlign: 'center' }}>D</span>
+        <span className="stat-value" style={{ textAlign: 'center' }}>L</span>
+        <span className="stat-value" style={{ textAlign: 'center' }}>GD</span>
+        <span className="stat-value" style={{ textAlign: 'center' }}>GF</span>
+        <span className="stat-value" style={{ textAlign: 'center' }}>Pts</span>
       </div>
 
       {/* Rows */}
@@ -115,7 +115,7 @@ function GroupTable({ group, standings, color }) {
         const rowBg = advancing ? `${color}08` : 'transparent'
 
         return (
-          <div key={team} style={{
+          <div key={team} className="table-row" style={{
             display: 'grid',
             gridTemplateColumns: '24px 1fr 32px 32px 32px 32px 32px 32px 40px',
             padding: '9px 14px',
@@ -131,23 +131,23 @@ function GroupTable({ group, standings, color }) {
             }}>{i + 1}</span>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <img
+              <img className="team-flag"
                 src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`}
                 alt={team}
                 style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }}
                 onError={e => { e.target.style.display = 'none' }}
               />
-              <span style={{
+              <span className="team-name" style={{
                 fontWeight: 700, fontSize: 13, color: '#e2e8f0',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>{team}</span>
             </div>
 
-            <span style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{s.played}</span>
-            <span style={{ textAlign: 'center', fontSize: 13, color: '#22c55e', fontWeight: 600 }}>{s.won}</span>
-            <span style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{s.drawn}</span>
-            <span style={{ textAlign: 'center', fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{s.lost}</span>
-            <span style={{
+            <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{s.played}</span>
+            <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#22c55e', fontWeight: 600 }}>{s.won}</span>
+            <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{s.drawn}</span>
+            <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{s.lost}</span>
+            <span className="stat-value" style={{
               textAlign: 'center', fontSize: 13, fontWeight: 700,
               color: s.gd > 0 ? '#22c55e' : s.gd < 0 ? '#ef4444' : '#94a3b8',
             }}>{s.gd > 0 ? '+' : ''}{s.gd}</span>
@@ -277,10 +277,25 @@ function Standings() {
           Standings are updated manually by the admin after each match. Refresh for the latest! 🔄
         </p>
         <style>{`
-          @media (max-width: 640px) {
-            .standings-grid { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
+  @media (max-width: 640px) {
+    .standings-grid { grid-template-columns: 1fr !important; }
+    .table-header, .table-row {
+      grid-template-columns: 18px 1fr 22px 22px 22px 28px !important;
+      padding: 6px 6px !important;
+    }
+    .table-header span:nth-child(4),
+    .table-header span:nth-child(5),
+    .table-header span:nth-child(7),
+    .table-row span:nth-child(4),
+    .table-row span:nth-child(5),
+    .table-row span:nth-child(7) {
+      display: none !important;
+    }
+    .team-flag { width: 18px !important; height: 12px !important; }
+    .team-name { font-size: 11px !important; }
+    .stat-value { font-size: 11px !important; }
+  }
+`}</style>
 
       </div>
     </div>
