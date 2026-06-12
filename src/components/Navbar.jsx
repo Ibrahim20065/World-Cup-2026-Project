@@ -330,7 +330,7 @@ function Navbar() {
 
       <style>{`
         @media (min-width: 768px) {
-          .md-nav { display: flex !important; align-items: center; gap: 4px; }
+          .md-nav { display: flex !important; align-items: center; gap: 8px; }
           .md-auth { display: flex !important; }
           .mobile-controls { display: none !important; }
         }
