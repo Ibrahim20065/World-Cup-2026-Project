@@ -16,6 +16,7 @@ import CityProfile from './pages/CityProfile'
 import History from './pages/History'
 import { ColorProvider } from './assets/ColorContext'
 import Standings from './pages/Standings'
+import Settings from './pages/Settings'
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
               <Route path="/cities/:name" element={<CityProfile />} />
               <Route path="/history" element={<History />} />
               <Route path="/standings" element={<Standings/>} />
+              <Route path="/settings" element={<Settings/>} />
               <Route path="/predictions" element={
                 <ProtectedRoute><Predictions /></ProtectedRoute>
               } />

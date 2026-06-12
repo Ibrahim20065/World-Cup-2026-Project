@@ -153,6 +153,16 @@ function Navbar() {
                 </Link>
               )}
 
+              <Link to="/settings" style={{
+                textDecoration: 'none', fontSize: 12, fontWeight: 700,
+  color: '#94a3b8', padding: '5px 12px', borderRadius: 8,
+  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+  transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>
+              ⚙️ Settings</Link>
+
               <button onClick={handleLogout} style={{
                 fontSize: 12, fontWeight: 700, color: '#64748b',
                 padding: '5px 12px', borderRadius: 8,
@@ -163,7 +173,10 @@ function Navbar() {
                 onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
                 Logout
               </button>
+
+              
             </div>
+
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Link to="/login" style={{
@@ -249,6 +262,12 @@ function Navbar() {
             </div>
           )}
 
+          <Link to="/settings" onClick={() => setMenuOpen(false)} style={{
+              textDecoration: 'none', textAlign: 'center', fontSize: 13, fontWeight: 700,
+              color: '#94a3b8', padding: '10px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  } }>⚙️ Settings</Link>
+
           {/* Nav links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 12 }}>
             {LINKS.map(link => (
@@ -271,6 +290,12 @@ function Navbar() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             {user ? (
               <>
+                 <Link to="/settings" onClick={() => setMenuOpen(false)} style={{
+                    textDecoration: 'none', textAlign: 'center', fontSize: 13, fontWeight: 700,
+                    color: '#94a3b8', padding: '10px', borderRadius: 10,
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  }}>⚙️ Settings</Link>
+
                 {user.is_admin && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)} style={{
                     textDecoration: 'none', textAlign: 'center', fontSize: 13, fontWeight: 700,
