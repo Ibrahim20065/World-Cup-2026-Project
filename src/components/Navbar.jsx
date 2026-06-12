@@ -130,7 +130,7 @@ function Navbar() {
         {/* Desktop auth */}
         <div style={{ display: 'none' }} className="md-auth">
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16}}>
               {/* Avatar */}
               <div style={{
                 width: 32, height: 32, borderRadius: '50%',
