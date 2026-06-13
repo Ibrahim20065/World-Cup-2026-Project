@@ -569,7 +569,7 @@ function Predictions() {
       Object.keys(res.data).forEach(g => { initial[g] = [...res.data[g]] })
       setGroupPredictions(initial)
       setLoading(false)
-      if (new Date() >= new Date('2026-06-13T20:30:00Z')) { setLocked(true); setAwardsLocked(true) }
+      if (new Date() >= new Date('2026-06-16T20:30:00Z')) { setLocked(true); setAwardsLocked(true) }
       const token = localStorage.getItem('token')
       if (token) {
         axios.get(`${API_URL}/api/predictions`, { headers: { Authorization: `Bearer ${token}` } })
