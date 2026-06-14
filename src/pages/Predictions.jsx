@@ -293,7 +293,7 @@ function MatchPicks({ token }) {
       <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #3b82f6', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 18, color: '#93c5fd', margin: '0 0 4px' }}>Match Picks</h2>
-          <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
+          <p style={{ color: '#ffffff', fontSize: 13, margin: 0 }}>
             {new Date(activeDate + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             {' · '}{todayMatches.length} matches
           </p>
@@ -304,10 +304,10 @@ function MatchPicks({ token }) {
           ) : (
             <>
               <span style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100 }}>Open for picks</span>
-              {timeLeft && <span style={{ color: '#475569', fontSize: 11 }}>Next lock in {timeLeft}</span>}
+              {timeLeft && <span style={{ color: '#ffffff', fontSize: 11 }}>Next lock in {timeLeft}</span>}
             </>
           )}
-          <span style={{ color: '#334155', fontSize: 11 }}>2pts result · +4pts exact score</span>
+          <span style={{ color: '#ffffff', fontSize: 11 }}>2pts result · +4pts exact score</span>
         </div>
       </div>
 
