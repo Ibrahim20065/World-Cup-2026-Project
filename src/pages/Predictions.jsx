@@ -142,6 +142,13 @@ function MatchPicks({ token }) {
   const [activeDate, setActiveDate] = useState('')
   const [now, setNow] = useState(new Date())
 
+
+  function toLocalDate(kickoff_utc) {
+  return new Date(kickoff_utc).toLocaleDateString('en-CA')
+}
+
+
+
   // Tick every second to keep lock states live
   useEffect(() => {
     const iv = setInterval(() => setNow(new Date()), 1000)
@@ -152,7 +159,7 @@ function MatchPicks({ token }) {
   useEffect(() => {
     axios.get(`${API_URL}/api/matches`)
       .then(res => {
-        const wc = res.data.filter(m => m.date && m.date.startsWith('2026'))
+        const wc = res.data.filter(m => m.kickoff_utc && m.kickoff_utc.startsWith('2026'))
         setSchedule(wc)
       }).catch(() => {})
   }, [])
@@ -160,9 +167,9 @@ function MatchPicks({ token }) {
   // Set active date: first day that still has at least one unlocked match
   useEffect(() => {
     if (schedule.length === 0) return
-    const allDates = [...new Set(schedule.map(m => m.date))].sort()
+     const allDates = [...new Set(schedule.map(m => toLocalDate(m.kickoff_utc)))].sort()
     const defaultDate = allDates.find(d => {
-      const dayMatches = schedule.filter(m => m.date === d)
+      const dayMatches = schedule.filter(m => toLocalDate(m.kickoff_utc) === d)
       return dayMatches.some(m => {
         if (!m.kickoff_utc) return true
         const lockTime = new Date(new Date(m.kickoff_utc).getTime() - 10 * 60 * 1000)
@@ -237,8 +244,8 @@ function MatchPicks({ token }) {
     </div>
   )
 
-  const allDates = [...new Set(schedule.map(m => m.date))].sort()
-  const todayMatches = schedule.filter(m => m.date === activeDate)
+   const allDates = [...new Set(schedule.map(m => toLocalDate(m.kickoff_utc)))].sort()
+  const todayMatches = schedule.filter(m => toLocalDate(m.kickoff_utc) === activeDate)
   const allLocked = todayMatches.length > 0 && todayMatches.every(m => isMatchLocked(m))
 
   // Find earliest lock time of remaining unlocked matches today (for countdown)
@@ -273,7 +280,7 @@ function MatchPicks({ token }) {
       {/* Date selector */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
         {allDates.map(d => {
-          const dayMatches = schedule.filter(m => m.date === d)
+          const dayMatches = schedule.filter(m => toLocalDate(m.kickoff_utc) === d)
           const dayAllLocked = dayMatches.every(m => isMatchLocked(m))
           return (
             <button key={d} onClick={() => setActiveDate(d)}
