@@ -135,62 +135,80 @@ const SCHEDULE = [
 
 // ── MATCH PICKS ──
 function MatchPicks({ token }) {
+  const [schedule, setSchedule] = useState([])
   const [matchPreds, setMatchPreds] = useState({})
   const [savedPreds, setSavedPreds] = useState({})
   const [saving, setSaving] = useState(null)
-  const [locked, setLocked] = useState(false)
-  const [lockTime, setLockTime] = useState(null)
-  const [timeLeft, setTimeLeft] = useState('')
+  const [activeDate, setActiveDate] = useState('')
+  const [now, setNow] = useState(new Date())
 
-  const today = new Date().toISOString().split('T')[0]
-  const allDates = [...new Set(SCHEDULE.map(m => m.date))].sort()
-  const activeDate = allDates.find(d => d >= today) || allDates[allDates.length - 1]
-  const todayMatches = SCHEDULE.filter(m => m.date === activeDate)
-
+  // Tick every second to keep lock states live
   useEffect(() => {
-    if (todayMatches.length === 0) return
-    const firstTime = todayMatches.map(m => m.time).sort()[0]
-    const [h, min] = firstTime.split(':').map(Number)
-    const utcHour = h + 4
-    const lockDate = new Date(Date.UTC(
-      parseInt(activeDate.split('-')[0]),
-      parseInt(activeDate.split('-')[1]) - 1,
-      parseInt(activeDate.split('-')[2]),
-      utcHour, min - 10, 0
-    ))
-    setLockTime(lockDate)
-    setLocked(new Date() >= lockDate)
-  }, [activeDate])
-
-  useEffect(() => {
-    if (!lockTime || locked) return
-    const iv = setInterval(() => {
-      const diff = lockTime - new Date()
-      if (diff <= 0) { setLocked(true); setTimeLeft(''); clearInterval(iv); return }
-      const h = Math.floor(diff / 3600000)
-      const m = Math.floor((diff % 3600000) / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${h > 0 ? h + 'h ' : ''}${m}m ${s}s`)
-    }, 1000)
+    const iv = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(iv)
-  }, [lockTime, locked])
+  }, [])
 
+  // Fetch schedule from backend (has kickoff_utc)
+  useEffect(() => {
+    axios.get(`${API_URL}/api/matches`)
+      .then(res => {
+        const wc = res.data.filter(m => m.date && m.date.startsWith('2026'))
+        setSchedule(wc)
+      }).catch(() => {})
+  }, [])
+
+  // Set active date: first day that still has at least one unlocked match
+  useEffect(() => {
+    if (schedule.length === 0) return
+    const allDates = [...new Set(schedule.map(m => m.date))].sort()
+    const defaultDate = allDates.find(d => {
+      const dayMatches = schedule.filter(m => m.date === d)
+      return dayMatches.some(m => {
+        if (!m.kickoff_utc) return true
+        const lockTime = new Date(new Date(m.kickoff_utc).getTime() - 10 * 60 * 1000)
+        return new Date() < lockTime
+      })
+    }) || allDates[allDates.length - 1]
+    setActiveDate(defaultDate)
+  }, [schedule])
+
+  // Fetch saved picks
   useEffect(() => {
     if (!token) return
     axios.get(`${API_URL}/api/match-predictions`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         const saved = {}
-        res.data.forEach(p => { saved[p.match_id] = p })
-        setSavedPreds(saved)
         const inputs = {}
-        res.data.forEach(p => { inputs[p.match_id] = { home: String(p.home_score), away: String(p.away_score) } })
+        res.data.forEach(p => {
+          saved[p.match_id] = p
+          inputs[p.match_id] = { home: String(p.home_score), away: String(p.away_score) }
+        })
+        setSavedPreds(saved)
         setMatchPreds(inputs)
       }).catch(() => {})
   }, [token])
 
+  const isMatchLocked = (match) => {
+    if (!match.kickoff_utc) return false
+    const lockTime = new Date(new Date(match.kickoff_utc).getTime() - 10 * 60 * 1000)
+    return now >= lockTime
+  }
+
+  const getTimeLeft = (match) => {
+    if (!match.kickoff_utc) return ''
+    const lockTime = new Date(new Date(match.kickoff_utc).getTime() - 10 * 60 * 1000)
+    const diff = lockTime - now
+    if (diff <= 0) return ''
+    const h = Math.floor(diff / 3600000)
+    const m = Math.floor((diff % 3600000) / 60000)
+    const s = Math.floor((diff % 60000) / 1000)
+    return `${h > 0 ? h + 'h ' : ''}${m}m ${s}s`
+  }
+
   const savePick = async (matchId) => {
     if (!token) { toast.error('Please login first!'); return }
-    if (locked) { toast.error('Picks are locked for today!'); return }
+    const match = schedule.find(m => m.id === matchId)
+    if (match && isMatchLocked(match)) { toast.error('This match is locked!'); return }
     const pick = matchPreds[matchId]
     if (!pick || pick.home === '' || pick.away === '') { toast.error('Enter both scores!'); return }
     const homeScore = parseInt(pick.home)
@@ -219,6 +237,31 @@ function MatchPicks({ token }) {
     </div>
   )
 
+  const allDates = [...new Set(schedule.map(m => m.date))].sort()
+  const todayMatches = schedule.filter(m => m.date === activeDate)
+  const allLocked = todayMatches.length > 0 && todayMatches.every(m => isMatchLocked(m))
+
+  // Find earliest lock time of remaining unlocked matches today (for countdown)
+  const nextLock = todayMatches
+    .filter(m => !isMatchLocked(m) && m.kickoff_utc)
+    .map(m => new Date(new Date(m.kickoff_utc).getTime() - 10 * 60 * 1000))
+    .sort((a, b) => a - b)[0]
+
+  const timeLeft = nextLock ? (() => {
+    const diff = nextLock - now
+    if (diff <= 0) return ''
+    const h = Math.floor(diff / 3600000)
+    const m = Math.floor((diff % 3600000) / 60000)
+    const s = Math.floor((diff % 60000) / 1000)
+    return `${h > 0 ? h + 'h ' : ''}${m}m ${s}s`
+  })() : ''
+
+  if (schedule.length === 0) return (
+    <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+      <p style={{ color: '#64748b', fontWeight: 700, fontSize: 16 }}>Loading matches...</p>
+    </div>
+  )
+
   if (todayMatches.length === 0) return (
     <div style={{ textAlign: 'center', padding: '80px 20px' }}>
       <p style={{ color: '#64748b', fontWeight: 700, fontSize: 16 }}>No more group stage matches!</p>
@@ -227,26 +270,47 @@ function MatchPicks({ token }) {
 
   return (
     <div>
+      {/* Date selector */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        {allDates.map(d => {
+          const dayMatches = schedule.filter(m => m.date === d)
+          const dayAllLocked = dayMatches.every(m => isMatchLocked(m))
+          return (
+            <button key={d} onClick={() => setActiveDate(d)}
+              style={{
+                padding: '5px 12px', borderRadius: 8, fontWeight: 700, fontSize: 11,
+                cursor: 'pointer', border: 'none', transition: 'all 0.15s',
+                background: activeDate === d ? '#3b82f6' : 'rgba(255,255,255,0.05)',
+                color: activeDate === d ? '#fff' : dayAllLocked ? '#334155' : '#94a3b8',
+                textDecoration: dayAllLocked ? 'line-through' : 'none',
+              }}>
+              {new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </button>
+          )
+        })}
+      </div>
+
       <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #3b82f6', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 18, color: '#93c5fd', margin: '0 0 4px' }}>Match Picks</h2>
           <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
-            {new Date(activeDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            {new Date(activeDate + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             {' · '}{todayMatches.length} matches
           </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          {locked ? (
-            <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100 }}>Picks Locked</span>
+          {allLocked ? (
+            <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100 }}>All Matches Locked</span>
           ) : (
             <>
               <span style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100 }}>Open for picks</span>
-              {timeLeft && <span style={{ color: '#475569', fontSize: 11 }}>Locks in {timeLeft}</span>}
+              {timeLeft && <span style={{ color: '#475569', fontSize: 11 }}>Next lock in {timeLeft}</span>}
             </>
           )}
           <span style={{ color: '#334155', fontSize: 11 }}>2pts result · +4pts exact score</span>
         </div>
       </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {todayMatches.map(match => {
           const gc = groupColor(match.group)
@@ -254,12 +318,26 @@ function MatchPicks({ token }) {
           const pick = matchPreds[match.id] || { home: '', away: '' }
           const isSaving = saving === match.id
           const hasSaved = !!saved
+          const matchLocked = isMatchLocked(match)
+          const timeLeftMatch = getTimeLeft(match)
+
           return (
             <motion.div key={match.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              style={{ background: '#0d1526', border: `1px solid ${hasSaved ? gc + '30' : 'rgba(255,255,255,0.06)'}`, borderTop: `3px solid ${gc}`, borderRadius: 14, padding: '16px 18px' }}>
+              style={{ background: '#0d1526', border: `1px solid ${hasSaved ? gc + '30' : 'rgba(255,255,255,0.06)'}`, borderTop: `3px solid ${matchLocked ? '#334155' : gc}`, borderRadius: 14, padding: '16px 18px', opacity: matchLocked ? 0.7 : 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: gc, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Group {match.group} · Match {match.id}</span>
-                <span style={{ fontSize: 11, color: '#334155', fontWeight: 600 }}>{match.time} UTC</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: matchLocked ? '#334155' : gc, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Group {match.group} · Match {match.id}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {matchLocked ? (
+                    <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100 }}>🔒 Locked</span>
+                  ) : timeLeftMatch ? (
+                    <span style={{ color: '#f59e0b', fontSize: 10, fontWeight: 600 }}>Locks in {timeLeftMatch}</span>
+                  ) : null}
+                  <span style={{ fontSize: 11, color: '#334155', fontWeight: 600 }}>
+                    {new Date(match.kickoff_utc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
@@ -268,14 +346,14 @@ function MatchPicks({ token }) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                   <input type="number" min="0" max="20" value={pick.home}
-                    onChange={e => !locked && setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, home: e.target.value } }))}
-                    disabled={locked} placeholder="0"
-                    style={{ width: 48, height: 48, textAlign: 'center', background: locked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)', border: `2px solid ${hasSaved ? gc + '50' : 'rgba(255,255,255,0.1)'}`, color: '#f1f5f9', fontSize: 22, fontWeight: 900, borderRadius: 10, outline: 'none', cursor: locked ? 'not-allowed' : 'text', MozAppearance: 'textfield', WebkitAppearance: 'none', appearance: 'none' }} />
+                    onChange={e => !matchLocked && setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, home: e.target.value } }))}
+                    disabled={matchLocked} placeholder="0"
+                    style={{ width: 48, height: 48, textAlign: 'center', background: matchLocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)', border: `2px solid ${hasSaved ? gc + '50' : 'rgba(255,255,255,0.1)'}`, color: '#f1f5f9', fontSize: 22, fontWeight: 900, borderRadius: 10, outline: 'none', cursor: matchLocked ? 'not-allowed' : 'text', MozAppearance: 'textfield', WebkitAppearance: 'none', appearance: 'none' }} />
                   <span style={{ color: '#334155', fontWeight: 900, fontSize: 18 }}>–</span>
                   <input type="number" min="0" max="20" value={pick.away}
-                    onChange={e => !locked && setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, away: e.target.value } }))}
-                    disabled={locked} placeholder="0"
-                    style={{ width: 48, height: 48, textAlign: 'center', background: locked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)', border: `2px solid ${hasSaved ? gc + '50' : 'rgba(255,255,255,0.1)'}`, color: '#f1f5f9', fontSize: 22, fontWeight: 900, borderRadius: 10, outline: 'none', cursor: locked ? 'not-allowed' : 'text' }} />
+                    onChange={e => !matchLocked && setMatchPreds(prev => ({ ...prev, [match.id]: { ...pick, away: e.target.value } }))}
+                    disabled={matchLocked} placeholder="0"
+                    style={{ width: 48, height: 48, textAlign: 'center', background: matchLocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)', border: `2px solid ${hasSaved ? gc + '50' : 'rgba(255,255,255,0.1)'}`, color: '#f1f5f9', fontSize: 22, fontWeight: 900, borderRadius: 10, outline: 'none', cursor: matchLocked ? 'not-allowed' : 'text' }} />
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                   <img src={`https://flagcdn.com/w80/${FLAGS[match.away] || 'un'}.png`} alt={match.away} style={{ width: 44, height: 30, objectFit: 'cover', borderRadius: 4 }} onError={e => { e.target.style.display = 'none' }} />
@@ -290,7 +368,7 @@ function MatchPicks({ token }) {
                 ) : hasSaved ? (
                   <span style={{ fontSize: 11, color: '#475569' }}>Saved: {saved.home_score}–{saved.away_score}</span>
                 ) : <span />}
-                {!locked && (
+                {!matchLocked && (
                   <button onClick={() => savePick(match.id)} disabled={isSaving}
                     style={{ background: hasSaved ? `${gc}15` : 'linear-gradient(135deg, #3b82f6, #1d4ed8)', border: hasSaved ? `1px solid ${gc}40` : 'none', color: hasSaved ? gc : '#fff', fontWeight: 700, fontSize: 13, padding: '7px 18px', borderRadius: 8, cursor: 'pointer', opacity: isSaving ? 0.6 : 1 }}>
                     {isSaving ? 'Saving...' : hasSaved ? '✓ Update Pick' : 'Save Pick'}
