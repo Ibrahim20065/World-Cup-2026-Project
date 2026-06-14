@@ -4,8 +4,6 @@ import axios from 'axios'
 import API_URL from '../config'
 import { useColor } from '../assets/ColorContext'
 
-
-
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
   'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia': 'ba',
@@ -33,17 +31,21 @@ function getGroupColor(group) {
   return idx >= 0 ? GROUP_COLORS[idx] : 'var(--accent)'
 }
 
-function toLocalTime(date, time) {
+// Convert kickoff_utc ISO string to local time string for display
+function toLocalTime(kickoff_utc) {
   try {
-    // times are ET (UTC-4), convert by adding 4 hours
-    const [h, m] = time.split(':').map(Number)
-    const etOffsetHours = 4 // ET = UTC-4 in summer
-    const utcHour = h + etOffsetHours
-    const d = new Date(date + 'T00:00:00Z')
-    d.setUTCHours(utcHour, m, 0, 0)
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+    return new Date(kickoff_utc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
   } catch {
-    return time
+    return ''
+  }
+}
+
+// Get local date string YYYY-MM-DD from kickoff_utc
+function toLocalDate(kickoff_utc) {
+  try {
+    return new Date(kickoff_utc).toLocaleDateString('en-CA') // returns YYYY-MM-DD in local time
+  } catch {
+    return ''
   }
 }
 
@@ -96,18 +98,13 @@ function MatchCard({ match, onClick }) {
       }}
       whileHover={{ y: -2 }}
     >
-      {/* Top row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <span style={{
-          fontSize: 10, fontWeight: 800, letterSpacing: '0.08em',
-          textTransform: 'uppercase', color: groupColor,
-        }}>
-          {match.group ? `Group ${match.group}` : match.round ? `Round ${match.round}` : 'Match'}
+        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: groupColor }}>
+          {match.group ? `Group ${match.group}` : 'Match'}
         </span>
         <StatusBadge status={match.status} minute={match.minute} />
       </div>
 
-      {/* Teams */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1 }}>
           <img src={`https://flagcdn.com/w80/${FLAGS[match.home] || 'un'}.png`} alt={match.home}
@@ -119,7 +116,9 @@ function MatchCard({ match, onClick }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '0 4px' }}>
           {isNS ? (
             <>
-              <span style={{ color: '#22c55e', fontWeight: 800, fontSize: 17 }}>{toLocalTime(match.date, match.time)}</span>
+              <span style={{ color: '#22c55e', fontWeight: 800, fontSize: 17 }}>
+                {toLocalTime(match.kickoff_utc)}
+              </span>
               <span style={{ color: '#334155', fontSize: 10, fontWeight: 600 }}>Local Time</span>
             </>
           ) : (
@@ -171,6 +170,12 @@ function MatchModal({ match, onClose }) {
   )
   const groupColor = match.group ? getGroupColor(match.group) : 'var(--accent)'
 
+  // Local date and time from kickoff_utc
+  const localDate = match.kickoff_utc
+    ? new Date(match.kickoff_utc).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    : ''
+  const localTime = match.kickoff_utc ? toLocalTime(match.kickoff_utc) : ''
+
   return (
     <AnimatePresence>
       <motion.div
@@ -196,21 +201,18 @@ function MatchModal({ match, onClose }) {
           }}
           className="sm:rounded-2xl sm:mx-4"
         >
-          {/* Handle */}
           <div style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, margin: '0 auto 20px' }} className="sm:hidden" />
 
-          {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: groupColor, display: 'inline-block' }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: groupColor, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                {match.group ? `Group ${match.group}` : `Round ${match.round}`} — {match.date}
+                {match.group ? `Group ${match.group}` : 'Match'}
               </span>
             </div>
             <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#94a3b8', width: 30, height: 30, borderRadius: '50%', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
           </div>
 
-          {/* Teams + Score */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1 }}>
               <img src={`https://flagcdn.com/w80/${FLAGS[match.home] || 'un'}.png`} alt={match.home}
@@ -221,8 +223,8 @@ function MatchModal({ match, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               {match.status === 'NS' ? (
                 <>
-                  <span style={{ color: '#22c55e', fontWeight: 900, fontSize: 24 }}>{toLocalTime(match.date, match.time)}</span>
-                  <span style={{ color: '#334155', fontSize: 12 }}>Local Time</span>
+                  <span style={{ color: '#22c55e', fontWeight: 900, fontSize: 24 }}>{localTime}</span>
+                  <span style={{ color: '#334155', fontSize: 12 }}>Your Local Time</span>
                 </>
               ) : (
                 <>
@@ -241,7 +243,6 @@ function MatchModal({ match, onClose }) {
             </div>
           </div>
 
-          {/* Match Events */}
           {match.status !== 'NS' && (
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
@@ -271,12 +272,11 @@ function MatchModal({ match, onClose }) {
             </div>
           )}
 
-          {/* Match Info */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
               { icon: '📍', label: 'Venue', value: match.venue },
-              { icon: '📅', label: 'Date', value: match.date },
-              { icon: '🕐', label: 'Kick Off', value: `${match.time} UTC` },
+              { icon: '📅', label: 'Date', value: localDate },
+              { icon: '🕐', label: 'Kick Off', value: localTime + ' (your local time)' },
             ].map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
                 <span style={{ color: '#475569', fontSize: 13, flexShrink: 0 }}>{row.icon} {row.label}</span>
@@ -309,7 +309,8 @@ function LiveScores() {
   const fetchMatches = () => {
     axios.get(`${API_URL}/api/livescores`)
       .then(res => {
-        const wc2026 = res.data.filter(m => m.date && m.date.startsWith('2026'))
+        // Filter only WC2026 matches (have kickoff_utc)
+        const wc2026 = res.data.filter(m => m.kickoff_utc && m.kickoff_utc.startsWith('2026'))
         setMatches(wc2026)
         setLastUpdated(new Date().toLocaleTimeString())
         setLoading(false)
@@ -327,18 +328,26 @@ function LiveScores() {
 
   const filtered = matches.filter(m => {
     const groupMatch = filter === 'ALL' || m.group === filter
-    const dateMatch = !selectedDate || m.date === selectedDate
+    // Compare selected date (YYYY-MM-DD) against user's local date of kickoff
+    const dateMatch = !selectedDate || toLocalDate(m.kickoff_utc) === selectedDate
     return groupMatch && dateMatch
   })
 
+  // Group by user's LOCAL date derived from kickoff_utc
   const byDate = filtered.reduce((acc, match) => {
-    if (!acc[match.date]) acc[match.date] = []
-    acc[match.date].push(match)
+    const localDate = toLocalDate(match.kickoff_utc)
+    if (!acc[localDate]) acc[localDate] = []
+    acc[localDate].push(match)
     return acc
   }, {})
 
+  // Sort matches within each day by kickoff time
+  Object.values(byDate).forEach(dayMatches =>
+    dayMatches.sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc))
+  )
+
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
         <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>Loading matches...</p>
@@ -347,13 +356,8 @@ function LiveScores() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
-
-      {/* Top color bar */}
-      <div style={{
-  height: 3,
-  background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)',
-}} />      
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
+      <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, var(--accent), #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
 
@@ -377,7 +381,7 @@ function LiveScores() {
               )}
             </h1>
             <p style={{ color: '#475569', marginTop: 6, fontSize: 14 }}>
-              Tap any match for details and events.
+              All times shown in your local timezone. Tap any match for details.
             </p>
           </div>
           {lastUpdated && (
@@ -394,7 +398,6 @@ function LiveScores() {
 
         {/* Filters */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
-          {/* Group pills */}
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
             {GROUPS.map(g => {
               const color = g === 'ALL' ? 'var(--accent)' : getGroupColor(g)
@@ -415,7 +418,6 @@ function LiveScores() {
             })}
           </div>
 
-          {/* Date filter */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
               style={{
@@ -432,15 +434,15 @@ function LiveScores() {
           </div>
         </div>
 
-        {/* Match days */}
-        {Object.keys(byDate).sort().map(date => (
-          <div key={date} style={{ marginBottom: 36 }}>
+        {/* Match days — sorted by local date */}
+        {Object.keys(byDate).sort().map(localDate => (
+          <div key={localDate} style={{ marginBottom: 36 }}>
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
               paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
               <span style={{ fontSize: 16, fontWeight: 800, color: '#94a3b8' }}>
-                {new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+                {new Date(localDate + 'T12:00:00').toLocaleDateString('en-US', {
                   weekday: 'long', month: 'long', day: 'numeric',
                 })}
               </span>
@@ -449,11 +451,11 @@ function LiveScores() {
                 color: '#475569', fontSize: 11, fontWeight: 700,
                 padding: '2px 8px', borderRadius: 100,
               }}>
-                {byDate[date].length} match{byDate[date].length !== 1 ? 'es' : ''}
+                {byDate[localDate].length} match{byDate[localDate].length !== 1 ? 'es' : ''}
               </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
-              {byDate[date].map(match => (
+              {byDate[localDate].map(match => (
                 <MatchCard key={match.id} match={match} onClick={setSelectedMatch} />
               ))}
             </div>
