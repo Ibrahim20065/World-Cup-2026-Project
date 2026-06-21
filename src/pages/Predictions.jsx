@@ -15,7 +15,7 @@ import PLAYERS from '../players'
 import toast from 'react-hot-toast'
 import API_URL from '../config'
 import { useColor } from '../assets/ColorContext'
-import { useSearchParams } from 'react-router-dom'
+
 
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
@@ -134,11 +134,6 @@ const SCHEDULE = [
   { id: 72, home: 'DR Congo',     away: 'Uzbekistan',     date: '2026-06-27', time: '19:30', group: 'K' },
 ]
 
-const [searchParams] = useSearchParams()
-useEffect(() => {
-  const group = searchParams.get('group')
-    if (group) setActiveTab('groups')
-}, [])
 
 // ── MATCH PICKS ──
 function MatchPicks({ token }) {

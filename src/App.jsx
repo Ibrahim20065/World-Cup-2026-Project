@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -17,6 +17,7 @@ import History from './pages/History'
 import { ColorProvider } from './assets/ColorContext'
 import Standings from './pages/Standings'
 import Settings from './pages/Settings'
+import { useEffect } from 'react'
 
 function App() {
   return (
