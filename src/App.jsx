@@ -22,6 +22,7 @@ function App() {
   return (
     <ColorProvider>
       <BrowserRouter>
+      <ScrollToTop />
         <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex flex-col">
           <Navbar />
           <main className="flex-grow">
@@ -53,6 +54,12 @@ function App() {
       </BrowserRouter>
     </ColorProvider>
   )
+}
+
+function ScrollToTop() {
+  const {pathname} = useLocation()
+  useEffect(() => { window.scrollTo(0,0) }, [pathname])
+  return null
 }
 
 export default App

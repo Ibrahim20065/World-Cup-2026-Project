@@ -3,4 +3,14 @@
     --bg: #var(--bg);
 }
 
+* {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input, textarea, [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 @import "tailwindcss";

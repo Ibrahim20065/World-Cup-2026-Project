@@ -5,6 +5,7 @@ import API_URL from '../config'
 import axios from 'axios'
 import { useState } from 'react'
 import { useColor } from '../assets/ColorContext'
+import { g } from 'framer-motion/client'
 
 const STATS = [
   { value: '48', label: 'Nations' },
@@ -115,7 +116,7 @@ export default function Home() {
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               Get Started →
             </Link>
-            <Link to="/predictions"
+            <Link to={`/predictions?group=${g}`}
               style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontWeight: 700, fontSize: 15, padding: '14px 32px', borderRadius: 100, textDecoration: 'none', transition: 'background 0.2s', backdropFilter: 'blur(8px)' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}>
