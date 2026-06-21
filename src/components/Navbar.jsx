@@ -153,15 +153,7 @@ function Navbar() {
                 </Link>
               )}
 
-              <Link to="/settings" style={{
-                textDecoration: 'none', fontSize: 12, fontWeight: 700,
-  color: '#94a3b8', padding: '5px 12px', borderRadius: 8,
-  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-  transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>
-              ⚙️ Settings</Link>
+              
 
               <button onClick={handleLogout} style={{
                 fontSize: 12, fontWeight: 700, color: '#64748b',

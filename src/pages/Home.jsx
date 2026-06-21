@@ -60,12 +60,12 @@ function FeedbackForm() {
 }
 
 const FEATURES = [
-  { icon: '🎯', title: 'Predict', desc: 'Pick every group, every bracket match, and every award — then watch your score climb in real time.', color: 'var(--accent)', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' },
-  { icon: '⚡', title: 'Live Scores', desc: 'Goals, cards, and live match minutes — all updated automatically during every game.', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)' },
-  { icon: '🏅', title: 'Leaderboard', desc: 'See exactly where you stand among friends and family after every result.', color: '#22c55e', bg: 'rgba(34,197,94,0.08)', border: 'rgba(34,197,94,0.25)' },
-  { icon: '🌍', title: 'Countries', desc: 'Explore all 48 squads, histories, and stats for every nation at the tournament.', color: '#a855f7', bg: 'rgba(168,85,247,0.08)', border: 'rgba(168,85,247,0.25)' },
-  { icon: '🗺️', title: 'Host Cities', desc: 'Discover the 16 stadiums across USA, Mexico, and Canada hosting the matches.', color: '#ec4899', bg: 'rgba(236,72,153,0.08)', border: 'rgba(236,72,153,0.25)' },
-  { icon: '🔄', title: 'Second Chance', desc: 'Group stage done? Get a fresh bracket prediction once the knockout stage begins.', color: '#06b6d4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.25)' },
+  { icon: '🎯', title: 'Predict', desc: 'Pick every group, every bracket match, and every award — then watch your score climb in real time.', color: 'var(--accent)', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' , link: '/predictions' },
+  { icon: '⚡', title: 'Live Scores', desc: 'Goals, cards, and live match minutes — all updated automatically during every game.', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)', link: '/livescores' },
+  { icon: '🏅', title: 'Leaderboard', desc: 'See exactly where you stand among friends and family after every result.', color: '#22c55e', bg: 'rgba(34,197,94,0.08)', border: 'rgba(34,197,94,0.25)', link:'/leaderboard'},
+  { icon: '🌍', title: 'Countries', desc: 'Explore all 48 squads, histories, and stats for every nation at the tournament.', color: '#a855f7', bg: 'rgba(168,85,247,0.08)', border: 'rgba(168,85,247,0.25)', link: '/countries' },
+  { icon: '🗺️', title: 'Host Cities', desc: 'Discover the 16 stadiums across USA, Mexico, and Canada hosting the matches.', color: '#ec4899', bg: 'rgba(236,72,153,0.08)', border: 'rgba(236,72,153,0.25)' , link:'/map'},
+  { icon: '🔄', title: 'Second Chance', desc: 'Group stage done? Get a fresh bracket prediction once the knockout stage begins.', color: '#06b6d4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.25)', link:'/predictions' },
 ]
 
 const GROUP_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','var(--accent)','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#84cc16','#6366f1']
@@ -204,22 +204,27 @@ export default function Home() {
 
       {/* ── FEATURES ── */}
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>Everything in one place</div>
-          <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 800, margin: 0, color: '#f1f5f9' }}>Built for the tournament</h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-          {FEATURES.map((f, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * i, duration: 0.5 }}
-              style={{ background: f.bg, border: `1px solid ${f.border}`, borderRadius: 16, padding: '24px', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'default' }}
-              whileHover={{ y: -4 }}>
-              <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: f.color, marginBottom: 8 }}>{f.title}</div>
-              <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{f.desc}</div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+  <div style={{ textAlign: 'center', marginBottom: 40 }}>
+    <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>Everything in one place</div>
+    <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 800, margin: 0, color: '#f1f5f9' }}>Built for the tournament</h2>
+  </div>
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+    {FEATURES.map((f, i) => (
+      <Link key={i} to={f.link} style={{ textDecoration: 'none' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 * i, duration: 0.5 }}
+          style={{ background: f.bg, border: `1px solid ${f.border}`, borderRadius: 16, padding: '24px', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'pointer' }}
+          whileHover={{ y: -6, scale: 1.02 }}>
+          <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: f.color, marginBottom: 8 }}>{f.title}</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{f.desc}</div>
+        </motion.div>
+      </Link>
+    ))}
+  </div>
+</div>
 
       {/* ── BOTTOM CTA BANNER ── */}
       <div style={{ padding: '0 24px 80px' }}>
@@ -243,7 +248,7 @@ export default function Home() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center' }}>
               <div style={{ flex: 1, minWidth: 260 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>About</div>
-                <h2 style={{ fontSize: 24, fontWeight: 900, color: '#f1f5f9', margin: '0 0 12px', letterSpacing: '-0.02em' }}>Built by Ibrahim Mohammad</h2>
+                <h2 style={{ fontSize: 24, fontWeight: 900, color: '#f1f5f9', margin: '0 0 12px', letterSpacing: '-0.02em' }}>Developed by Ibrahim Mohammad</h2>
                 <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.7, margin: '0 0 16px' }}>
                   This is my first ever full-stack project — built from scratch during the FIFA World Cup 2026. A passion project combining my love for football and software development.
                 </p>
