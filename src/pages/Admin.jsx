@@ -27,10 +27,13 @@ const GROUP_COLORS = [
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
+const ALL_TEAMS = Object.entries(GROUPS).flatMap(([group, teams]) => teams.map(team => ({ team, group })))
+
 function Admin() {
   const [users, setUsers] = useState([])
   const [leagues, setLeagues] = useState([])
   const [standings, setStandings] = useState({})
+  const [qualification, setQualification] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('users')
   const [search, setSearch] = useState('')
@@ -39,6 +42,9 @@ function Admin() {
   const [editStanding, setEditStanding] = useState(null)
   const [standingForm, setStandingForm] = useState({})
   const [savingStanding, setSavingStanding] = useState(false)
+  const [qualForm, setQualForm] = useState({ team: '', group: 'A', status: 'advanced', message: '' })
+  const [savingQual, setSavingQual] = useState(false)
+  const [qualSearch, setQualSearch] = useState('')
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
 
@@ -49,6 +55,7 @@ function Admin() {
     fetchUsers()
     fetchLeagues()
     fetchStandings()
+    fetchQualification()
   }, [])
 
   const fetchUsers = async () => {
@@ -58,18 +65,22 @@ function Admin() {
       setLoading(false)
     } catch { setLoading(false) }
   }
-
   const fetchLeagues = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/admin/leagues`, { headers: { Authorization: `Bearer ${token}` } })
       setLeagues(res.data)
     } catch {}
   }
-
   const fetchStandings = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/standings`)
       setStandings(res.data)
+    } catch {}
+  }
+  const fetchQualification = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/qualification`)
+      setQualification(res.data)
     } catch {}
   }
 
@@ -110,15 +121,9 @@ function Admin() {
     const existing = standings[group]?.find(s => s.team === team) || {}
     setEditStanding({ group, team })
     setStandingForm({
-      played: existing.played ?? 0,
-      won: existing.won ?? 0,
-      drawn: existing.drawn ?? 0,
-      lost: existing.lost ?? 0,
-      gf: existing.gf ?? 0,
-      ga: existing.ga ?? 0,
-      points: existing.points ?? 0,
-      yellow_cards: existing.yellow_cards ?? 0,
-      red_cards: existing.red_cards ?? 0,
+      played: existing.played ?? 0, won: existing.won ?? 0, drawn: existing.drawn ?? 0,
+      lost: existing.lost ?? 0, gf: existing.gf ?? 0, ga: existing.ga ?? 0,
+      points: existing.points ?? 0, yellow_cards: existing.yellow_cards ?? 0, red_cards: existing.red_cards ?? 0,
     })
   }
 
@@ -127,8 +132,7 @@ function Admin() {
     setSavingStanding(true)
     try {
       await axios.post(`${API_URL}/api/admin/standings`, {
-        group: editStanding.group,
-        team: editStanding.team,
+        group: editStanding.group, team: editStanding.team,
         ...Object.fromEntries(Object.entries(standingForm).map(([k, v]) => [k, parseInt(v) || 0]))
       }, { headers: { Authorization: `Bearer ${token}` } })
       await fetchStandings()
@@ -140,15 +144,36 @@ function Admin() {
     setSavingStanding(false)
   }
 
+  const saveQualification = async () => {
+    if (!qualForm.team || !qualForm.status) { alert('Select a team and status!'); return }
+    setSavingQual(true)
+    try {
+      await axios.post(`${API_URL}/api/admin/qualification`, qualForm, { headers: { Authorization: `Bearer ${token}` } })
+      await fetchQualification()
+      alert(`✅ ${qualForm.team} marked as ${qualForm.status}!`)
+    } catch (err) {
+      alert('❌ Failed: ' + (err.response?.data?.error || err.message))
+    }
+    setSavingQual(false)
+  }
+
+  const removeQualification = async (team, group) => {
+    if (!confirm(`Reset ${team}'s qualification status to TBD?`)) return
+    try {
+      await axios.post(`${API_URL}/api/admin/qualification`, { team, group, status: 'tbd', message: '' }, { headers: { Authorization: `Bearer ${token}` } })
+      await fetchQualification()
+    } catch (err) {
+      alert('❌ Failed: ' + (err.response?.data?.error || err.message))
+    }
+  }
+
   const filtered = users.filter(u =>
     u.username.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
   )
 
   const CONTROLS = [
-    {
-      label: 'Score Group Stage', desc: 'Run after June 27 when group stage ends',
-      color: '#3b82f6', icon: '📊',
+    { label: 'Score Group Stage', desc: 'Run after June 27 when group stage ends', color: '#3b82f6', icon: '📊',
       action: async () => {
         if (!confirm('Score all group stage predictions now?')) return
         try {
@@ -158,9 +183,7 @@ function Admin() {
         } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
       }
     },
-    {
-      label: 'Score Knockouts', desc: 'Manually trigger knockout match scoring',
-      color: '#8b5cf6', icon: '🏆',
+    { label: 'Score Knockouts', desc: 'Manually trigger knockout match scoring', color: '#8b5cf6', icon: '🏆',
       action: async () => {
         if (!confirm('Run knockout scoring now?')) return
         try {
@@ -170,9 +193,7 @@ function Admin() {
         } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
       }
     },
-    {
-      label: 'Reset All Points', desc: "⚠️ Resets everyone's points to 0",
-      color: '#ef4444', icon: '🔄',
+    { label: 'Reset All Points', desc: "⚠️ Resets everyone's points to 0", color: '#ef4444', icon: '🔄',
       action: async () => {
         if (!confirm('RESET ALL POINTS? This cannot be undone!')) return
         if (!confirm('Are you absolutely sure?')) return
@@ -213,7 +234,7 @@ function Admin() {
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
             Admin Panel <span style={{ color: '#fbbf24' }}>⚙️</span>
           </h1>
-          <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>Manage users, leagues, points, standings and tournament controls.</p>
+          <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>Manage users, leagues, points, standings and qualification.</p>
         </div>
 
         {/* Stats */}
@@ -251,15 +272,10 @@ function Admin() {
             { id: 'users', label: '👥 Users', count: users.length },
             { id: 'leagues', label: '🏆 Mini Leagues', count: leagues.length },
             { id: 'standings', label: '📊 Standings', count: 12 },
+            { id: 'qualification', label: '🎯 Qualification', count: qualification.filter(q => q.status !== 'tbd').length },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13,
-                cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-                background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-                color: activeTab === tab.id ? '#fff' : '#94a3b8',
-                boxShadow: activeTab === tab.id ? '0 4px 14px rgba(59,130,246,0.3)' : 'none',
-              }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: activeTab === tab.id ? '#fff' : '#94a3b8', boxShadow: activeTab === tab.id ? '0 4px 14px rgba(59,130,246,0.3)' : 'none' }}>
               {tab.label}
               <span style={{ marginLeft: 6, background: activeTab === tab.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)', borderRadius: 100, padding: '1px 7px', fontSize: 11, fontWeight: 800 }}>{tab.count}</span>
             </button>
@@ -271,13 +287,11 @@ function Admin() {
           <>
             <div style={{ position: 'relative', maxWidth: 360, marginBottom: 20 }}>
               <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, pointerEvents: 'none' }}>🔍</span>
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search by username or email..."
+              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by username or email..."
                 style={{ width: '100%', background: '#0d1526', border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9', padding: '10px 16px 10px 40px', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
                 onFocus={e => e.target.style.borderColor = '#3b82f6'}
                 onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
             </div>
-
             <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 1fr 100px 160px', padding: '10px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 <span>ID</span><span>Username</span><span>Email</span><span>Points</span><span>Actions</span>
@@ -342,7 +356,7 @@ function Admin() {
                         <span style={{ fontWeight: 800, fontSize: 15, color: '#f1f5f9' }}>{league.name}</span>
                       </div>
                       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 12, color: '#475569' }}>👤 Created by <span style={{ color: '#94a3b8', fontWeight: 600 }}>{league.created_by}</span></span>
+                        <span style={{ fontSize: 12, color: '#475569' }}>👤 <span style={{ color: '#94a3b8', fontWeight: 600 }}>{league.created_by}</span></span>
                         <span style={{ fontSize: 12, color: '#475569' }}>👥 <span style={{ color: '#94a3b8', fontWeight: 600 }}>{league.member_count}</span> members</span>
                         <span style={{ fontSize: 12, color: '#475569' }}>📅 {league.created_at}</span>
                       </div>
@@ -352,9 +366,7 @@ function Admin() {
                         <span style={{ fontSize: 13, fontWeight: 800, color: '#a78bfa', letterSpacing: '0.1em' }}>{league.invite_code}</span>
                       </div>
                       <button onClick={() => deleteLeague(league.id, league.name)}
-                        style={{ fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 8, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', transition: 'background 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}>
+                        style={{ fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 8, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}>
                         🗑️ Delete
                       </button>
                     </div>
@@ -368,46 +380,25 @@ function Admin() {
         {/* ── STANDINGS TAB ── */}
         {activeTab === 'standings' && (
           <div>
-            {/* Group selector */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
               {GROUP_LETTERS.map((g, i) => (
                 <button key={g} onClick={() => setSelectedGroup(g)}
-                  style={{
-                    width: 36, height: 36, borderRadius: 8, fontWeight: 800, fontSize: 14,
-                    cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-                    background: selectedGroup === g ? GROUP_COLORS[i] : 'rgba(255,255,255,0.05)',
-                    color: selectedGroup === g ? '#000' : '#94a3b8',
-                  }}>{g}</button>
+                  style={{ width: 36, height: 36, borderRadius: 8, fontWeight: 800, fontSize: 14, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: selectedGroup === g ? GROUP_COLORS[i] : 'rgba(255,255,255,0.05)', color: selectedGroup === g ? '#000' : '#94a3b8' }}>{g}</button>
               ))}
             </div>
-
-            {/* Group table */}
             <div style={{ background: '#0d1526', border: `1px solid ${GROUP_COLORS[GROUP_LETTERS.indexOf(selectedGroup)]}30`, borderRadius: 14, overflow: 'hidden', borderTop: `3px solid ${GROUP_COLORS[GROUP_LETTERS.indexOf(selectedGroup)]}` }}>
               <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 800, fontSize: 16, color: '#f1f5f9' }}>Group {selectedGroup}</span>
                 <span style={{ fontSize: 12, color: '#475569' }}>Click Edit to update a team's stats</span>
               </div>
-
-              {/* Table header */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 40px 40px 40px 40px 40px 40px 50px 50px 80px', padding: '8px 16px', fontSize: 10, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <span>Team</span>
-                <span style={{ textAlign: 'center' }}>P</span>
-                <span style={{ textAlign: 'center' }}>W</span>
-                <span style={{ textAlign: 'center' }}>D</span>
-                <span style={{ textAlign: 'center' }}>L</span>
-                <span style={{ textAlign: 'center' }}>GF</span>
-                <span style={{ textAlign: 'center' }}>GA</span>
-                <span style={{ textAlign: 'center' }}>GD</span>
-                <span style={{ textAlign: 'center' }}>🟨</span>
-                <span style={{ textAlign: 'center' }}>🟥</span>
-                <span style={{ textAlign: 'center' }}>Pts</span>
+                <span>Team</span><span style={{ textAlign: 'center' }}>P</span><span style={{ textAlign: 'center' }}>W</span><span style={{ textAlign: 'center' }}>D</span><span style={{ textAlign: 'center' }}>L</span><span style={{ textAlign: 'center' }}>GF</span><span style={{ textAlign: 'center' }}>GA</span><span style={{ textAlign: 'center' }}>GD</span><span style={{ textAlign: 'center' }}>🟨</span><span style={{ textAlign: 'center' }}>🟥</span><span style={{ textAlign: 'center' }}>Pts</span>
               </div>
-
               {GROUPS[selectedGroup].map((team, i) => {
                 const s = standings[selectedGroup]?.find(x => x.team === team) || { played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0, yellow_cards: 0, red_cards: 0 }
                 const color = GROUP_COLORS[GROUP_LETTERS.indexOf(selectedGroup)]
                 return (
-                  <div key={team} style={{ display: 'grid', gridTemplateColumns: '1fr 40px 40px 40px 40px 40px 40px 40px 50px 50px 80px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center', transition: 'background 0.15s' }}
+                  <div key={team} style={{ display: 'grid', gridTemplateColumns: '1fr 40px 40px 40px 40px 40px 40px 40px 50px 50px 80px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -424,39 +415,23 @@ function Admin() {
                     <span style={{ textAlign: 'center', fontSize: 13, color: '#fbbf24' }}>{s.yellow_cards}</span>
                     <span style={{ textAlign: 'center', fontSize: 13, color: '#ef4444' }}>{s.red_cards}</span>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontWeight: 800, fontSize: 14, color: color }}>{s.points}</span>
+                      <span style={{ fontWeight: 800, fontSize: 14, color }}>{s.points}</span>
                       <button onClick={() => openEditStanding(selectedGroup, team)}
-                        style={{ fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 6, cursor: 'pointer', background: `${color}15`, border: `1px solid ${color}40`, color: color }}>
-                        Edit
-                      </button>
+                        style={{ fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 6, cursor: 'pointer', background: `${color}15`, border: `1px solid ${color}40`, color }}>Edit</button>
                     </div>
                   </div>
                 )
               })}
             </div>
 
-            {/* Edit modal */}
             {editStanding && (
               <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                   style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 420 }}>
-                  <h3 style={{ fontWeight: 800, fontSize: 18, color: '#f1f5f9', margin: '0 0 4px' }}>
-                    Edit — {editStanding.team}
-                  </h3>
+                  <h3 style={{ fontWeight: 800, fontSize: 18, color: '#f1f5f9', margin: '0 0 4px' }}>Edit — {editStanding.team}</h3>
                   <p style={{ color: '#475569', fontSize: 13, margin: '0 0 20px' }}>Group {editStanding.group}</p>
-
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 20 }}>
-                    {[
-                      { key: 'played', label: 'Played' },
-                      { key: 'won', label: 'Won' },
-                      { key: 'drawn', label: 'Drawn' },
-                      { key: 'lost', label: 'Lost' },
-                      { key: 'gf', label: 'Goals For' },
-                      { key: 'ga', label: 'Goals Against' },
-                      { key: 'points', label: 'Points' },
-                      { key: 'yellow_cards', label: '🟨 Yellow' },
-                      { key: 'red_cards', label: '🟥 Red' },
-                    ].map(({ key, label }) => (
+                    {[{ key: 'played', label: 'Played' }, { key: 'won', label: 'Won' }, { key: 'drawn', label: 'Drawn' }, { key: 'lost', label: 'Lost' }, { key: 'gf', label: 'Goals For' }, { key: 'ga', label: 'Goals Against' }, { key: 'points', label: 'Points' }, { key: 'yellow_cards', label: '🟨 Yellow' }, { key: 'red_cards', label: '🟥 Red' }].map(({ key, label }) => (
                       <div key={key}>
                         <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 4, fontWeight: 600 }}>{label}</label>
                         <input type="number" min="0" value={standingForm[key]}
@@ -465,20 +440,112 @@ function Admin() {
                       </div>
                     ))}
                   </div>
-
                   <div style={{ display: 'flex', gap: 10 }}>
-                    <button onClick={() => setEditStanding(null)}
-                      style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#64748b', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-                      Cancel
-                    </button>
-                    <button onClick={saveStanding} disabled={savingStanding}
-                      style={{ flex: 2, padding: '12px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#000', fontWeight: 800, fontSize: 14, cursor: 'pointer', opacity: savingStanding ? 0.6 : 1 }}>
+                    <button onClick={() => setEditStanding(null)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#64748b', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={saveStanding} disabled={savingStanding} style={{ flex: 2, padding: '12px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#000', fontWeight: 800, fontSize: 14, cursor: 'pointer', opacity: savingStanding ? 0.6 : 1 }}>
                       {savingStanding ? 'Saving...' : '✅ Save Standing'}
                     </button>
                   </div>
                 </motion.div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── QUALIFICATION TAB ── */}
+        {activeTab === 'qualification' && (
+          <div>
+            {/* Add/Update form */}
+            <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 24, borderTop: '3px solid #3b82f6' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>🎯 Set Team Status</div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                {/* Team selector */}
+                <div>
+                  <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Team</label>
+                  <select value={qualForm.team} onChange={e => {
+                    const found = ALL_TEAMS.find(t => t.team === e.target.value)
+                    setQualForm(prev => ({ ...prev, team: e.target.value, group: found?.group || prev.group }))
+                  }} style={{ width: '100%', background: '#0f1a2e', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none' }}>
+                    <option value="">Select team...</option>
+                    {GROUP_LETTERS.map(g => (
+                      <optgroup key={g} label={`Group ${g}`}>
+                        {GROUPS[g].map(team => <option key={team} value={team}>{team}</option>)}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status selector */}
+                <div>
+                  <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Status</label>
+                  <select value={qualForm.status} onChange={e => setQualForm(prev => ({ ...prev, status: e.target.value }))}
+                    style={{ width: '100%', background: '#0f1a2e', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none' }}>
+                    <option value="advanced">✅ Advanced</option>
+                    <option value="eliminated">❌ Eliminated</option>
+                    <option value="tbd">⏳ TBD (reset)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Message */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                  Glow-up Message <span style={{ color: '#334155' }}>(shown when user taps the team)</span>
+                </label>
+                <textarea value={qualForm.message} onChange={e => setQualForm(prev => ({ ...prev, message: e.target.value }))}
+                  placeholder={qualForm.status === 'advanced'
+                    ? 'e.g. Mexico advance to the Round of 32! La Verde march on — vamos! ⚽🔥'
+                    : 'e.g. South Africa bow out of World Cup 2026. A brave effort from Bafana Bafana. 👏'}
+                  rows={2}
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+              </div>
+
+              <button onClick={saveQualification} disabled={savingQual || !qualForm.team}
+                style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 13, padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer', opacity: savingQual || !qualForm.team ? 0.5 : 1 }}>
+                {savingQual ? 'Saving...' : '💾 Save Status'}
+              </button>
+            </div>
+
+            {/* Current statuses */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+                Current Statuses ({qualification.filter(q => q.status !== 'tbd').length} set)
+              </div>
+              {qualification.filter(q => q.status !== 'tbd').length === 0 ? (
+                <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
+                  <p style={{ color: '#334155', fontSize: 14, margin: 0 }}>No teams marked yet. Use the form above to get started!</p>
+                </div>
+              ) : (
+                qualification.filter(q => q.status !== 'tbd').sort((a, b) => {
+                  if (a.status === b.status) return a.team.localeCompare(b.team)
+                  return a.status === 'advanced' ? -1 : 1
+                }).map(t => (
+                  <div key={t.team} style={{
+                    background: '#0d1526',
+                    border: `1px solid ${t.status === 'advanced' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                    borderLeft: `4px solid ${t.status === 'advanced' ? '#22c55e' : '#ef4444'}`,
+                    borderRadius: 10, padding: '12px 16px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 16 }}>{t.status === 'advanced' ? '✅' : '❌'}</span>
+                      <div>
+                        <span style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9' }}>{t.team}</span>
+                        <span style={{ fontSize: 11, color: '#475569', marginLeft: 8 }}>Group {t.group}</span>
+                      </div>
+                    </div>
+                    {t.message && (
+                      <span style={{ fontSize: 12, color: '#64748b', flex: 1, fontStyle: 'italic' }}>"{t.message.slice(0, 60)}{t.message.length > 60 ? '...' : ''}"</span>
+                    )}
+                    <button onClick={() => removeQualification(t.team, t.group)}
+                      style={{ fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, cursor: 'pointer', background: 'transparent', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', whiteSpace: 'nowrap' }}>
+                      Reset
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

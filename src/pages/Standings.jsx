@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import API_URL from '../config'
 
@@ -47,8 +47,6 @@ function getGroupColor(group) {
 
 function GroupTable({ group, standings, color }) {
   const teams = GROUPS[group] || []
-
-  // Sort teams by standings data, fallback to default order
   const sorted = [...teams].sort((a, b) => {
     const sa = standings[group]?.find(x => x.team === a) || { points: 0, gd: 0, gf: 0 }
     const sb = standings[group]?.find(x => x.team === b) || { points: 0, gd: 0, gf: 0 }
@@ -58,44 +56,14 @@ function GroupTable({ group, standings, color }) {
   })
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      style={{
-        background: '#0d1526',
-        border: `1px solid ${color}25`,
-        borderTop: `3px solid ${color}`,
-        borderRadius: 14,
-        overflow: 'hidden',
-      }}
-    >
-      {/* Group header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        background: `${color}08`,
-      }}>
-        <span style={{
-          width: 28, height: 28, borderRadius: 6,
-          background: color, color: '#000',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 900, flexShrink: 0,
-        }}>{group}</span>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      style={{ background: '#0d1526', border: `1px solid ${color}25`, borderTop: `3px solid ${color}`, borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: `${color}08` }}>
+        <span style={{ width: 28, height: 28, borderRadius: 6, background: color, color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, flexShrink: 0 }}>{group}</span>
         <span style={{ fontWeight: 800, fontSize: 15, color: '#f1f5f9' }}>Group {group}</span>
       </div>
-
-      {/* Table header */}
-      <div className="table-header" style={{
-        display: 'grid',
-        gridTemplateColumns: '24px 1fr 32px 32px 32px 32px 32px 32px 40px',
-        padding: '6px 14px',
-        fontSize: 10, fontWeight: 700, color: '#334155',
-        textTransform: 'uppercase', letterSpacing: '0.08em',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
-      }}>
-        <span>#</span>
-        <span>Team</span>
+      <div className="table-header" style={{ display: 'grid', gridTemplateColumns: '24px 1fr 32px 32px 32px 32px 32px 32px 40px', padding: '6px 14px', fontSize: 10, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <span>#</span><span>Team</span>
         <span className="stat-value" style={{ textAlign: 'center' }}>P</span>
         <span className="stat-value" style={{ textAlign: 'center' }}>W</span>
         <span className="stat-value" style={{ textAlign: 'center' }}>D</span>
@@ -104,68 +72,28 @@ function GroupTable({ group, standings, color }) {
         <span className="stat-value" style={{ textAlign: 'center' }}>GF</span>
         <span className="stat-value" style={{ textAlign: 'center' }}>Pts</span>
       </div>
-
-      {/* Rows */}
       {sorted.map((team, i) => {
-        const s = standings[group]?.find(x => x.team === team) || {
-          played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0
-        }
+        const s = standings[group]?.find(x => x.team === team) || { played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 }
         const advancing = i < 2
         const maybe = i === 2
-        const rowBg = advancing ? `${color}08` : 'transparent'
-
         return (
-          <div key={team} className="table-row" style={{
-            display: 'grid',
-            gridTemplateColumns: '24px 1fr 32px 32px 32px 32px 32px 32px 40px',
-            padding: '9px 14px',
-            alignItems: 'center',
-            borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.03)' : 'none',
-            background: rowBg,
-            borderLeft: advancing ? `3px solid ${color}` : maybe ? '3px solid #f59e0b' : '3px solid transparent',
-            transition: 'background 0.15s',
-          }}>
-            <span style={{
-              fontSize: 11, fontWeight: 800,
-              color: advancing ? color : maybe ? '#f59e0b' : '#334155',
-            }}>{i + 1}</span>
-
+          <div key={team} className="table-row" style={{ display: 'grid', gridTemplateColumns: '24px 1fr 32px 32px 32px 32px 32px 32px 40px', padding: '9px 14px', alignItems: 'center', borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.03)' : 'none', background: advancing ? `${color}08` : 'transparent', borderLeft: advancing ? `3px solid ${color}` : maybe ? '3px solid #f59e0b' : '3px solid transparent' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: advancing ? color : maybe ? '#f59e0b' : '#334155' }}>{i + 1}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <img className="team-flag"
-                src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`}
-                alt={team}
-                style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }}
-                onError={e => { e.target.style.display = 'none' }}
-              />
-              <span className="team-name" style={{
-                fontWeight: 700, fontSize: 13, color: '#e2e8f0',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>{team}</span>
+              <img className="team-flag" src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />
+              <span className="team-name" style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team}</span>
             </div>
-
             <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{s.played}</span>
             <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#22c55e', fontWeight: 600 }}>{s.won}</span>
             <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{s.drawn}</span>
             <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{s.lost}</span>
-            <span className="stat-value" style={{
-              textAlign: 'center', fontSize: 13, fontWeight: 700,
-              color: s.gd > 0 ? '#22c55e' : s.gd < 0 ? '#ef4444' : '#94a3b8',
-            }}>{s.gd > 0 ? '+' : ''}{s.gd}</span>
+            <span className="stat-value" style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: s.gd > 0 ? '#22c55e' : s.gd < 0 ? '#ef4444' : '#94a3b8' }}>{s.gd > 0 ? '+' : ''}{s.gd}</span>
             <span style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{s.gf}</span>
-            <span style={{
-              textAlign: 'center', fontSize: 15, fontWeight: 900,
-              color: s.points > 0 ? color : '#475569',
-            }}>{s.points}</span>
+            <span style={{ textAlign: 'center', fontSize: 15, fontWeight: 900, color: s.points > 0 ? color : '#475569' }}>{s.points}</span>
           </div>
         )
       })}
-
-      {/* Legend */}
-      <div style={{
-        display: 'flex', gap: 12, padding: '8px 14px',
-        borderTop: '1px solid rgba(255,255,255,0.04)',
-        background: 'rgba(255,255,255,0.01)',
-      }}>
+      <div style={{ display: 'flex', gap: 12, padding: '8px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 8, height: 8, borderRadius: 1, background: color }} />
           <span style={{ fontSize: 10, color: '#334155', fontWeight: 600 }}>Advance</span>
@@ -179,15 +107,177 @@ function GroupTable({ group, standings, color }) {
   )
 }
 
+function QualificationTab({ qualification }) {
+  const advanced = qualification.filter(t => t.status === 'advanced')
+  const eliminated = qualification.filter(t => t.status === 'eliminated')
+  const [glowTeam, setGlowTeam] = useState(null)
+
+  return (
+    <div>
+      {/* Advanced block */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
+          <h2 style={{ fontWeight: 900, fontSize: 20, color: '#22c55e', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+            ADVANCED TO ROUND OF 32
+          </h2>
+          <span style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>
+            {advanced.length} / 32
+          </span>
+        </div>
+
+        {advanced.length === 0 ? (
+          <div style={{ background: '#0d1526', border: '1px solid rgba(34,197,94,0.1)', borderRadius: 14, padding: '32px 20px', textAlign: 'center' }}>
+            <p style={{ color: '#334155', fontSize: 14, fontWeight: 600, margin: 0 }}>No teams have advanced yet — check back soon!</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
+            {advanced.map((t, i) => (
+              <motion.div key={t.team}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.04 }}
+                onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
+                style={{
+                  background: 'rgba(34,197,94,0.06)',
+                  border: '1px solid rgba(34,197,94,0.25)',
+                  borderRadius: 12, padding: '14px 10px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  boxShadow: '0 0 12px rgba(34,197,94,0.08)',
+                }}
+                whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(34,197,94,0.2)' }}>
+                <div style={{ position: 'relative' }}>
+                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team}
+                    style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+                    onError={e => { e.target.style.display = 'none' }} />
+                  <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>✅</span>
+                </div>
+                <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center', lineHeight: 1.3 }}>{t.team}</span>
+                <span style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>Group {t.group}</span>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Glow message modal */}
+        <AnimatePresence>
+          {glowTeam && glowTeam.status === 'advanced' && glowTeam.message && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              style={{
+                marginTop: 16,
+                background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04))',
+                border: '1px solid rgba(34,197,94,0.3)',
+                borderLeft: '4px solid #22c55e',
+                borderRadius: 12, padding: '14px 18px',
+                display: 'flex', alignItems: 'flex-start', gap: 12,
+              }}>
+              <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team}
+                style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2 }} />
+              <div>
+                <p style={{ color: '#22c55e', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🟢 {glowTeam.team} advance!</p>
+                <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{glowTeam.message}</p>
+              </div>
+              <button onClick={() => setGlowTeam(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 16, marginLeft: 'auto', flexShrink: 0 }}>✕</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Eliminated block */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }} />
+          <h2 style={{ fontWeight: 900, fontSize: 20, color: '#ef4444', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+            ELIMINATED
+          </h2>
+          <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>
+            {eliminated.length} teams
+          </span>
+        </div>
+
+        {eliminated.length === 0 ? (
+          <div style={{ background: '#0d1526', border: '1px solid rgba(239,68,68,0.1)', borderRadius: 14, padding: '32px 20px', textAlign: 'center' }}>
+            <p style={{ color: '#334155', fontSize: 14, fontWeight: 600, margin: 0 }}>No teams eliminated yet.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
+            {eliminated.map((t, i) => (
+              <motion.div key={t.team}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.04 }}
+                onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
+                style={{
+                  background: 'rgba(239,68,68,0.04)',
+                  border: '1px solid rgba(239,68,68,0.15)',
+                  borderRadius: 12, padding: '14px 10px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                  cursor: 'pointer', transition: 'all 0.2s', opacity: 0.7,
+                }}
+                whileHover={{ opacity: 1, scale: 1.03 }}>
+                <div style={{ position: 'relative', filter: 'grayscale(60%)' }}>
+                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team}
+                    style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+                    onError={e => { e.target.style.display = 'none' }} />
+                  <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>❌</span>
+                </div>
+                <span style={{ fontWeight: 700, fontSize: 12, color: '#64748b', textAlign: 'center', lineHeight: 1.3 }}>{t.team}</span>
+                <span style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>Group {t.group}</span>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Glow message modal */}
+        <AnimatePresence>
+          {glowTeam && glowTeam.status === 'eliminated' && glowTeam.message && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              style={{
+                marginTop: 16,
+                background: 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02))',
+                border: '1px solid rgba(239,68,68,0.25)',
+                borderLeft: '4px solid #ef4444',
+                borderRadius: 12, padding: '14px 18px',
+                display: 'flex', alignItems: 'flex-start', gap: 12,
+              }}>
+              <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team}
+                style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2, filter: 'grayscale(50%)' }} />
+              <div>
+                <p style={{ color: '#f87171', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🔴 {glowTeam.team} eliminated</p>
+                <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{glowTeam.message}</p>
+              </div>
+              <button onClick={() => setGlowTeam(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 16, marginLeft: 'auto', flexShrink: 0 }}>✕</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
 function Standings() {
   const [standings, setStandings] = useState({})
+  const [qualification, setQualification] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('ALL')
+  const [activeTab, setActiveTab] = useState('standings')
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/standings`)
-      .then(res => { setStandings(res.data); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      axios.get(`${API_URL}/api/standings`),
+      axios.get(`${API_URL}/api/qualification`),
+    ]).then(([sRes, qRes]) => {
+      setStandings(sRes.data)
+      setQualification(qRes.data)
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
   const displayGroups = filter === 'ALL' ? GROUP_LETTERS : [filter]
@@ -208,7 +298,7 @@ function Standings() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>FIFA World Cup 2026</div>
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
             Group Standings 📊
@@ -218,86 +308,73 @@ function Standings() {
           </p>
         </div>
 
-        {/* Group filter */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 28 }}>
-          <button onClick={() => setFilter('ALL')}
-            style={{
-              padding: '6px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12,
-              cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-              background: filter === 'ALL' ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-              color: filter === 'ALL' ? '#fff' : '#64748b',
-            }}>All Groups</button>
-          {GROUP_LETTERS.map((g, i) => (
-            <button key={g} onClick={() => setFilter(g)}
+        {/* Main tabs */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+          {[
+            { id: 'standings', label: '📊 Group Tables' },
+            { id: 'qualification', label: '🏆 Qualification' },
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               style={{
-                width: 36, height: 32, borderRadius: 8, fontWeight: 800, fontSize: 13,
+                padding: '8px 18px', borderRadius: 8, fontWeight: 700, fontSize: 13,
                 cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-                background: filter === g ? GROUP_COLORS[i] : 'rgba(255,255,255,0.05)',
-                color: filter === g ? '#000' : '#64748b',
-              }}>{g}</button>
+                background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)',
+                color: activeTab === tab.id ? '#fff' : '#64748b',
+                boxShadow: activeTab === tab.id ? '0 4px 14px rgba(59,130,246,0.3)' : 'none',
+              }}>{tab.label}</button>
           ))}
         </div>
 
-        {/* Group tables */}
-        <div className="standings-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: filter === 'ALL' ? 'repeat(auto-fill, minmax(480px, 1fr))' : '1fr',
-          gap: 16,
-        }}>
-          {displayGroups.map((g, i) => (
-            <GroupTable
-              key={g}
-              group={g}
-              standings={standings}
-              color={getGroupColor(g)}
-            />
-          ))}
-        </div>
+        {/* Standings tab */}
+        {activeTab === 'standings' && (
+          <>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 28 }}>
+              <button onClick={() => setFilter('ALL')}
+                style={{ padding: '6px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: filter === 'ALL' ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: filter === 'ALL' ? '#fff' : '#64748b' }}>
+                All Groups
+              </button>
+              {GROUP_LETTERS.map((g, i) => (
+                <button key={g} onClick={() => setFilter(g)}
+                  style={{ width: 36, height: 32, borderRadius: 8, fontWeight: 800, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: filter === g ? GROUP_COLORS[i] : 'rgba(255,255,255,0.05)', color: filter === g ? '#000' : '#64748b' }}>{g}</button>
+              ))}
+            </div>
 
-        <style>{`
-  @media (max-width: 640px) {
-    .standings-grid > div > div {
-      grid-template-columns: 20px 1fr 26px 26px 26px 32px !important;
-    }
-    .standings-grid > div > div span:nth-child(4),
-    .standings-grid > div > div span:nth-child(5) {
-      display: none;
-    }
-  }
-`}</style>
+            <div className="standings-grid" style={{ display: 'grid', gridTemplateColumns: filter === 'ALL' ? 'repeat(auto-fill, minmax(480px, 1fr))' : '1fr', gap: 16 }}>
+              {displayGroups.map(g => (
+                <GroupTable key={g} group={g} standings={standings} color={getGroupColor(g)} />
+              ))}
+            </div>
 
-<div className="standings-grid" style={{
-  display: 'grid',
-  gridTemplateColumns: filter === 'ALL' ? 'repeat(auto-fill, minmax(480px, 1fr))' : '1fr',
-  gap: 16,
-}}></div>
+            <p style={{ color: '#334155', fontSize: 12, textAlign: 'center', marginTop: 32 }}>
+              Standings are updated manually by the admin after each match. Refresh for the latest! 🔄
+            </p>
+          </>
+        )}
 
-        {/* Last updated note */}
-        <p style={{ color: '#334155', fontSize: 12, textAlign: 'center', marginTop: 32 }}>
-          Standings are updated manually by the admin after each match. Refresh for the latest! 🔄
-        </p>
-        <style>{`
-  @media (max-width: 640px) {
-    .standings-grid { grid-template-columns: 1fr !important; }
-    .table-header, .table-row {
-      grid-template-columns: 18px 1fr 22px 22px 22px 28px !important;
-      padding: 6px 6px !important;
-    }
-    .table-header span:nth-child(4),
-    .table-header span:nth-child(5),
-    .table-header span:nth-child(7),
-    .table-row span:nth-child(4),
-    .table-row span:nth-child(5),
-    .table-row span:nth-child(7) {
-      display: none !important;
-    }
-    .team-flag { width: 18px !important; height: 12px !important; }
-    .team-name { font-size: 11px !important; }
-    .stat-value { font-size: 11px !important; }
-  }
-`}</style>
-
+        {/* Qualification tab */}
+        {activeTab === 'qualification' && (
+          <QualificationTab qualification={qualification} />
+        )}
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .standings-grid { grid-template-columns: 1fr !important; }
+          .table-header, .table-row {
+            grid-template-columns: 18px 1fr 22px 22px 22px 28px !important;
+            padding: 6px 6px !important;
+          }
+          .table-header span:nth-child(4),
+          .table-header span:nth-child(5),
+          .table-header span:nth-child(7),
+          .table-row span:nth-child(4),
+          .table-row span:nth-child(5),
+          .table-row span:nth-child(7) { display: none !important; }
+          .team-flag { width: 18px !important; height: 12px !important; }
+          .team-name { font-size: 11px !important; }
+          .stat-value { font-size: 11px !important; }
+        }
+      `}</style>
     </div>
   )
 }
