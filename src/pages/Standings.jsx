@@ -47,8 +47,8 @@ function getGroupColor(group) {
 
 // ── Bracket constants — identical to Predictions.jsx ──
 const CARD_H = 56
-const CARD_W = 150
-const COL_GAP = 0
+const CARD_W = 130
+const COL_GAP = 28
 
 // ── Get projected sorted teams from standings ──
 function getProjected(group, standings) {
@@ -206,7 +206,8 @@ function ProjectedBracketTab({ standings }) {
         </div>
       ) : (
         <div style={{ overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', paddingBottom: 8 }}>
-          <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', minWidth: 900 }}>
+          <div style={{ display: 'flex', gap: COL_GAP, alignItems: 'flex-start', paddingBottom: 8, minWidth: 'max-content' }}>
+
             {/* LEFT SIDE */}
             <BracketCol title="Round of 32" count={8} matches={r32Matches.slice(0, 8)} totalH={totalH} isR32={true} />
             <BracketCol title="Round of 16" count={4} totalH={totalH} />
@@ -458,7 +459,7 @@ function Standings() {
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap', paddingTop: 4 }}>
           {[
             { id: 'standings', label: '📊 Group Tables' },
-            { id: 'bracket', label: '🗂️ Projected Route to the Final', live: true},
+            { id: 'bracket', label: '🗂️ Projected Route To The Final' , live: true},
             { id: 'qualification', label: '🏆 Qualification' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -489,9 +490,15 @@ function Standings() {
           </>
         )}
 
-        {activeTab === 'bracket' && <ProjectedBracketTab standings={standings} />}
         {activeTab === 'qualification' && <QualificationTab qualification={qualification} />}
       </div>
+
+      {/* Bracket tab rendered outside maxWidth container so it can use full width */}
+      {activeTab === 'bracket' && (
+        <div style={{ padding: '0 16px 80px' }}>
+          <ProjectedBracketTab standings={standings} />
+        </div>
+      )}
 
       <style>{`
         @keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
