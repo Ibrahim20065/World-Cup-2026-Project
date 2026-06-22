@@ -45,6 +45,221 @@ function getGroupColor(group) {
   return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
 }
 
+// ── Bracket constants — identical to Predictions.jsx ──
+const CARD_H = 56
+const CARD_W = 150
+const COL_GAP = 0
+
+// ── Get projected sorted teams from standings ──
+function getProjected(group, standings) {
+  const teams = GROUPS[group] || []
+  return [...teams].sort((a, b) => {
+    const sa = standings[group]?.find(x => x.team === a) || { points: 0, gd: 0, gf: 0 }
+    const sb = standings[group]?.find(x => x.team === b) || { points: 0, gd: 0, gf: 0 }
+    if (sb.points !== sa.points) return sb.points - sa.points
+    if (sb.gd !== sa.gd) return sb.gd - sa.gd
+    return sb.gf - sa.gf
+  })
+}
+
+function buildProjectedR32(standings) {
+  const w = g => getProjected(g, standings)[0] || '?'
+  const r = g => getProjected(g, standings)[1] || '?'
+  const thirds = GROUP_LETTERS.map(g => {
+    const team = getProjected(g, standings)[2] || '?'
+    const s = standings[g]?.find(x => x.team === team) || { points: 0, gd: 0, gf: 0 }
+    return { team, group: g, ...s }
+  }).sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points
+    if (b.gd !== a.gd) return b.gd - a.gd
+    return b.gf - a.gf
+  })
+  const t = i => thirds[i]?.team || '?'
+  return [
+    { id: 'r32_73', match: 73, team1: r('A'), team2: r('B') },
+    { id: 'r32_74', match: 74, team1: w('E'), team2: t(0) },
+    { id: 'r32_75', match: 75, team1: w('F'), team2: r('C') },
+    { id: 'r32_76', match: 76, team1: w('C'), team2: r('F') },
+    { id: 'r32_77', match: 77, team1: w('I'), team2: t(1) },
+    { id: 'r32_78', match: 78, team1: r('E'), team2: r('I') },
+    { id: 'r32_79', match: 79, team1: w('A'), team2: t(2) },
+    { id: 'r32_80', match: 80, team1: w('L'), team2: t(3) },
+    { id: 'r32_81', match: 81, team1: w('D'), team2: t(4) },
+    { id: 'r32_82', match: 82, team1: w('G'), team2: t(5) },
+    { id: 'r32_83', match: 83, team1: r('K'), team2: r('L') },
+    { id: 'r32_84', match: 84, team1: w('H'), team2: r('J') },
+    { id: 'r32_85', match: 85, team1: w('B'), team2: t(6) },
+    { id: 'r32_86', match: 86, team1: w('J'), team2: r('H') },
+    { id: 'r32_87', match: 87, team1: w('K'), team2: t(7) },
+    { id: 'r32_88', match: 88, team1: r('D'), team2: r('G') },
+  ]
+}
+
+// ── R32 card — shows projected teams from standings ──
+function R32Card({ match }) {
+  const tbd1 = !match.team1 || match.team1 === '?'
+  const tbd2 = !match.team2 || match.team2 === '?'
+  return (
+    <div style={{ background: '#0f1729', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden', width: CARD_W }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#64748b', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        M{match.match}
+      </div>
+      {[{ team: match.team1, tbd: tbd1 }, { team: match.team2, tbd: tbd2 }].map(({ team, tbd }, i) => (
+        <div key={i}>
+          {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', opacity: tbd ? 0.3 : 1 }}>
+            {!tbd && (
+              <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team}
+                style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }}
+                onError={e => { e.target.style.display = 'none' }} />
+            )}
+            <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: tbd ? '#475569' : '#e2e8f0', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {tbd ? 'TBD' : team}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Empty card — for R16, QF, SF (no teams yet) ──
+function EmptyCard({ label }) {
+  return (
+    <div style={{ background: '#0f1729', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, overflow: 'hidden', width: CARD_W }}>
+      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#334155', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {label}
+      </div>
+      {[0, 1].map(i => (
+        <div key={i}>
+          {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.04)' }} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px' }}>
+            <div style={{ width: 16, height: 11, borderRadius: 1, background: 'rgba(255,255,255,0.04)', flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: 9, fontWeight: 600, color: '#334155' }}>TBD</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Generic bracket column — same as Predictions.jsx BracketCol ──
+function BracketCol({ title, count, matches, totalH, isR32 = false }) {
+  const n = count
+  const slotH = totalH / n
+  return (
+    <div style={{ flexShrink: 0, width: CARD_W }}>
+      <div style={{ fontSize: 8, fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 6 }}>{title}</div>
+      <div style={{ position: 'relative', height: totalH }}>
+        {Array.from({ length: n }).map((_, i) => {
+          const top = i * slotH + (slotH - CARD_H) / 2
+          const match = matches?.[i]
+          return (
+            <div key={i} style={{ position: 'absolute', top, left: 0 }}>
+              {isR32 && match ? (
+                <R32Card match={match} />
+              ) : (
+                <EmptyCard label={`M${title.replace(/\D/g, '') || (i + 1)}`} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Projected Bracket Tab ──
+function ProjectedBracketTab({ standings }) {
+  const hasAnyData = Object.values(standings).some(g => g && g.length > 0)
+  const r32Matches = buildProjectedR32(standings)
+  const N = 8
+  const totalH = N * CARD_H + (N - 1) * 8
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #3b82f6', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <h2 style={{ fontWeight: 900, fontSize: 20, color: '#93c5fd', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+              PROJECTED BRACKET
+            </h2>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 100, animation: 'livePulse 2s infinite' }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+              LIVE
+            </span>
+          </div>
+          <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
+            Round of 32 projected from current standings. Later rounds TBD.
+          </p>
+        </div>
+        <p style={{ color: '#334155', fontSize: 11, margin: 0, textAlign: 'right' }}>
+          ⚠️ Subject to change until June 27
+        </p>
+      </div>
+
+      {!hasAnyData ? (
+        <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '48px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>⏳</div>
+          <p style={{ color: '#475569', fontSize: 16, fontWeight: 600, margin: 0 }}>No standings data yet — check back once matches begin!</p>
+        </div>
+      ) : (
+        <div style={{ overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', paddingBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', minWidth: 900 }}>
+            {/* LEFT SIDE */}
+            <BracketCol title="Round of 32" count={8} matches={r32Matches.slice(0, 8)} totalH={totalH} isR32={true} />
+            <BracketCol title="Round of 16" count={4} totalH={totalH} />
+            <BracketCol title="Quarter Finals" count={2} totalH={totalH} />
+            <BracketCol title="Semi Finals" count={1} totalH={totalH} />
+
+            {/* CENTRE — Final + 3rd Place */}
+            <div style={{ flexShrink: 0, width: CARD_W + 20, height: totalH + 28, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 8, fontWeight: 800, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 4 }}>🏆 Final</div>
+                <div style={{ background: '#0f1729', border: '2px solid #fbbf24', borderRadius: 6, overflow: 'hidden', width: CARD_W + 20 }}>
+                  <div style={{ background: 'rgba(251,191,36,0.1)', padding: '2px 6px', fontSize: 8, fontWeight: 800, color: '#fbbf24', textAlign: 'center' }}>CHAMPION</div>
+                  {[0, 1].map(i => (
+                    <div key={i}>
+                      {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px' }}>
+                        <div style={{ width: 16, height: 11, borderRadius: 1, background: 'rgba(255,255,255,0.04)', flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontSize: 9, fontWeight: 600, color: '#334155' }}>TBD</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 8, fontWeight: 800, color: '#fb923c', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 4 }}>🥉 3rd Place</div>
+                <div style={{ background: '#0f1729', border: '1px solid rgba(251,146,60,0.4)', borderRadius: 6, overflow: 'hidden', width: CARD_W + 20 }}>
+                  <div style={{ background: 'rgba(251,146,60,0.08)', padding: '2px 6px', fontSize: 8, fontWeight: 800, color: '#fb923c', textAlign: 'center' }}>BRONZE</div>
+                  {[0, 1].map(i => (
+                    <div key={i}>
+                      {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px' }}>
+                        <div style={{ width: 16, height: 11, borderRadius: 1, background: 'rgba(255,255,255,0.04)', flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontSize: 9, fontWeight: 600, color: '#334155' }}>TBD</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDE */}
+            <BracketCol title="Semi Finals" count={1} totalH={totalH} />
+            <BracketCol title="Quarter Finals" count={2} totalH={totalH} />
+            <BracketCol title="Round of 16" count={4} totalH={totalH} />
+            <BracketCol title="Round of 32" count={8} matches={r32Matches.slice(8, 16)} totalH={totalH} isR32={true} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Group Table ──
 function GroupTable({ group, standings, color }) {
   const teams = GROUPS[group] || []
   const sorted = [...teams].sort((a, b) => {
@@ -54,7 +269,6 @@ function GroupTable({ group, standings, color }) {
     if (sb.gd !== sa.gd) return sb.gd - sa.gd
     return sb.gf - sa.gf
   })
-
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
       style={{ background: '#0d1526', border: `1px solid ${color}25`, borderTop: `3px solid ${color}`, borderRadius: 14, overflow: 'hidden' }}>
@@ -107,25 +321,19 @@ function GroupTable({ group, standings, color }) {
   )
 }
 
+// ── Qualification Tab ──
 function QualificationTab({ qualification }) {
   const advanced = qualification.filter(t => t.status === 'advanced')
   const eliminated = qualification.filter(t => t.status === 'eliminated')
   const [glowTeam, setGlowTeam] = useState(null)
-
   return (
     <div>
-      {/* Advanced block */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
-          <h2 style={{ fontWeight: 900, fontSize: 20, color: '#22c55e', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-            ADVANCED TO ROUND OF 32
-          </h2>
-          <span style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>
-            {advanced.length} / 32
-          </span>
+          <h2 style={{ fontWeight: 900, fontSize: 20, color: '#22c55e', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>ADVANCED TO ROUND OF 32</h2>
+          <span style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>{advanced.length} / 32</span>
         </div>
-
         {advanced.length === 0 ? (
           <div style={{ background: '#0d1526', border: '1px solid rgba(34,197,94,0.1)', borderRadius: 14, padding: '32px 20px', textAlign: 'center' }}>
             <p style={{ color: '#334155', fontSize: 14, fontWeight: 600, margin: 0 }}>No teams have advanced yet — check back soon!</p>
@@ -133,24 +341,12 @@ function QualificationTab({ qualification }) {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
             {advanced.map((t, i) => (
-              <motion.div key={t.team}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.04 }}
+              <motion.div key={t.team} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
                 onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
-                style={{
-                  background: 'rgba(34,197,94,0.06)',
-                  border: '1px solid rgba(34,197,94,0.25)',
-                  borderRadius: 12, padding: '14px 10px',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: '0 0 12px rgba(34,197,94,0.08)',
-                }}
+                style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', boxShadow: '0 0 12px rgba(34,197,94,0.08)' }}
                 whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(34,197,94,0.2)' }}>
                 <div style={{ position: 'relative' }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team}
-                    style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
-                    onError={e => { e.target.style.display = 'none' }} />
+                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }} onError={e => { e.target.style.display = 'none' }} />
                   <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>✅</span>
                 </div>
                 <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center', lineHeight: 1.3 }}>{t.team}</span>
@@ -159,24 +355,11 @@ function QualificationTab({ qualification }) {
             ))}
           </div>
         )}
-
-        {/* Glow message modal */}
         <AnimatePresence>
           {glowTeam && glowTeam.status === 'advanced' && glowTeam.message && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              style={{
-                marginTop: 16,
-                background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04))',
-                border: '1px solid rgba(34,197,94,0.3)',
-                borderLeft: '4px solid #22c55e',
-                borderRadius: 12, padding: '14px 18px',
-                display: 'flex', alignItems: 'flex-start', gap: 12,
-              }}>
-              <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team}
-                style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2 }} />
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+              style={{ marginTop: 16, background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04))', border: '1px solid rgba(34,197,94,0.3)', borderLeft: '4px solid #22c55e', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team} style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2 }} />
               <div>
                 <p style={{ color: '#22c55e', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🟢 {glowTeam.team} advance!</p>
                 <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{glowTeam.message}</p>
@@ -186,19 +369,12 @@ function QualificationTab({ qualification }) {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Eliminated block */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }} />
-          <h2 style={{ fontWeight: 900, fontSize: 20, color: '#ef4444', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-            ELIMINATED
-          </h2>
-          <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>
-            {eliminated.length} teams
-          </span>
+          <h2 style={{ fontWeight: 900, fontSize: 20, color: '#ef4444', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>ELIMINATED</h2>
+          <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>{eliminated.length} teams</span>
         </div>
-
         {eliminated.length === 0 ? (
           <div style={{ background: '#0d1526', border: '1px solid rgba(239,68,68,0.1)', borderRadius: 14, padding: '32px 20px', textAlign: 'center' }}>
             <p style={{ color: '#334155', fontSize: 14, fontWeight: 600, margin: 0 }}>No teams eliminated yet.</p>
@@ -206,23 +382,12 @@ function QualificationTab({ qualification }) {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
             {eliminated.map((t, i) => (
-              <motion.div key={t.team}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.04 }}
+              <motion.div key={t.team} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
                 onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
-                style={{
-                  background: 'rgba(239,68,68,0.04)',
-                  border: '1px solid rgba(239,68,68,0.15)',
-                  borderRadius: 12, padding: '14px 10px',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                  cursor: 'pointer', transition: 'all 0.2s', opacity: 0.7,
-                }}
+                style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', opacity: 0.7 }}
                 whileHover={{ opacity: 1, scale: 1.03 }}>
                 <div style={{ position: 'relative', filter: 'grayscale(60%)' }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team}
-                    style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
-                    onError={e => { e.target.style.display = 'none' }} />
+                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }} onError={e => { e.target.style.display = 'none' }} />
                   <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>❌</span>
                 </div>
                 <span style={{ fontWeight: 700, fontSize: 12, color: '#64748b', textAlign: 'center', lineHeight: 1.3 }}>{t.team}</span>
@@ -231,24 +396,11 @@ function QualificationTab({ qualification }) {
             ))}
           </div>
         )}
-
-        {/* Glow message modal */}
         <AnimatePresence>
           {glowTeam && glowTeam.status === 'eliminated' && glowTeam.message && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              style={{
-                marginTop: 16,
-                background: 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02))',
-                border: '1px solid rgba(239,68,68,0.25)',
-                borderLeft: '4px solid #ef4444',
-                borderRadius: 12, padding: '14px 18px',
-                display: 'flex', alignItems: 'flex-start', gap: 12,
-              }}>
-              <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team}
-                style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2, filter: 'grayscale(50%)' }} />
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+              style={{ marginTop: 16, background: 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02))', border: '1px solid rgba(239,68,68,0.25)', borderLeft: '4px solid #ef4444', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team} style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2, filter: 'grayscale(50%)' }} />
               <div>
                 <p style={{ color: '#f87171', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🔴 {glowTeam.team} eliminated</p>
                 <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{glowTeam.message}</p>
@@ -262,6 +414,7 @@ function QualificationTab({ qualification }) {
   )
 }
 
+// ── Main ──
 function Standings() {
   const [standings, setStandings] = useState({})
   const [qualification, setQualification] = useState([])
@@ -294,82 +447,59 @@ function Standings() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif' }}>
       <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #14b8a6, #f59e0b, #84cc16, #6366f1)' }} />
-
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 80px' }}>
-
-        {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>FIFA World Cup 2026</div>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
-            Group Standings 📊
-          </h1>
-          <p style={{ color: '#64748b', marginTop: 6, fontSize: 14 }}>
-            Live group tables — updated after each match. Top 2 + best 8 third-place teams advance.
-          </p>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>Group Standings 📊</h1>
+          <p style={{ color: '#64748b', marginTop: 6, fontSize: 14 }}>Live group tables — updated after each match. Top 2 + best 8 third-place teams advance.</p>
         </div>
 
-        {/* Main tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap', paddingTop: 4 }}>
           {[
             { id: 'standings', label: '📊 Group Tables' },
+            { id: 'bracket', label: '🗂️ Projected Route to the Final', live: true},
             { id: 'qualification', label: '🏆 Qualification' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '8px 18px', borderRadius: 8, fontWeight: 700, fontSize: 13,
-                cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-                background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-                color: activeTab === tab.id ? '#fff' : '#64748b',
-                boxShadow: activeTab === tab.id ? '0 4px 14px rgba(59,130,246,0.3)' : 'none',
-              }}>{tab.label}</button>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: activeTab === tab.id ? '#fff' : '#64748b', boxShadow: activeTab === tab.id ? '0 4px 14px rgba(59,130,246,0.3)' : 'none' }}>
+              {tab.label}
+              {tab.live && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', fontSize: 8, fontWeight: 800, padding: '1px 5px', borderRadius: 100, animation: 'livePulse 2s infinite' }}>
+                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                  LIVE
+                </span>
+              )}
+            </button>
           ))}
         </div>
 
-        {/* Standings tab */}
         {activeTab === 'standings' && (
           <>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 28 }}>
-              <button onClick={() => setFilter('ALL')}
-                style={{ padding: '6px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: filter === 'ALL' ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: filter === 'ALL' ? '#fff' : '#64748b' }}>
-                All Groups
-              </button>
+              <button onClick={() => setFilter('ALL')} style={{ padding: '6px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', border: 'none', background: filter === 'ALL' ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: filter === 'ALL' ? '#fff' : '#64748b' }}>All Groups</button>
               {GROUP_LETTERS.map((g, i) => (
-                <button key={g} onClick={() => setFilter(g)}
-                  style={{ width: 36, height: 32, borderRadius: 8, fontWeight: 800, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: filter === g ? GROUP_COLORS[i] : 'rgba(255,255,255,0.05)', color: filter === g ? '#000' : '#64748b' }}>{g}</button>
+                <button key={g} onClick={() => setFilter(g)} style={{ width: 36, height: 32, borderRadius: 8, fontWeight: 800, fontSize: 13, cursor: 'pointer', border: 'none', background: filter === g ? GROUP_COLORS[i] : 'rgba(255,255,255,0.05)', color: filter === g ? '#000' : '#64748b' }}>{g}</button>
               ))}
             </div>
-
             <div className="standings-grid" style={{ display: 'grid', gridTemplateColumns: filter === 'ALL' ? 'repeat(auto-fill, minmax(480px, 1fr))' : '1fr', gap: 16 }}>
-              {displayGroups.map(g => (
-                <GroupTable key={g} group={g} standings={standings} color={getGroupColor(g)} />
-              ))}
+              {displayGroups.map(g => <GroupTable key={g} group={g} standings={standings} color={getGroupColor(g)} />)}
             </div>
-
-            <p style={{ color: '#334155', fontSize: 12, textAlign: 'center', marginTop: 32 }}>
-              Standings are updated manually by the admin after each match. Refresh for the latest! 🔄
-            </p>
+            <p style={{ color: '#334155', fontSize: 12, textAlign: 'center', marginTop: 32 }}>Standings are updated manually by the admin after each match. Refresh for the latest! 🔄</p>
           </>
         )}
 
-        {/* Qualification tab */}
-        {activeTab === 'qualification' && (
-          <QualificationTab qualification={qualification} />
-        )}
+        {activeTab === 'bracket' && <ProjectedBracketTab standings={standings} />}
+        {activeTab === 'qualification' && <QualificationTab qualification={qualification} />}
       </div>
 
       <style>{`
+        @keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
         @media (max-width: 640px) {
           .standings-grid { grid-template-columns: 1fr !important; }
-          .table-header, .table-row {
-            grid-template-columns: 18px 1fr 22px 22px 22px 28px !important;
-            padding: 6px 6px !important;
-          }
-          .table-header span:nth-child(4),
-          .table-header span:nth-child(5),
-          .table-header span:nth-child(7),
-          .table-row span:nth-child(4),
-          .table-row span:nth-child(5),
-          .table-row span:nth-child(7) { display: none !important; }
+          .table-header, .table-row { grid-template-columns: 18px 1fr 22px 22px 22px 28px !important; padding: 6px 6px !important; }
+          .table-header span:nth-child(4), .table-header span:nth-child(5), .table-header span:nth-child(7),
+          .table-row span:nth-child(4), .table-row span:nth-child(5), .table-row span:nth-child(7) { display: none !important; }
           .team-flag { width: 18px !important; height: 12px !important; }
           .team-name { font-size: 11px !important; }
           .stat-value { font-size: 11px !important; }
