@@ -62,9 +62,46 @@ function getProjected(group, standings) {
   })
 }
 
+// Exact same autoAssign3rdPlace logic as Predictions.jsx
+function autoAssign3rdPlace(thirdPlaceAdvancing, groupOf) {
+  const slots = [
+    { slot: 't74', eligible: ['A','B','C','D','F'], winnerGroup: 'E' },
+    { slot: 't77', eligible: ['C','D','F','G','H'], winnerGroup: 'I' },
+    { slot: 't79', eligible: ['C','E','F','H','I'], winnerGroup: 'A' },
+    { slot: 't80', eligible: ['E','H','I','J','K'], winnerGroup: 'L' },
+    { slot: 't81', eligible: ['B','E','F','I','J'], winnerGroup: 'D' },
+    { slot: 't82', eligible: ['A','E','H','I','J'], winnerGroup: 'G' },
+    { slot: 't85', eligible: ['E','F','G','I','J'], winnerGroup: 'B' },
+    { slot: 't87', eligible: ['D','E','I','J','L'], winnerGroup: 'K' },
+  ]
+  const isEligible = (team, slot) =>
+    slot.eligible.includes(groupOf[team]) && groupOf[team] !== slot.winnerGroup
+  const teamMatch = {}
+  const findSlotById = id => slots.find(s => s.slot === id)
+  function augment(slot, visited) {
+    for (const team of thirdPlaceAdvancing) {
+      if (visited.has(team)) continue
+      if (!isEligible(team, slot)) continue
+      visited.add(team)
+      const currentSlotId = teamMatch[team]
+      if (!currentSlotId || augment(findSlotById(currentSlotId), visited)) {
+        teamMatch[team] = slot.slot
+        return true
+      }
+    }
+    return false
+  }
+  for (const slot of slots) augment(slot, new Set())
+  const assigned = {}
+  Object.keys(teamMatch).forEach(team => { assigned[teamMatch[team]] = team })
+  return assigned
+}
+
 function buildProjectedR32(standings) {
   const w = g => getProjected(g, standings)[0] || '?'
   const r = g => getProjected(g, standings)[1] || '?'
+
+  // Get best 8 third place teams sorted by pts/gd/gf
   const thirds = GROUP_LETTERS.map(g => {
     const team = getProjected(g, standings)[2] || '?'
     const s = standings[g]?.find(x => x.team === team) || { points: 0, gd: 0, gf: 0 }
@@ -74,23 +111,35 @@ function buildProjectedR32(standings) {
     if (b.gd !== a.gd) return b.gd - a.gd
     return b.gf - a.gf
   })
-  const t = i => thirds[i]?.team || '?'
+
+  const best8 = thirds.slice(0, 8).map(t => t.team).filter(t => t !== '?')
+
+  // Build groupOf map for the 8 advancing 3rd place teams
+  const groupOf = {}
+  thirds.slice(0, 8).forEach(t => { if (t.team !== '?') groupOf[t.team] = t.group })
+
+  // Use exact same slot assignment as Predictions.jsx
+  const assignments = best8.length >= 4
+    ? autoAssign3rdPlace(best8, groupOf)
+    : {}
+  const slot = s => assignments[s] || '?'
+
   return [
     { id: 'r32_73', match: 73, team1: r('A'), team2: r('B') },
-    { id: 'r32_74', match: 74, team1: w('E'), team2: t(0) },
+    { id: 'r32_74', match: 74, team1: w('E'), team2: slot('t74') },
     { id: 'r32_75', match: 75, team1: w('F'), team2: r('C') },
     { id: 'r32_76', match: 76, team1: w('C'), team2: r('F') },
-    { id: 'r32_77', match: 77, team1: w('I'), team2: t(1) },
+    { id: 'r32_77', match: 77, team1: w('I'), team2: slot('t77') },
     { id: 'r32_78', match: 78, team1: r('E'), team2: r('I') },
-    { id: 'r32_79', match: 79, team1: w('A'), team2: t(2) },
-    { id: 'r32_80', match: 80, team1: w('L'), team2: t(3) },
-    { id: 'r32_81', match: 81, team1: w('D'), team2: t(4) },
-    { id: 'r32_82', match: 82, team1: w('G'), team2: t(5) },
+    { id: 'r32_79', match: 79, team1: w('A'), team2: slot('t79') },
+    { id: 'r32_80', match: 80, team1: w('L'), team2: slot('t80') },
+    { id: 'r32_81', match: 81, team1: w('D'), team2: slot('t81') },
+    { id: 'r32_82', match: 82, team1: w('G'), team2: slot('t82') },
     { id: 'r32_83', match: 83, team1: r('K'), team2: r('L') },
     { id: 'r32_84', match: 84, team1: w('H'), team2: r('J') },
-    { id: 'r32_85', match: 85, team1: w('B'), team2: t(6) },
+    { id: 'r32_85', match: 85, team1: w('B'), team2: slot('t85') },
     { id: 'r32_86', match: 86, team1: w('J'), team2: r('H') },
-    { id: 'r32_87', match: 87, team1: w('K'), team2: t(7) },
+    { id: 'r32_87', match: 87, team1: w('K'), team2: slot('t87') },
     { id: 'r32_88', match: 88, team1: r('D'), team2: r('G') },
   ]
 }
@@ -459,7 +508,7 @@ function Standings() {
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap', paddingTop: 4 }}>
           {[
             { id: 'standings', label: '📊 Group Tables' },
-            { id: 'bracket', label: '🗂️ Projected Route To The Final' , live: true},
+            { id: 'bracket', label: '🗂️ Projected R32', live: true },
             { id: 'qualification', label: '🏆 Qualification' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
