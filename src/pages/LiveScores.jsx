@@ -299,6 +299,7 @@ function MatchModal({ match, onClose }) {
 function LiveScores() {
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
+  const [initialLoad, setInitialLoad] = useState(true)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [selectedMatch, setSelectedMatch] = useState(null)
   const [filter, setFilter] = useState('ALL')
@@ -307,16 +308,19 @@ function LiveScores() {
   const GROUPS = ['ALL', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
 
   const fetchMatches = () => {
-    axios.get(`${API_URL}/api/livescores`)
-      .then(res => {
-        // Filter only WC2026 matches (have kickoff_utc)
-        const wc2026 = res.data.filter(m => m.kickoff_utc && m.kickoff_utc.startsWith('2026'))
-        setMatches(wc2026)
-        setLastUpdated(new Date().toLocaleTimeString())
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }
+  axios.get(`${API_URL}/api/livescores`)
+    .then(res => {
+      const wc2026 = res.data.filter(m => m.kickoff_utc && m.kickoff_utc.startsWith('2026'))
+      setMatches(wc2026)
+      setLastUpdated(new Date().toLocaleTimeString())
+      setLoading(false)
+      setInitialLoad(false)
+    })
+    .catch(() => {
+      setLoading(false)
+      setInitialLoad(false)
+    })
+}
 
   useEffect(() => {
     fetchMatches()
@@ -346,7 +350,7 @@ function LiveScores() {
     dayMatches.sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc))
   )
 
-  if (loading) return (
+  if (loading && initialLoad) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
