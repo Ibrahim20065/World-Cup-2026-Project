@@ -4,7 +4,9 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './assets/AuthContext.jsx'
 import { Toaster } from 'react-hot-toast'
+import { inject } from '@vercel/analytics'
 
+inject()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

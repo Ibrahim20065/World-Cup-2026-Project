@@ -18,13 +18,14 @@ import { ColorProvider } from './assets/ColorContext'
 import Standings from './pages/Standings'
 import Settings from './pages/Settings'
 import { useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 
 function App() {
   return (
     <ColorProvider>
       <BrowserRouter>
       <ScrollToTop />
-      
+      <Analytics />
         <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex flex-col">
           <Navbar />
           <main className="flex-grow">
