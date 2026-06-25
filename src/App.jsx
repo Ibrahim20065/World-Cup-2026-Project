@@ -24,6 +24,7 @@ function App() {
     <ColorProvider>
       <BrowserRouter>
       <ScrollToTop />
+      <Analytics />
         <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex flex-col">
           <Navbar />
           <main className="flex-grow">
