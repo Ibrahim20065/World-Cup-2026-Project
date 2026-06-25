@@ -124,57 +124,6 @@ export default function Home() {
             </Link>
           </motion.div>
 
-          {/* Update boxes — animated with motion */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65, duration: 0.6 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 600, margin: '32px auto 0' }}
-          >
-            {/* v1.02 — latest */}
-            <div style={{ padding: '16px 20px', background: '#0d1526', border: '1px solid rgba(34,197,94,0.2)', borderLeft: '4px solid #22c55e', borderRadius: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <span style={{ fontSize: 16 }}>🆕</span>
-                <span style={{ fontWeight: 800, fontSize: 15, color: '#86efac' }}>Update v1.02</span>
-                <span style={{ fontSize: 11, color: '#334155', fontWeight: 600, marginLeft: 'auto' }}>June 15, 2026</span>
-              </div>
-              <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[
-                  '⚙️ Account Settings — change username, email, password, toggle notifications, delete account',
-                  '🎯 Qualification tracker — see which teams advanced and which are eliminated with custom messages',
-                  '🌍 Local time display — all match times shown in your own timezone automatically',
-                  '🔒 Per-match locking — each match locks independently 10 minutes before its own kickoff',
-                  '🏆 Live scoring — points awarded automatically within 5 minutes of a match finishing',
-                  '🔄 Permanent scores — finished match scores never reset or disappear',
-                ].map((item, i) => (
-                  <li key={i} style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>{item}</li>
-                ))}
-              </ul>
-            </div>
-
-            {/* v1.01 — older, faded */}
-            <div style={{ padding: '16px 20px', background: '#0d1526', border: '1px solid rgba(59,130,246,0.12)', borderLeft: '4px solid #3b82f6', borderRadius: 12, opacity: 0.6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <span style={{ fontSize: 16 }}>📋</span>
-                <span style={{ fontWeight: 800, fontSize: 15, color: '#93c5fd' }}>Update v1.01</span>
-                <span style={{ fontSize: 11, color: '#334155', fontWeight: 600, marginLeft: 'auto' }}>June 12, 2026</span>
-              </div>
-              <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[
-                  '📊 Group Standings page — live tables updated after each match',
-                  '🎨 Theme color changer — pick your accent color in the navbar',
-                  '⚽ Live Scores — now powered by TheSportsDB, updates after FT',
-                  '🔒 Prediction locking — Group Stage & 3rd Place save without locking, Knockout submits lock permanently',
-                  '🏆 Mini Leagues — create and join private leagues with invite codes',
-                  '🌍 Background color — changes with your selected theme',
-                  '📧 Email verification — secure signup with 6-digit code',
-                ].map((item, i) => (
-                  <li key={i} style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          </motion.div>
-
           {/* Stats row */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }}
             style={{ display: 'flex', gap: 0, justifyContent: 'center', marginTop: 64, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden', maxWidth: 480, marginInline: 'auto' }}>

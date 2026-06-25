@@ -19,6 +19,7 @@ const LINKS = [
   { path: '/countries', label: 'Countries' },
   { path: '/map', label: 'Host Cities' },
   { path: '/history', label: 'History' },
+  { path: '/changelog', label: 'Updates' },
 ]
 
 function Navbar() {
@@ -28,6 +29,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { accent, changeColor } = useColor()
   const [showPicker, setShowPicker] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
   const COLORS = [
   { color: '#3b82f6', label: 'Blue' },
@@ -132,13 +134,42 @@ function Navbar() {
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16}}>
               {/* Avatar */}
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 800, color: '#94a3b8',
-              }}>{user.username.charAt(0).toUpperCase()}</div>
-              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 600 }}>{user.username}</span>
+              <div style={{ position: 'relative' }}>
+  <button onClick={() => setShowUserMenu(!showUserMenu)}
+    style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: '4px 12px 4px 4px', cursor: 'pointer' }}>
+    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#94a3b8' }}>
+      {user.username.charAt(0).toUpperCase()}
+    </div>
+    <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>{user.username}</span>
+    <span style={{ color: '#475569', fontSize: 10 }}>▾</span>
+  </button>
+
+  {showUserMenu && (
+    <div style={{ position: 'absolute', top: 44, right: 0, background: '#0d1526', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 8, minWidth: 160, zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Link to="/settings" onClick={() => setShowUserMenu(false)}
+        style={{ textDecoration: 'none', fontSize: 13, fontWeight: 600, color: '#94a3b8', padding: '8px 12px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8, transition: 'background 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+        ⚙️ Settings
+      </Link>
+      {user.is_admin && (
+        <Link to="/admin" onClick={() => setShowUserMenu(false)}
+          style={{ textDecoration: 'none', fontSize: 13, fontWeight: 600, color: '#fbbf24', padding: '8px 12px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8, transition: 'background 0.15s' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(251,191,36,0.08)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          ⭐ Admin Panel
+        </Link>
+      )}
+      <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+      <button onClick={handleLogout}
+        style={{ fontSize: 13, fontWeight: 600, color: '#f87171', padding: '8px 12px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'background 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+        🚪 Logout
+      </button>
+    </div>
+  )}
+</div>
 
               {user.is_admin && (
                 <Link to="/admin" style={{
