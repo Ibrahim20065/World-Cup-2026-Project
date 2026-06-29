@@ -511,15 +511,22 @@ function MatchPicks({ token }) {
     if (!pick || pick.home === '' || pick.away === '') { toast.error('Enter both scores!'); return }
     const homeScore = parseInt(pick.home), awayScore = parseInt(pick.away)
     if (isNaN(homeScore) || isNaN(awayScore) || homeScore < 0 || awayScore < 0) { toast.error('Enter valid scores!'); return }
+    const isDraw = homeScore === awayScore
+    const isKnockout = match?.round === 'Round of 32' || match?.id >= 73
+    if (isDraw && isKnockout && !pick.pen_winner) { toast.error('Please pick a penalty winner!'); return }
     setSaving(matchId)
     try {
-      await axios.post(`${API_URL}/api/match-predictions`, { match_id: matchId, home_score: homeScore, away_score: awayScore }, { headers: { Authorization: `Bearer ${token}` } })
-      setSavedPreds(prev => ({ ...prev, [matchId]: { home_score: homeScore, away_score: awayScore, scored: false, points_awarded: 0 } }))
+      await axios.post(`${API_URL}/api/match-predictions`, {
+        match_id: matchId,
+        home_score: homeScore,
+        away_score: awayScore,
+        pen_winner: (isDraw && isKnockout) ? (pick.pen_winner || '') : '',
+      }, { headers: { Authorization: `Bearer ${token}` } })
+      setSavedPreds(prev => ({ ...prev, [matchId]: { home_score: homeScore, away_score: awayScore, pen_winner: pick.pen_winner || '', scored: false, points_awarded: 0 } }))
       toast.success('Pick saved! ✅')
     } catch (err) { toast.error(err.response?.data?.error || 'Error saving pick') }
     setSaving(null)
-  }
-
+}
   const groupColor = (group) => { const idx = GROUP_LETTERS.indexOf(group); return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6' }
 
   if (!token) return <div style={{ textAlign: 'center', padding: '80px 20px' }}><p style={{ color: '#64748b', fontWeight: 700, fontSize: 16 }}>Login to make match predictions</p></div>
@@ -592,11 +599,41 @@ function MatchPicks({ token }) {
                   <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center' }}>{match.away}</span>
                 </div>
               </div>
+              {/* PENALTY DROPDOWN */}
+{(() => {
+  const pick = matchPreds[match.id] || { home: '', away: '' }
+  const isDraw = pick.home !== '' && pick.away !== '' && parseInt(pick.home) === parseInt(pick.away)
+  const isKnockout = match.round === 'Round of 32' || match.id >= 73
+  if (!isDraw || !isKnockout) return null
+  return (
+    <div style={{ marginTop: 12, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 10, padding: '10px 14px' }}>
+      <p style={{ color: '#fbbf24', fontSize: 11, fontWeight: 700, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>⚽ Who wins on penalties?</p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[match.home, match.away].map(team => {
+          const selected = pick.pen_winner === team
+          return (
+            <button key={team} onClick={() => !matchLocked && setMatchPreds(prev => ({ ...prev, [match.id]: { ...prev[match.id], pen_winner: team } }))}
+              disabled={matchLocked}
+              style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 8, border: `2px solid ${selected ? '#fbbf24' : 'rgba(255,255,255,0.08)'}`, background: selected ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.03)', cursor: matchLocked ? 'default' : 'pointer', transition: 'all 0.15s' }}>
+              <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 20, height: 14, objectFit: 'cover', borderRadius: 2 }} onError={e => { e.target.style.display = 'none' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: selected ? '#fbbf24' : '#94a3b8', flex: 1, textAlign: 'left' }}>{team}</span>
+              {selected && <span style={{ fontSize: 10, color: '#fbbf24' }}>✓</span>}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+})()}
+
+<div style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}></div>
               <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 {saved?.scored ? <span style={{ background: saved.points_awarded > 0 ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)', border: `1px solid ${saved.points_awarded > 0 ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.08)'}`, color: saved.points_awarded > 0 ? '#22c55e' : '#475569', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 100 }}>{saved.points_awarded > 0 ? `+${saved.points_awarded} pts ✓` : '0 pts'}</span>
                   : hasSaved ? <span style={{ fontSize: 11, color: '#475569' }}>Saved: {saved.home_score}–{saved.away_score}</span> : <span />}
                 {!matchLocked && <button onClick={() => savePick(match.id)} disabled={isSaving} style={{ background: hasSaved ? `${gc}15` : 'linear-gradient(135deg, #3b82f6, #1d4ed8)', border: hasSaved ? `1px solid ${gc}40` : 'none', color: hasSaved ? gc : '#fff', fontWeight: 700, fontSize: 13, padding: '7px 18px', borderRadius: 8, cursor: 'pointer', opacity: isSaving ? 0.6 : 1 }}>{isSaving ? 'Saving...' : hasSaved ? '✓ Update Pick' : 'Save Pick'}</button>}
               </div>
+
+              
             </motion.div>
           )
         })}
