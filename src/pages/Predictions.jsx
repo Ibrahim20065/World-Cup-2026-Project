@@ -44,6 +44,8 @@ const POSITION_CONFIG = [
   { label: '4th', bg: '#ef4444', color: '#fff' },
 ]
 
+const POSITIONS = ['1st', '2nd', '3rd', '4th']
+
 const U21_NAMES = new Set([
   'Lamine Yamal','Pau Cubarsi','Marc Pubill','Victor Munoz',
   'Warren Zaire-Emery','Desire Doue','Kobbie Mainoo',"Nico O'Reilly",
@@ -731,29 +733,8 @@ function MyResults({ groupPredictions, thirdPlaceAdvancing, realStandings, quali
     </div>
   )
 
-  const FLAGS = {
-    'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
-    'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia': 'ba',
-    'Brazil': 'br', 'Scotland': 'gb-sct', 'Morocco': 'ma', 'Haiti': 'ht',
-    'USA': 'us', 'Australia': 'au', 'Paraguay': 'py', 'Turkey': 'tr',
-    'Germany': 'de', 'Ecuador': 'ec', 'Ivory Coast': 'ci', 'Curacao': 'cw',
-    'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
-    'Belgium': 'be', 'New Zealand': 'nz', 'Egypt': 'eg', 'Iran': 'ir',
-    'Spain': 'es', 'Uruguay': 'uy', 'Saudi Arabia': 'sa', 'Cape Verde': 'cv',
-    'France': 'fr', 'Norway': 'no', 'Senegal': 'sn', 'Iraq': 'iq',
-    'Argentina': 'ar', 'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz',
-    'Portugal': 'pt', 'Colombia': 'co', 'Uzbekistan': 'uz', 'DR Congo': 'cd',
-    'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
-    'Bosnia & Herzegovina': 'ba',
-  }
 
-  const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
-  const GROUP_COLORS = [
-    '#ef4444','#f97316','#eab308','#22c55e',
-    '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
-    '#14b8a6','#f59e0b','#84cc16','#6366f1',
-  ]
-  const POSITIONS = ['1st', '2nd', '3rd', '4th']
+
 
   // Build real positions map from standings
   const realPositions = {}
