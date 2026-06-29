@@ -208,7 +208,7 @@ function CityProfile() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {matches.map((match, i) => {
-                  const gc = getGroupColor(match.group)
+                  const gc = match.round === 'Round of 32' ? '#06b6d4' : getGroupColor(match.group)
                   return (
                     <motion.div key={match.id}
                       initial={{ opacity: 0, x: 12 }}
@@ -225,11 +225,11 @@ function CityProfile() {
                           fontSize: 10, fontWeight: 800, color: gc,
                           textTransform: 'uppercase', letterSpacing: '0.08em',
                         }}>
-                          {match.group ? `Group ${match.group}` : 'Knockout'} · Match {match.id}
+                          {match.round === 'Round of 32' ? '⚔️ Round of 32' : match.group && match.group !== 'R32' ? `Group ${match.group}` : 'Knockout'} · Match {match.id}
                         </span>
                         <span style={{ color: '#334155', fontSize: 11, fontWeight: 600 }}>
-                          {match.date} · {match.time}
-                        </span>
+                        {match.kickoff_utc ? new Date(match.kickoff_utc).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + new Date(match.kickoff_utc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span> 
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>

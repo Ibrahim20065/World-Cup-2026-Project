@@ -46,6 +46,33 @@ function getGroupColor(group) {
   return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
 }
 
+const CONTINENTS = {
+  'CONCACAF': ['Mexico', 'USA', 'Canada', 'Panama', 'Haiti', 'Curacao'],
+  'CONMEBOL': ['Brazil', 'Argentina', 'Colombia', 'Ecuador', 'Uruguay', 'Paraguay', 'Chile'],
+  'UEFA': ['Germany', 'France', 'Spain', 'England', 'Netherlands', 'Portugal', 'Belgium', 'Croatia', 'Austria', 'Switzerland', 'Scotland', 'Sweden', 'Norway', 'Czech Republic'],
+  'CAF': ['Morocco', 'Senegal', 'Egypt', 'Ivory Coast', 'Ghana', 'South Africa', 'Tunisia', 'Algeria', 'DR Congo'],
+  'AFC': ['Japan', 'South Korea', 'Australia', 'Iran', 'Saudi Arabia', 'Qatar', 'Jordan', 'Uzbekistan', 'Iraq'],
+  'OFC': ['New Zealand'],
+  'Other': ['Bosnia & Herzegovina', 'Bosnia', 'Turkey', 'Cape Verde'],
+}
+
+const CONTINENT_COLORS = {
+  'CONCACAF': '#ef4444',
+  'CONMEBOL': '#22c55e',
+  'UEFA':     '#3b82f6',
+  'CAF':      '#f59e0b',
+  'AFC':      '#8b5cf6',
+  'OFC':      '#06b6d4',
+  'Other':    '#64748b',
+}
+
+function getContinent(team) {
+  for (const [continent, teams] of Object.entries(CONTINENTS)) {
+    if (teams.includes(team)) return continent
+  }
+  return 'Other'
+}
+
 const CARD_H = 56
 const CARD_W = 130
 const COL_GAP = 10
@@ -471,35 +498,73 @@ function QualificationTab({ qualification }) {
   const advanced = qualification.filter(t => t.status === 'advanced')
   const eliminated = qualification.filter(t => t.status === 'eliminated')
   const [glowTeam, setGlowTeam] = useState(null)
+
+  // Group advanced teams by continent
+  const advancedByContinent = {}
+  advanced.forEach(t => {
+    const continent = getContinent(t.team)
+    if (!advancedByContinent[continent]) advancedByContinent[continent] = []
+    advancedByContinent[continent].push(t)
+  })
+
+  // Group eliminated teams by continent
+  const eliminatedByContinent = {}
+  eliminated.forEach(t => {
+    const continent = getContinent(t.team)
+    if (!eliminatedByContinent[continent]) eliminatedByContinent[continent] = []
+    eliminatedByContinent[continent].push(t)
+  })
+
+  const continentOrder = ['UEFA', 'CONMEBOL', 'CONCACAF', 'CAF', 'AFC', 'OFC', 'Other']
+
   return (
     <div>
+      {/* ADVANCED */}
       <div style={{ marginBottom: 32 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
           <h2 style={{ fontWeight: 900, fontSize: 20, color: '#22c55e', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>ADVANCED TO ROUND OF 32</h2>
           <span style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>{advanced.length} / 32</span>
         </div>
+
         {advanced.length === 0 ? (
           <div style={{ background: '#0d1526', border: '1px solid rgba(34,197,94,0.1)', borderRadius: 14, padding: '32px 20px', textAlign: 'center' }}>
             <p style={{ color: '#334155', fontSize: 14, fontWeight: 600, margin: 0 }}>No teams have advanced yet — check back soon!</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
-            {advanced.map((t, i) => (
-              <motion.div key={t.team} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
-                onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
-                style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}
-                whileHover={{ scale: 1.03 }}>
-                <div style={{ position: 'relative' }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6 }} onError={e => { e.target.style.display = 'none' }} />
-                  <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>✅</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {continentOrder.map(continent => {
+              const teams = advancedByContinent[continent]
+              if (!teams || teams.length === 0) return null
+              const color = CONTINENT_COLORS[continent]
+              return (
+                <div key={continent}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <div style={{ width: 4, height: 20, borderRadius: 2, background: color }} />
+                    <span style={{ fontWeight: 800, fontSize: 14, color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{continent}</span>
+                    <span style={{ background: `${color}18`, border: `1px solid ${color}30`, color, fontSize: 11, fontWeight: 700, padding: '1px 8px', borderRadius: 100 }}>{teams.length}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
+                    {teams.map((t, i) => (
+                      <motion.div key={t.team} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
+                        onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
+                        style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+                        whileHover={{ scale: 1.03 }}>
+                        <div style={{ position: 'relative' }}>
+                          <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6 }} onError={e => { e.target.style.display = 'none' }} />
+                          <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>✅</span>
+                        </div>
+                        <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center' }}>{t.team}</span>
+                        <span style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>Group {t.group}</span>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
-                <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center' }}>{t.team}</span>
-                <span style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>Group {t.group}</span>
-              </motion.div>
-            ))}
+              )
+            })}
           </div>
         )}
+
         <AnimatePresence>
           {glowTeam?.status === 'advanced' && glowTeam.message && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
@@ -511,33 +576,53 @@ function QualificationTab({ qualification }) {
           )}
         </AnimatePresence>
       </div>
+
+      {/* ELIMINATED */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }} />
           <h2 style={{ fontWeight: 900, fontSize: 20, color: '#ef4444', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>ELIMINATED</h2>
           <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 12, fontWeight: 800, padding: '2px 10px', borderRadius: 100 }}>{eliminated.length} teams</span>
         </div>
+
         {eliminated.length === 0 ? (
           <div style={{ background: '#0d1526', border: '1px solid rgba(239,68,68,0.1)', borderRadius: 14, padding: '32px 20px', textAlign: 'center' }}>
             <p style={{ color: '#334155', fontSize: 14, fontWeight: 600, margin: 0 }}>No teams eliminated yet.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
-            {eliminated.map((t, i) => (
-              <motion.div key={t.team} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
-                onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
-                style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', opacity: 0.7 }}
-                whileHover={{ opacity: 1, scale: 1.03 }}>
-                <div style={{ position: 'relative', filter: 'grayscale(60%)' }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6 }} onError={e => { e.target.style.display = 'none' }} />
-                  <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>❌</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {continentOrder.map(continent => {
+              const teams = eliminatedByContinent[continent]
+              if (!teams || teams.length === 0) return null
+              const color = CONTINENT_COLORS[continent]
+              return (
+                <div key={continent}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <div style={{ width: 4, height: 20, borderRadius: 2, background: color }} />
+                    <span style={{ fontWeight: 800, fontSize: 14, color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{continent}</span>
+                    <span style={{ background: `${color}18`, border: `1px solid ${color}30`, color, fontSize: 11, fontWeight: 700, padding: '1px 8px', borderRadius: 100 }}>{teams.length}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
+                    {teams.map((t, i) => (
+                      <motion.div key={t.team} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
+                        onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
+                        style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', opacity: 0.7 }}
+                        whileHover={{ opacity: 1, scale: 1.03 }}>
+                        <div style={{ position: 'relative', filter: 'grayscale(60%)' }}>
+                          <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6 }} onError={e => { e.target.style.display = 'none' }} />
+                          <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>❌</span>
+                        </div>
+                        <span style={{ fontWeight: 700, fontSize: 12, color: '#64748b', textAlign: 'center' }}>{t.team}</span>
+                        <span style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>Group {t.group}</span>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
-                <span style={{ fontWeight: 700, fontSize: 12, color: '#64748b', textAlign: 'center' }}>{t.team}</span>
-                <span style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>Group {t.group}</span>
-              </motion.div>
-            ))}
+              )
+            })}
           </div>
         )}
+
         <AnimatePresence>
           {glowTeam?.status === 'eliminated' && glowTeam.message && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}

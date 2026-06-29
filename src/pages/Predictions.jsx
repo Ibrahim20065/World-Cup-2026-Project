@@ -110,7 +110,7 @@ function autoAssign3rdPlace(thirdPlaceAdvancing, groupPredictions) {
 function getR32Matches(gp, thirdPlaceAdvancing) {
   const w = g => gp[g]?.[0] || '?'
   const r = g => gp[g]?.[1] || '?'
-  const assignments = thirdPlaceAdvancing.length === 8 ? autoAssign3rdPlace(thirdPlaceAdvancing, gp) : {}
+  const assignments = thirdPlaceAdvancing.length > 0 ? autoAssign3rdPlace(thirdPlaceAdvancing, gp) : {}
   const t = slot => assignments[slot] || '?'
   return [
     // LEFT (0-7)
