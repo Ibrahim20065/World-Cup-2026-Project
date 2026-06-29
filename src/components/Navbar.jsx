@@ -192,7 +192,12 @@ function Navbar() {
                 padding: '5px 12px', borderRadius: 8,
                 background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
                 cursor: 'pointer', transition: 'all 0.15s',
+                WebkitAppearance: 'none',
+                appearance: 'none',
               }}
+
+               
+
                 onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)' }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
                 Logout

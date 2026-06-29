@@ -13,4 +13,9 @@ input, textarea, [contenteditable] {
   -webkit-user-select: text;
 }
 
+button {
+  background: none;
+  border: none;
+}
+
 @import "tailwindcss";
