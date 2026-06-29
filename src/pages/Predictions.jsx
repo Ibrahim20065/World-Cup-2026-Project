@@ -63,6 +63,7 @@ const CARD_H = 56
 const CARD_W = 130
 const COL_GAP = 10
 
+const [r32Matchups, setR32Matchups] = useState([])
 
 // ── autoAssign3rdPlace ──
 function autoAssign3rdPlace(thirdPlaceAdvancing, groupPredictions) {
@@ -376,6 +377,10 @@ function SecondChanceTab({ token }) {
       .then(res => setR32Matchups(res.data))
       .catch(() => {})
   }, [])
+
+  axios.get(`${API_URL}/api/second-chance/matchups`)
+  .then(res => setR32Matchups(res.data))
+  .catch(() => {})
 
   useEffect(() => {
     if (!token) return
@@ -1032,7 +1037,17 @@ function Predictions() {
 
   if (loading) return <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading predictions...</p></div>
 
-  const r32Matches = getR32Matches(groupPredictions, thirdPlaceAdvancing)
+  const r32Matches = locked && r32Matchups.length > 0
+  ? (() => {
+      const byNum = {}
+      r32Matchups.forEach(m => { byNum[m.match] = m })
+      const order = [74,77,73,75,83,84,81,82,76,78,79,80,86,88,85,87]
+      return order.map(n => byNum[n]
+        ? { id: `r32_${byNum[n].match}`, match: byNum[n].match, team1: byNum[n].team1, team2: byNum[n].team2 }
+        : null
+      ).filter(Boolean)
+    })()
+  : getR32Matches(groupPredictions, thirdPlaceAdvancing)
   const r16Matches = getR16Matches(knockoutPredictions.r32)
   const qfMatches  = getQFMatches(knockoutPredictions.r16)
   const sfMatches  = getSFMatches(knockoutPredictions.quarter)
