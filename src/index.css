@@ -18,4 +18,12 @@ button {
   border: none;
 }
 
+html, body, #root {
+  background: #080d1a;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+
 @import "tailwindcss";
