@@ -172,37 +172,6 @@ function Navbar() {
   )}
 </div>
 
-              {user.is_admin && (
-                <Link to="/admin" style={{
-                  textDecoration: 'none', fontSize: 12, fontWeight: 700,
-                  color: '#fbbf24', padding: '5px 12px', borderRadius: 8,
-                  background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)',
-                  transition: 'background 0.15s',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(251,191,36,0.18)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(251,191,36,0.1)'}>
-                  ⚙️ Admin
-                </Link>
-              )}
-
-              
-
-              <button onClick={handleLogout} style={{
-                fontSize: 12, fontWeight: 700, color: '#64748b',
-                padding: '5px 12px', borderRadius: 8,
-                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                cursor: 'pointer', transition: 'all 0.15s',
-                WebkitAppearance: 'none',
-                appearance: 'none',
-              }}
-
-               
-
-                onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
-                Logout
-              </button>
-
               
             </div>
 
