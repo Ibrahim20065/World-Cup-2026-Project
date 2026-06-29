@@ -57,9 +57,16 @@ const U21_NAMES = new Set([
 ])
 const U21_PLAYERS = PLAYERS.filter(p => U21_NAMES.has(p.name))
 
+
+const [groupStageScored, setGroupStageScored] = useState(false)
+const [realStandings, setRealStandings] = useState({})
+const [qualification, setQualification] = useState([])
+
+
 const CARD_H = 56
 const CARD_W = 130
 const COL_GAP = 10
+
 
 // ── autoAssign3rdPlace ──
 function autoAssign3rdPlace(thirdPlaceAdvancing, groupPredictions) {
@@ -488,6 +495,9 @@ function MatchPicks({ token }) {
       }).catch(() => {})
   }, [token])
 
+
+  
+
   const isMatchLocked = (match) => { if (!match.kickoff_utc) return false; return now >= new Date(new Date(match.kickoff_utc).getTime() - 10 * 60 * 1000) }
   const getTimeLeft = (match) => {
     if (!match.kickoff_utc) return ''
@@ -712,6 +722,230 @@ function KnockoutBracket({ r32Matches, r16Matches, qfMatches, sfMatches, finalTe
   )
 }
 
+function MyResults({ groupPredictions, thirdPlaceAdvancing, realStandings, qualification, groupStageScored }) {
+  if (!groupStageScored) return (
+    <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
+      <p style={{ color: '#fbbf24', fontWeight: 700, fontSize: 18, margin: '0 0 8px' }}>Results not scored yet</p>
+      <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>Check back once the admin scores the group stage!</p>
+    </div>
+  )
+
+  const FLAGS = {
+    'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
+    'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia': 'ba',
+    'Brazil': 'br', 'Scotland': 'gb-sct', 'Morocco': 'ma', 'Haiti': 'ht',
+    'USA': 'us', 'Australia': 'au', 'Paraguay': 'py', 'Turkey': 'tr',
+    'Germany': 'de', 'Ecuador': 'ec', 'Ivory Coast': 'ci', 'Curacao': 'cw',
+    'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
+    'Belgium': 'be', 'New Zealand': 'nz', 'Egypt': 'eg', 'Iran': 'ir',
+    'Spain': 'es', 'Uruguay': 'uy', 'Saudi Arabia': 'sa', 'Cape Verde': 'cv',
+    'France': 'fr', 'Norway': 'no', 'Senegal': 'sn', 'Iraq': 'iq',
+    'Argentina': 'ar', 'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz',
+    'Portugal': 'pt', 'Colombia': 'co', 'Uzbekistan': 'uz', 'DR Congo': 'cd',
+    'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
+    'Bosnia & Herzegovina': 'ba',
+  }
+
+  const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
+  const GROUP_COLORS = [
+    '#ef4444','#f97316','#eab308','#22c55e',
+    '#06b6d4','#3b82f6','#8b5cf6','#ec4899',
+    '#14b8a6','#f59e0b','#84cc16','#6366f1',
+  ]
+  const POSITIONS = ['1st', '2nd', '3rd', '4th']
+
+  // Build real positions map from standings
+  const realPositions = {}
+  Object.entries(realStandings).forEach(([group, teams]) => {
+    const sorted = [...teams].sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points
+      if (b.gd !== a.gd) return b.gd - a.gd
+      return b.gf - a.gf
+    })
+    realPositions[group] = sorted.map(t => t.team)
+  })
+
+  // Which 3rd place teams advanced
+  const advancedThirds = new Set(
+    qualification
+      .filter(q => q.status === 'advanced')
+      .filter(q => realPositions[q.group]?.[2] === q.team)
+      .map(q => q.team)
+  )
+
+  // Calculate points per team per group
+  const getPointsForPosition = (predictedTeam, pos, realOrder) => {
+    if (!realOrder || realOrder.length === 0) return { pts: 0, status: 'unknown' }
+    if (predictedTeam === realOrder[pos]) return { pts: 5, status: 'exact' }
+    if (pos < 2 && realOrder.slice(0, 2).includes(predictedTeam)) return { pts: 3, status: 'partial' }
+    if (pos >= 2 && realOrder.slice(2, 4).includes(predictedTeam)) return { pts: 3, status: 'partial' }
+    return { pts: 0, status: 'wrong' }
+  }
+
+  let totalGroupPts = 0
+  let totalThirdPts = 0
+
+  // Pre-calculate all points
+  const groupResults = {}
+  GROUP_LETTERS.forEach(group => {
+    const predicted = groupPredictions[group] || []
+    const real = realPositions[group] || []
+    if (predicted.length === 0 || real.length === 0) return
+    groupResults[group] = predicted.map((team, pos) => {
+      const { pts, status } = getPointsForPosition(team, pos, real)
+      totalGroupPts += pts
+      return { team, pos, predictedPos: pos, realPos: real.indexOf(team), pts, status }
+    })
+  })
+
+  // 3rd place advancing results
+  const thirdResults = thirdPlaceAdvancing.map(team => {
+    let teamRealPos = null
+    let teamGroup = null
+    Object.entries(realPositions).forEach(([g, order]) => {
+      const idx = order.indexOf(team)
+      if (idx !== -1) { teamRealPos = idx; teamGroup = g }
+    })
+
+    let pts = 0
+    let status = 'wrong'
+    let note = ''
+
+    if (teamRealPos === 2 && advancedThirds.has(team)) {
+      pts = 5; status = 'exact'
+      note = 'Finished 3rd and advanced ✓'
+    } else if (teamRealPos === 2 && !advancedThirds.has(team)) {
+      pts = 0; status = 'wrong'
+      note = 'Finished 3rd but did not advance'
+    } else if (teamRealPos === 3) {
+      pts = 0; status = 'wrong'
+      note = 'Finished 4th — not eligible'
+    } else if (teamRealPos !== null && teamRealPos < 2) {
+      pts = 0; status = 'wrong'
+      note = 'Finished in top 2 — not a 3rd place team'
+    }
+
+    totalThirdPts += pts
+    return { team, pts, status, note, teamGroup, teamRealPos }
+  })
+
+  const grandTotal = totalGroupPts + totalThirdPts
+
+  return (
+    <div>
+      {/* Summary header */}
+      <div style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.04))', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 14, padding: '20px 24px', marginBottom: 28, borderTop: '3px solid #3b82f6', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h2 style={{ fontWeight: 900, fontSize: 22, color: '#93c5fd', margin: '0 0 4px', fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>📊 MY GROUP STAGE RESULTS</h2>
+          <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Here's how your group stage predictions did!</p>
+        </div>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '12px 20px' }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#3b82f6' }}>{totalGroupPts}</div>
+            <div style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>Group Pts</div>
+          </div>
+          <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '12px 20px' }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#f59e0b' }}>{totalThirdPts}</div>
+            <div style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>3rd Place Pts</div>
+          </div>
+          <div style={{ textAlign: 'center', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 10, padding: '12px 20px' }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#22c55e' }}>{grandTotal}</div>
+            <div style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>Total</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Group results */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 28 }}>
+        {GROUP_LETTERS.map((group, gi) => {
+          const results = groupResults[group]
+          if (!results) return null
+          const color = GROUP_COLORS[gi]
+          const groupPts = results.reduce((sum, r) => sum + r.pts, 0)
+          const real = realPositions[group] || []
+
+          return (
+            <motion.div key={group} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: gi * 0.04 }}
+              style={{ background: '#0d1526', border: `1px solid ${color}30`, borderRadius: 14, overflow: 'hidden', borderTop: `3px solid ${color}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: `${color}08` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 6, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: '#000' }}>{group}</span>
+                  <span style={{ fontWeight: 800, fontSize: 15, color: '#f1f5f9' }}>Group {group}</span>
+                </div>
+                <span style={{ fontWeight: 900, fontSize: 16, color: groupPts > 0 ? color : '#334155' }}>+{groupPts}pts</span>
+              </div>
+
+              <div style={{ padding: '8px 0' }}>
+                {results.map(({ team, pos, realPos, pts, status }) => {
+                  const icon = status === 'exact' ? '🟢' : status === 'partial' ? '🟡' : '🔴'
+                  const realPosLabel = realPos >= 0 ? POSITIONS[realPos] : '?'
+                  const predPosLabel = POSITIONS[pos]
+                  return (
+                    <div key={team} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <span style={{ fontSize: 14, flexShrink: 0 }}>{icon}</span>
+                      <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team}
+                        style={{ width: 22, height: 15, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }}
+                        onError={e => { e.target.style.display = 'none' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 12, color: '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team}</div>
+                        <div style={{ fontSize: 10, color: '#475569', marginTop: 1 }}>
+                          {status === 'exact'
+                            ? `${predPosLabel} ✓ Exact`
+                            : status === 'partial'
+                              ? `Predicted ${predPosLabel}, finished ${realPosLabel}`
+                              : `Predicted ${predPosLabel}, finished ${realPos >= 0 ? realPosLabel : '?'}`}
+                        </div>
+                      </div>
+                      <span style={{ fontWeight: 800, fontSize: 13, color: pts > 0 ? '#22c55e' : '#334155', flexShrink: 0 }}>
+                        {pts > 0 ? `+${pts}` : '0'}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+
+      {/* 3rd place results */}
+      <div style={{ background: '#0d1526', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #f59e0b' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h3 style={{ fontWeight: 800, fontSize: 16, color: '#fbbf24', margin: 0 }}>🥉 Best 3rd Place Picks</h3>
+          <span style={{ fontWeight: 900, fontSize: 16, color: totalThirdPts > 0 ? '#f59e0b' : '#334155' }}>+{totalThirdPts}pts</span>
+        </div>
+
+        {thirdResults.length === 0 ? (
+          <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>No 3rd place picks made.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {thirdResults.map(({ team, pts, status, note, teamGroup }) => {
+              const icon = status === 'exact' ? '🟢' : '🔴'
+              return (
+                <div key={team} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: status === 'exact' ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.02)', border: `1px solid ${status === 'exact' ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10 }}>
+                  <span style={{ fontSize: 16, flexShrink: 0 }}>{icon}</span>
+                  <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team}
+                    style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }}
+                    onError={e => { e.target.style.display = 'none' }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#f1f5f9' }}>{team} <span style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>Group {teamGroup}</span></div>
+                    <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>{note}</div>
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: 14, color: pts > 0 ? '#22c55e' : '#334155', flexShrink: 0 }}>
+                    {pts > 0 ? `+${pts}` : '0'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+
 // ── MAIN ──
 function Predictions() {
   const [groups, setGroups] = useState({})
@@ -740,6 +974,8 @@ function Predictions() {
       Object.keys(res.data).forEach(g => { initial[g] = [...res.data[g]] })
       setGroupPredictions(initial)
       setLoading(false)
+      axios.get(`${API_URL}/api/standings`).then(r => setRealStandings(r.data)).catch(() => {})
+      axios.get(`${API_URL}/api/qualification`).then(r => setQualification(r.data)).catch(() => {})
       if (new Date() >= new Date('2026-06-16T20:30:00Z')) { setLocked(true); setAwardsLocked(true) }
       const token = localStorage.getItem('token')
       if (token) {
@@ -757,6 +993,7 @@ function Predictions() {
               if (saved.data.u21_award?.length) setU21Award(saved.data.u21_award)
               setLocked(true)
               if (saved.data.golden_ball || saved.data.golden_boot?.some(v => v)) setAwardsLocked(true)
+              if (saved.data.group_stage_scored) setGroupStageScored(saved.data.group_stage_scored)
             }
           }).catch(() => {})
       }
@@ -793,6 +1030,7 @@ function Predictions() {
     { id: 'awards',   label: 'Awards' },
     { id: 'picks',    label: 'Match Picks' },
     { id: 'second',   label: '🔄 Second Chance' },
+    { id: 'results', label: '📊 My Results' },
   ]
 
   return (
@@ -964,6 +1202,16 @@ function Predictions() {
             </div>
           </div>
         )}
+
+        {activeTab === 'results' && (
+  <MyResults
+    groupPredictions={groupPredictions}
+    thirdPlaceAdvancing={thirdPlaceAdvancing}
+    realStandings={realStandings}
+    qualification={qualification}
+    groupStageScored={groupStageScored}
+  />
+)}
       </div>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} } input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; } input[type=number] { -moz-appearance: textfield; }`}</style>
     </div>
