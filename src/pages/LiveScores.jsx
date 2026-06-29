@@ -305,7 +305,7 @@ function LiveScores() {
   const [filter, setFilter] = useState('ALL')
   const [selectedDate, setSelectedDate] = useState('')
 
-  const GROUPS = ['ALL', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+  const GROUPS = ['ALL','R32', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
 
   const fetchMatches = () => {
   axios.get(`${API_URL}/api/livescores`)
@@ -328,10 +328,33 @@ function LiveScores() {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    if (matches.length === 0) return
+    const knockoutMatches = matches.filter(m => m.id >= 73)
+    if (knockoutMatches.length > 0) {
+      const today = new Date().toLocaleDateString('en-CA')
+      const todayKnockout = knockoutMatches.find(m => toLocalDate(m.kickoff_utc) === today)
+      if (todayKnockout) {
+        setSelectedDate(today)
+      } else {
+        const upcoming = knockoutMatches
+          .filter(m => new Date(m.kickoff_utc) >= new Date())
+          .sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc))[0]
+        if (upcoming) {
+          setSelectedDate(toLocalDate(upcoming.kickoff_utc))
+        } else {
+          const last = knockoutMatches
+            .sort((a, b) => new Date(b.kickoff_utc) - new Date(a.kickoff_utc))[0]
+          setSelectedDate(toLocalDate(last.kickoff_utc))
+        }
+      }
+    }
+  }, [matches])
+
   const liveCount = matches.filter(m => m.status === 'LIVE').length
 
   const filtered = matches.filter(m => {
-    const groupMatch = filter === 'ALL' || m.group === filter
+    const groupMatch = filter === 'ALL' || m.group === filter || (filter === 'R32' && m.round === 'Round of 32')
     // Compare selected date (YYYY-MM-DD) against user's local date of kickoff
     const dateMatch = !selectedDate || toLocalDate(m.kickoff_utc) === selectedDate
     return groupMatch && dateMatch
@@ -416,7 +439,7 @@ function LiveScores() {
                     transition: 'all 0.15s',
                     boxShadow: active ? `0 2px 10px ${color}40` : 'none',
                   }}>
-                  {g === 'ALL' ? 'All Groups' : `Group ${g}`}
+                  {g === 'ALL' ? 'All Matches' : g === 'R32' ? '⚔️ Knockout' : `Group ${g}`}
                 </button>
               )
             })}

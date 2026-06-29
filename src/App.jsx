@@ -20,6 +20,7 @@ import Settings from './pages/Settings'
 import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import VersionHistory from './pages/VersionHistory'
+import Bracket from './pages/Bracket'
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route path="/cities/:name" element={<CityProfile />} />
               <Route path="/history" element={<History />} />
               <Route path="/changelog" element={<VersionHistory />} />
+              <Route path="/bracket" element={<Bracket />} />
               <Route path="/standings" element={<Standings/>} />
               <Route path="/settings" element={<Settings/>} />
               <Route path="/predictions" element={
