@@ -59,12 +59,6 @@ const U21_NAMES = new Set([
 ])
 const U21_PLAYERS = PLAYERS.filter(p => U21_NAMES.has(p.name))
 
-
-const [groupStageScored, setGroupStageScored] = useState(false)
-const [realStandings, setRealStandings] = useState({})
-const [qualification, setQualification] = useState([])
-
-
 const CARD_H = 56
 const CARD_W = 130
 const COL_GAP = 10
@@ -944,6 +938,9 @@ function Predictions() {
   const [activeTab, setActiveTab] = useState('groups')
   const [locked, setLocked] = useState(false)
   const [awardsLocked, setAwardsLocked] = useState(false)
+  const [groupStageScored, setGroupStageScored] = useState(false)
+  const [realStandings, setRealStandings] = useState({})
+  const [qualification, setQualification] = useState([])
 
   const token = localStorage.getItem('token')
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
