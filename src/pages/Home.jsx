@@ -60,6 +60,22 @@ function FeedbackForm() {
   )
 }
 
+{/* ── SECOND CHANCE ALERT ── */}
+<motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+  style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(6,182,212,0.05))', border: '1px solid rgba(6,182,212,0.35)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <span style={{ fontSize: 24 }}>🔄</span>
+    <div>
+      <p style={{ fontWeight: 800, color: '#67e8f9', margin: 0, fontSize: 15 }}>Second Chance is OPEN!</p>
+      <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Group stage is over — predict the knockout bracket now before the Round of 32 begins!</p>
+    </div>
+  </div>
+  <Link to="/predictions" onClick={() => {}}
+    style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)', color: '#fff', fontWeight: 700, fontSize: 13, padding: '10px 20px', borderRadius: 100, textDecoration: 'none', flexShrink: 0, boxShadow: '0 4px 16px rgba(6,182,212,0.3)' }}>
+    Make Picks →
+  </Link>
+</motion.div>
+
 const FEATURES = [
   { icon: '🎯', title: 'Predict', desc: 'Pick every group, every bracket match, and every award — then watch your score climb in real time.', color: 'var(--accent)', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' , link: '/predictions' },
   { icon: '⚡', title: 'Live Scores', desc: 'Goals, cards, and live match minutes — all updated automatically during every game.', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)', link: '/livescores' },

@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
-import { useColor } from '../assets/ColorContext'
 
 const GROUPS = {
   'A': ['Mexico', 'South Korea', 'South Africa', 'Czech Republic'],
@@ -26,14 +25,43 @@ const GROUP_COLORS = [
   '#14b8a6','#f59e0b','#84cc16','#6366f1',
 ]
 const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
-
 const ALL_TEAMS = Object.entries(GROUPS).flatMap(([group, teams]) => teams.map(team => ({ team, group })))
+
+// All R32 matches with their teams for easy reference
+const R32_MATCHES = [
+  { match_id: 73, team1: 'South Africa', team2: 'Canada' },
+  { match_id: 74, team1: 'Germany', team2: 'Paraguay' },
+  { match_id: 75, team1: 'Netherlands', team2: 'Morocco' },
+  { match_id: 76, team1: 'Brazil', team2: 'Japan' },
+  { match_id: 77, team1: 'France', team2: 'Sweden' },
+  { match_id: 78, team1: 'Ivory Coast', team2: 'Norway' },
+  { match_id: 79, team1: 'Mexico', team2: 'Ecuador' },
+  { match_id: 80, team1: 'England', team2: 'DR Congo' },
+  { match_id: 81, team1: 'USA', team2: 'Bosnia & Herzegovina' },
+  { match_id: 82, team1: 'Belgium', team2: 'Senegal' },
+  { match_id: 83, team1: 'Portugal', team2: 'Croatia' },
+  { match_id: 84, team1: 'Spain', team2: 'Austria' },
+  { match_id: 85, team1: 'Switzerland', team2: 'Algeria' },
+  { match_id: 86, team1: 'Argentina', team2: 'Cape Verde' },
+  { match_id: 87, team1: 'Colombia', team2: 'Ghana' },
+  { match_id: 88, team1: 'Australia', team2: 'Egypt' },
+]
+
+const ROUND_CONFIG = {
+  R32:   { label: 'Round of 32',   matchIds: [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88], color: '#06b6d4' },
+  R16:   { label: 'Round of 16',   matchIds: [89,90,91,92,93,94,95,96], color: '#3b82f6' },
+  QF:    { label: 'Quarter Finals',matchIds: [97,98,99,100], color: '#8b5cf6' },
+  SF:    { label: 'Semi Finals',   matchIds: [101,102], color: '#f59e0b' },
+  '3rd': { label: '3rd Place',     matchIds: [103], color: '#fb923c' },
+  Final: { label: 'Final',         matchIds: [104], color: '#fbbf24' },
+}
 
 function Admin() {
   const [users, setUsers] = useState([])
   const [leagues, setLeagues] = useState([])
   const [standings, setStandings] = useState({})
   const [qualification, setQualification] = useState([])
+  const [knockoutResults, setKnockoutResults] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('users')
   const [search, setSearch] = useState('')
@@ -44,7 +72,9 @@ function Admin() {
   const [savingStanding, setSavingStanding] = useState(false)
   const [qualForm, setQualForm] = useState({ team: '', group: 'A', status: 'advanced', message: '' })
   const [savingQual, setSavingQual] = useState(false)
-  const [qualSearch, setQualSearch] = useState('')
+  const [selectedRound, setSelectedRound] = useState('R32')
+  const [knockoutForm, setKnockoutForm] = useState({ match_id: '', team1: '', team2: '', winner: '' })
+  const [savingKnockout, setSavingKnockout] = useState(false)
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
 
@@ -56,6 +86,7 @@ function Admin() {
     fetchLeagues()
     fetchStandings()
     fetchQualification()
+    fetchKnockoutResults()
   }, [])
 
   const fetchUsers = async () => {
@@ -81,6 +112,12 @@ function Admin() {
     try {
       const res = await axios.get(`${API_URL}/api/qualification`)
       setQualification(res.data)
+    } catch {}
+  }
+  const fetchKnockoutResults = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/knockout-results`)
+      setKnockoutResults(res.data)
     } catch {}
   }
 
@@ -167,6 +204,44 @@ function Admin() {
     }
   }
 
+  const saveKnockoutResult = async () => {
+    if (!knockoutForm.match_id || !knockoutForm.team1 || !knockoutForm.team2 || !knockoutForm.winner) {
+      alert('Fill in all fields!'); return
+    }
+    setSavingKnockout(true)
+    try {
+      await axios.post(`${API_URL}/api/admin/knockout-results`, {
+        match_id: parseInt(knockoutForm.match_id),
+        round: selectedRound,
+        team1: knockoutForm.team1,
+        team2: knockoutForm.team2,
+        winner: knockoutForm.winner,
+      }, { headers: { Authorization: `Bearer ${token}` } })
+      await fetchKnockoutResults()
+      alert(`✅ M${knockoutForm.match_id}: ${knockoutForm.winner} wins saved!`)
+      setKnockoutForm({ match_id: '', team1: '', team2: '', winner: '' })
+    } catch (err) {
+      alert('❌ Failed: ' + (err.response?.data?.error || err.message))
+    }
+    setSavingKnockout(false)
+  }
+
+  // When a match is selected from R32, auto-fill team1/team2
+  const handleMatchSelect = (matchId) => {
+    const match = R32_MATCHES.find(m => m.match_id === parseInt(matchId))
+    if (match && selectedRound === 'R32') {
+      setKnockoutForm(prev => ({ ...prev, match_id: matchId, team1: match.team1, team2: match.team2, winner: '' }))
+    } else {
+      // For later rounds, look up from existing results
+      const existing = knockoutResults.find(r => r.match_id === parseInt(matchId))
+      if (existing) {
+        setKnockoutForm(prev => ({ ...prev, match_id: matchId, team1: existing.team1, team2: existing.team2, winner: existing.winner || '' }))
+      } else {
+        setKnockoutForm(prev => ({ ...prev, match_id: matchId, team1: '', team2: '', winner: '' }))
+      }
+    }
+  }
+
   const filtered = users.filter(u =>
     u.username.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
@@ -213,6 +288,10 @@ function Admin() {
     { label: 'Mini Leagues', value: leagues.length, icon: '🏅', color: '#8b5cf6' },
   ]
 
+  const currentRoundConfig = ROUND_CONFIG[selectedRound]
+  const resultsMap = {}
+  knockoutResults.forEach(r => { resultsMap[r.match_id] = r })
+
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
@@ -234,7 +313,7 @@ function Admin() {
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'Bebas Neue, sans-serif' }}>
             Admin Panel <span style={{ color: '#fbbf24' }}>⚙️</span>
           </h1>
-          <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>Manage users, leagues, points, standings and qualification.</p>
+          <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>Manage users, leagues, points, standings, qualification and knockout results.</p>
         </div>
 
         {/* Stats */}
@@ -269,10 +348,11 @@ function Admin() {
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {[
-            { id: 'users', label: '👥 Users', count: users.length },
-            { id: 'leagues', label: '🏆 Mini Leagues', count: leagues.length },
-            { id: 'standings', label: '📊 Standings', count: 12 },
+            { id: 'users',         label: '👥 Users',        count: users.length },
+            { id: 'leagues',       label: '🏆 Mini Leagues', count: leagues.length },
+            { id: 'standings',     label: '📊 Standings',    count: 12 },
             { id: 'qualification', label: '🎯 Qualification', count: qualification.filter(q => q.status !== 'tbd').length },
+            { id: 'knockouts',     label: '⚔️ Knockouts',    count: knockoutResults.length },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               style={{ padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: activeTab === tab.id ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: activeTab === tab.id ? '#fff' : '#94a3b8', boxShadow: activeTab === tab.id ? '0 4px 14px rgba(59,130,246,0.3)' : 'none' }}>
@@ -455,12 +535,9 @@ function Admin() {
         {/* ── QUALIFICATION TAB ── */}
         {activeTab === 'qualification' && (
           <div>
-            {/* Add/Update form */}
             <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 24, borderTop: '3px solid #3b82f6' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>🎯 Set Team Status</div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                {/* Team selector */}
                 <div>
                   <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Team</label>
                   <select value={qualForm.team} onChange={e => {
@@ -475,8 +552,6 @@ function Admin() {
                     ))}
                   </select>
                 </div>
-
-                {/* Status selector */}
                 <div>
                   <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Status</label>
                   <select value={qualForm.status} onChange={e => setQualForm(prev => ({ ...prev, status: e.target.value }))}
@@ -487,47 +562,32 @@ function Admin() {
                   </select>
                 </div>
               </div>
-
-              {/* Message */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>
-                  Glow-up Message <span style={{ color: '#334155' }}>(shown when user taps the team)</span>
-                </label>
+                <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Message <span style={{ color: '#334155' }}>(shown when user taps the team)</span></label>
                 <textarea value={qualForm.message} onChange={e => setQualForm(prev => ({ ...prev, message: e.target.value }))}
-                  placeholder={qualForm.status === 'advanced'
-                    ? 'e.g. Mexico advance to the Round of 32! La Verde march on — vamos! ⚽🔥'
-                    : 'e.g. South Africa bow out of World Cup 2026. A brave effort from Bafana Bafana. 👏'}
-                  rows={2}
+                  placeholder="e.g. Mexico advance to the Round of 32!" rows={2}
                   style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }} />
               </div>
-
               <button onClick={saveQualification} disabled={savingQual || !qualForm.team}
                 style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', fontWeight: 700, fontSize: 13, padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer', opacity: savingQual || !qualForm.team ? 0.5 : 1 }}>
                 {savingQual ? 'Saving...' : '💾 Save Status'}
               </button>
             </div>
 
-            {/* Current statuses */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
                 Current Statuses ({qualification.filter(q => q.status !== 'tbd').length} set)
               </div>
               {qualification.filter(q => q.status !== 'tbd').length === 0 ? (
                 <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
-                  <p style={{ color: '#334155', fontSize: 14, margin: 0 }}>No teams marked yet. Use the form above to get started!</p>
+                  <p style={{ color: '#334155', fontSize: 14, margin: 0 }}>No teams marked yet.</p>
                 </div>
               ) : (
                 qualification.filter(q => q.status !== 'tbd').sort((a, b) => {
                   if (a.status === b.status) return a.team.localeCompare(b.team)
                   return a.status === 'advanced' ? -1 : 1
                 }).map(t => (
-                  <div key={t.team} style={{
-                    background: '#0d1526',
-                    border: `1px solid ${t.status === 'advanced' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                    borderLeft: `4px solid ${t.status === 'advanced' ? '#22c55e' : '#ef4444'}`,
-                    borderRadius: 10, padding: '12px 16px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
-                  }}>
+                  <div key={t.team} style={{ background: '#0d1526', border: `1px solid ${t.status === 'advanced' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`, borderLeft: `4px solid ${t.status === 'advanced' ? '#22c55e' : '#ef4444'}`, borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{ fontSize: 16 }}>{t.status === 'advanced' ? '✅' : '❌'}</span>
                       <div>
@@ -535,9 +595,7 @@ function Admin() {
                         <span style={{ fontSize: 11, color: '#475569', marginLeft: 8 }}>Group {t.group}</span>
                       </div>
                     </div>
-                    {t.message && (
-                      <span style={{ fontSize: 12, color: '#64748b', flex: 1, fontStyle: 'italic' }}>"{t.message.slice(0, 60)}{t.message.length > 60 ? '...' : ''}"</span>
-                    )}
+                    {t.message && <span style={{ fontSize: 12, color: '#64748b', flex: 1, fontStyle: 'italic' }}>"{t.message.slice(0, 60)}{t.message.length > 60 ? '...' : ''}"</span>}
                     <button onClick={() => removeQualification(t.team, t.group)}
                       style={{ fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, cursor: 'pointer', background: 'transparent', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', whiteSpace: 'nowrap' }}>
                       Reset
@@ -548,6 +606,118 @@ function Admin() {
             </div>
           </div>
         )}
+
+        {/* ── KNOCKOUTS TAB ── */}
+        {activeTab === 'knockouts' && (
+          <div>
+            {/* Round selector + form */}
+            <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 24, borderTop: `3px solid ${currentRoundConfig.color}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: currentRoundConfig.color, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>⚔️ Set Knockout Result</div>
+
+              {/* Round tabs */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                {Object.entries(ROUND_CONFIG).map(([key, cfg]) => (
+                  <button key={key} onClick={() => { setSelectedRound(key); setKnockoutForm({ match_id: '', team1: '', team2: '', winner: '' }) }}
+                    style={{ padding: '6px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', border: 'none', background: selectedRound === key ? cfg.color : 'rgba(255,255,255,0.05)', color: selectedRound === key ? '#000' : '#94a3b8' }}>
+                    {cfg.label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                {/* Match selector */}
+                <div>
+                  <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Match</label>
+                  <select value={knockoutForm.match_id} onChange={e => handleMatchSelect(e.target.value)}
+                    style={{ width: '100%', background: '#0f1a2e', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none' }}>
+                    <option value="">Select match...</option>
+                    {currentRoundConfig.matchIds.map(mid => {
+                      const existing = resultsMap[mid]
+                      return (
+                        <option key={mid} value={mid}>
+                          M{mid}{existing ? ` ✓ ${existing.winner}` : ''}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+
+                {/* Winner selector — only shows once team1/team2 known */}
+                <div>
+                  <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Winner</label>
+                  <select value={knockoutForm.winner} onChange={e => setKnockoutForm(prev => ({ ...prev, winner: e.target.value }))}
+                    disabled={!knockoutForm.team1 && !knockoutForm.team2}
+                    style={{ width: '100%', background: '#0f1a2e', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none', opacity: !knockoutForm.team1 && !knockoutForm.team2 ? 0.4 : 1 }}>
+                    <option value="">Select winner...</option>
+                    {knockoutForm.team1 && <option value={knockoutForm.team1}>{knockoutForm.team1}</option>}
+                    {knockoutForm.team2 && <option value={knockoutForm.team2}>{knockoutForm.team2}</option>}
+                  </select>
+                </div>
+              </div>
+
+              {/* Manual team entry for R16+ where teams aren't pre-known */}
+              {selectedRound !== 'R32' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                  <div>
+                    <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Team 1</label>
+                    <input type="text" value={knockoutForm.team1} onChange={e => setKnockoutForm(prev => ({ ...prev, team1: e.target.value, winner: '' }))}
+                      placeholder="e.g. Germany"
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ color: '#64748b', fontSize: 11, display: 'block', marginBottom: 6, fontWeight: 600 }}>Team 2</label>
+                    <input type="text" value={knockoutForm.team2} onChange={e => setKnockoutForm(prev => ({ ...prev, team2: e.target.value, winner: '' }))}
+                      placeholder="e.g. France"
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, padding: '10px 12px', borderRadius: 8, outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+              )}
+
+              <button onClick={saveKnockoutResult} disabled={savingKnockout || !knockoutForm.match_id || !knockoutForm.winner}
+                style={{ background: `linear-gradient(135deg, ${currentRoundConfig.color}, ${currentRoundConfig.color}cc)`, color: '#000', fontWeight: 700, fontSize: 13, padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer', opacity: savingKnockout || !knockoutForm.match_id || !knockoutForm.winner ? 0.5 : 1 }}>
+                {savingKnockout ? 'Saving...' : `💾 Save Result`}
+              </button>
+            </div>
+
+            {/* Current results */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
+              Saved Results ({knockoutResults.length})
+            </div>
+            {knockoutResults.length === 0 ? (
+              <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
+                <p style={{ color: '#334155', fontSize: 14, margin: 0 }}>No results saved yet. Use the form above after each match.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {Object.entries(ROUND_CONFIG).map(([roundKey, cfg]) => {
+                  const roundResults = knockoutResults.filter(r => r.round === roundKey)
+                  if (roundResults.length === 0) return null
+                  return (
+                    <div key={roundKey}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 8 }}>{cfg.label}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {roundResults.sort((a, b) => a.match_id - b.match_id).map(r => (
+                          <div key={r.match_id} style={{ background: '#0d1526', border: `1px solid ${cfg.color}30`, borderLeft: `4px solid ${cfg.color}`, borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>M{r.match_id}</span>
+                              <span style={{ fontSize: 13, color: r.winner === r.team1 ? '#22c55e' : '#64748b', fontWeight: r.winner === r.team1 ? 800 : 600 }}>{r.team1}</span>
+                              <span style={{ fontSize: 11, color: '#334155' }}>vs</span>
+                              <span style={{ fontSize: 13, color: r.winner === r.team2 ? '#22c55e' : '#64748b', fontWeight: r.winner === r.team2 ? 800 : 600 }}>{r.team2}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 100 }}>✓ {r.winner}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   )

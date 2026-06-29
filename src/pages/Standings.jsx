@@ -16,6 +16,7 @@ const FLAGS = {
   'Argentina': 'ar', 'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz',
   'Portugal': 'pt', 'Colombia': 'co', 'Uzbekistan': 'uz', 'DR Congo': 'cd',
   'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
+  'Bosnia & Herzegovina': 'ba',
 }
 
 const GROUP_COLORS = [
@@ -45,126 +46,23 @@ function getGroupColor(group) {
   return idx >= 0 ? GROUP_COLORS[idx] : '#3b82f6'
 }
 
-// ── Bracket constants — identical to Predictions.jsx ──
 const CARD_H = 56
 const CARD_W = 130
-const COL_GAP = 28
+const COL_GAP = 10
 
-// ── Get projected sorted teams from standings ──
-function getProjected(group, standings) {
-  const teams = GROUPS[group] || []
-  return [...teams].sort((a, b) => {
-    const sa = standings[group]?.find(x => x.team === a) || { points: 0, gd: 0, gf: 0 }
-    const sb = standings[group]?.find(x => x.team === b) || { points: 0, gd: 0, gf: 0 }
-    if (sb.points !== sa.points) return sb.points - sa.points
-    if (sb.gd !== sa.gd) return sb.gd - sa.gd
-    return sb.gf - sa.gf
-  })
-}
-
-// Exact same autoAssign3rdPlace logic as Predictions.jsx
-function autoAssign3rdPlace(thirdPlaceAdvancing, groupOf) {
-  const slots = [
-    { slot: 't74', eligible: ['A','B','C','D','F'], winnerGroup: 'E' },
-    { slot: 't77', eligible: ['C','D','F','G','H'], winnerGroup: 'I' },
-    { slot: 't79', eligible: ['C','E','F','H','I'], winnerGroup: 'A' },
-    { slot: 't80', eligible: ['E','H','I','J','K'], winnerGroup: 'L' },
-    { slot: 't81', eligible: ['B','E','F','I','J'], winnerGroup: 'D' },
-    { slot: 't82', eligible: ['A','E','H','I','J'], winnerGroup: 'G' },
-    { slot: 't85', eligible: ['E','F','G','I','J'], winnerGroup: 'B' },
-    { slot: 't87', eligible: ['D','E','I','J','L'], winnerGroup: 'K' },
-  ]
-  const isEligible = (team, slot) =>
-    slot.eligible.includes(groupOf[team]) && groupOf[team] !== slot.winnerGroup
-  const teamMatch = {}
-  const findSlotById = id => slots.find(s => s.slot === id)
-  function augment(slot, visited) {
-    for (const team of thirdPlaceAdvancing) {
-      if (visited.has(team)) continue
-      if (!isEligible(team, slot)) continue
-      visited.add(team)
-      const currentSlotId = teamMatch[team]
-      if (!currentSlotId || augment(findSlotById(currentSlotId), visited)) {
-        teamMatch[team] = slot.slot
-        return true
-      }
-    }
-    return false
-  }
-  for (const slot of slots) augment(slot, new Set())
-  const assigned = {}
-  Object.keys(teamMatch).forEach(team => { assigned[teamMatch[team]] = team })
-  return assigned
-}
-
-function buildProjectedR32(standings) {
-  const w = g => getProjected(g, standings)[0] || '?'
-  const r = g => getProjected(g, standings)[1] || '?'
-
-  // Get best 8 third place teams sorted by pts/gd/gf
-  const thirds = GROUP_LETTERS.map(g => {
-    const team = getProjected(g, standings)[2] || '?'
-    const s = standings[g]?.find(x => x.team === team) || { points: 0, gd: 0, gf: 0 }
-    return { team, group: g, ...s }
-  }).sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points
-    if (b.gd !== a.gd) return b.gd - a.gd
-    return b.gf - a.gf
-  })
-
-  const best8 = thirds.slice(0, 8).map(t => t.team).filter(t => t !== '?')
-
-  // Build groupOf map for the 8 advancing 3rd place teams
-  const groupOf = {}
-  thirds.slice(0, 8).forEach(t => { if (t.team !== '?') groupOf[t.team] = t.group })
-
-  // Use exact same slot assignment as Predictions.jsx
-  const assignments = best8.length >= 4
-    ? autoAssign3rdPlace(best8, groupOf)
-    : {}
-  const slot = s => assignments[s] || '?'
-
-  return [
-    { id: 'r32_73', match: 73, team1: r('A'), team2: r('B') },
-    { id: 'r32_74', match: 74, team1: w('E'), team2: slot('t74') },
-    { id: 'r32_75', match: 75, team1: w('F'), team2: r('C') },
-    { id: 'r32_76', match: 76, team1: w('C'), team2: r('F') },
-    { id: 'r32_77', match: 77, team1: w('I'), team2: slot('t77') },
-    { id: 'r32_78', match: 78, team1: r('E'), team2: r('I') },
-    { id: 'r32_79', match: 79, team1: w('A'), team2: slot('t79') },
-    { id: 'r32_80', match: 80, team1: w('L'), team2: slot('t80') },
-    { id: 'r32_81', match: 81, team1: w('D'), team2: slot('t81') },
-    { id: 'r32_82', match: 82, team1: w('G'), team2: slot('t82') },
-    { id: 'r32_83', match: 83, team1: r('K'), team2: r('L') },
-    { id: 'r32_84', match: 84, team1: w('H'), team2: r('J') },
-    { id: 'r32_85', match: 85, team1: w('B'), team2: slot('t85') },
-    { id: 'r32_86', match: 86, team1: w('J'), team2: r('H') },
-    { id: 'r32_87', match: 87, team1: w('K'), team2: slot('t87') },
-    { id: 'r32_88', match: 88, team1: r('D'), team2: r('G') },
-  ]
-}
-
-// ── R32 card — shows projected teams from standings ──
+// ── Live Bracket — fetches real R32 matchups from backend ──
 function R32Card({ match }) {
   const tbd1 = !match.team1 || match.team1 === '?'
   const tbd2 = !match.team2 || match.team2 === '?'
   return (
     <div style={{ background: '#0f1729', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden', width: CARD_W }}>
-      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#64748b', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        M{match.match}
-      </div>
+      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#64748b', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>M{match.match}</div>
       {[{ team: match.team1, tbd: tbd1 }, { team: match.team2, tbd: tbd2 }].map(({ team, tbd }, i) => (
         <div key={i}>
           {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', opacity: tbd ? 0.3 : 1 }}>
-            {!tbd && (
-              <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team}
-                style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }}
-                onError={e => { e.target.style.display = 'none' }} />
-            )}
-            <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: tbd ? '#475569' : '#e2e8f0', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {tbd ? 'TBD' : team}
-            </span>
+            {!tbd && <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />}
+            <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: tbd ? '#475569' : '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tbd ? 'TBD' : team}</span>
           </div>
         </div>
       ))}
@@ -172,13 +70,10 @@ function R32Card({ match }) {
   )
 }
 
-// ── Empty card — for R16, QF, SF (no teams yet) ──
-function EmptyCard({ label }) {
+function EmptyCard() {
   return (
     <div style={{ background: '#0f1729', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, overflow: 'hidden', width: CARD_W }}>
-      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#334155', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        {label}
-      </div>
+      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#334155', textAlign: 'center' }}>TBD</div>
       {[0, 1].map(i => (
         <div key={i}>
           {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.04)' }} />}
@@ -192,24 +87,18 @@ function EmptyCard({ label }) {
   )
 }
 
-// ── Generic bracket column — same as Predictions.jsx BracketCol ──
 function BracketCol({ title, count, matches, totalH, isR32 = false }) {
-  const n = count
-  const slotH = totalH / n
+  const slotH = totalH / count
   return (
     <div style={{ flexShrink: 0, width: CARD_W }}>
       <div style={{ fontSize: 8, fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 6 }}>{title}</div>
       <div style={{ position: 'relative', height: totalH }}>
-        {Array.from({ length: n }).map((_, i) => {
+        {Array.from({ length: count }).map((_, i) => {
           const top = i * slotH + (slotH - CARD_H) / 2
           const match = matches?.[i]
           return (
             <div key={i} style={{ position: 'absolute', top, left: 0 }}>
-              {isR32 && match ? (
-                <R32Card match={match} />
-              ) : (
-                <EmptyCard label={`M${title.replace(/\D/g, '') || (i + 1)}`} />
-              )}
+              {isR32 && match ? <R32Card match={match} /> : <EmptyCard />}
             </div>
           )
         })}
@@ -218,78 +107,199 @@ function BracketCol({ title, count, matches, totalH, isR32 = false }) {
   )
 }
 
-// ── Projected Bracket Tab ──
-function ProjectedBracketTab({ standings }) {
-  const hasAnyData = Object.values(standings).some(g => g && g.length > 0)
-  const r32Matches = buildProjectedR32(standings)
+function KnockoutCard({ match_id, results }) {
+  const result = results[match_id]
+  const team1 = result?.team1 || 'TBD'
+  const team2 = result?.team2 || 'TBD'
+  const winner = result?.winner || null
+  const tbd1 = team1 === 'TBD'
+  const tbd2 = team2 === 'TBD'
+  return (
+    <div style={{ background: '#0f1729', border: `1px solid ${winner ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 6, overflow: 'hidden', width: CARD_W }}>
+      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2px 6px', fontSize: 8, fontWeight: 700, color: '#334155', textAlign: 'center', textTransform: 'uppercase' }}>M{match_id}</div>
+      {[{ team: team1, tbd: tbd1 }, { team: team2, tbd: tbd2 }].map(({ team, tbd }, i) => {
+        const isWinner = winner === team
+        return (
+          <div key={i}>
+            {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', opacity: tbd ? 0.3 : 1, background: isWinner ? 'rgba(34,197,94,0.1)' : 'transparent', borderLeft: `2px solid ${isWinner ? '#22c55e' : 'transparent'}` }}>
+              {!tbd && <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />}
+              <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: isWinner ? '#22c55e' : tbd ? '#475569' : '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tbd ? 'TBD' : team}</span>
+              {isWinner && <span style={{ fontSize: 8, color: '#22c55e' }}>✓</span>}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function KnockoutBracketCol({ title, matchIds, results, totalH }) {
+  const count = matchIds.length
+  const slotH = totalH / count
+  return (
+    <div style={{ flexShrink: 0, width: CARD_W }}>
+      <div style={{ fontSize: 8, fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 6 }}>{title}</div>
+      <div style={{ position: 'relative', height: totalH }}>
+        {matchIds.map((mid, i) => {
+          const top = i * slotH + (slotH - CARD_H) / 2
+          return (
+            <div key={mid} style={{ position: 'absolute', top, left: 0 }}>
+              {mid ? <KnockoutCard match_id={mid} results={results} /> : <EmptyCard />}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function LiveBracketTab() {
+  const [r32, setR32] = useState([])
+  const [results, setResults] = useState({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      axios.get(`${API_URL}/api/second-chance/matchups`),
+      axios.get(`${API_URL}/api/knockout-results`),
+    ]).then(([matchupsRes, resultsRes]) => {
+      // Reorder R32 into bracket visual order
+      const byNum = {}
+      matchupsRes.data.forEach(m => { byNum[m.match] = m })
+      const order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87]
+      setR32(order.map(n => byNum[n]).filter(Boolean))
+
+      // Build results map keyed by match_id
+      const rMap = {}
+      resultsRes.data.forEach(r => { rMap[r.match_id] = r })
+      setResults(rMap)
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [])
+
   const N = 8
   const totalH = N * CARD_H + (N - 1) * 8
 
+  // Wire R16 teams from R32 winners
+  // R16 match IDs and their R32 feeder matches
+  const r16Left  = [
+    { mid: 89, t1: results[74]?.winner, t2: results[77]?.winner },
+    { mid: 90, t1: results[73]?.winner, t2: results[75]?.winner },
+    { mid: 93, t1: results[83]?.winner, t2: results[84]?.winner },
+    { mid: 94, t1: results[81]?.winner, t2: results[82]?.winner },
+  ]
+  const r16Right = [
+    { mid: 91, t1: results[76]?.winner, t2: results[78]?.winner },
+    { mid: 92, t1: results[79]?.winner, t2: results[80]?.winner },
+    { mid: 95, t1: results[86]?.winner, t2: results[88]?.winner },
+    { mid: 96, t1: results[85]?.winner, t2: results[87]?.winner },
+  ]
+
+  // Merge computed teams into results map for KnockoutCard to use
+  const enrichedResults = { ...results }
+  ;[...r16Left, ...r16Right].forEach(({ mid, t1, t2 }) => {
+    enrichedResults[mid] = { ...(results[mid] || {}), match_id: mid, team1: t1 || 'TBD', team2: t2 || 'TBD', winner: results[mid]?.winner || null }
+  })
+
+  const qfLeft = [
+    { mid: 97, t1: enrichedResults[89]?.winner, t2: enrichedResults[90]?.winner },
+    { mid: 98, t1: enrichedResults[93]?.winner, t2: enrichedResults[94]?.winner },
+  ]
+  const qfRight = [
+    { mid: 99,  t1: enrichedResults[91]?.winner, t2: enrichedResults[92]?.winner },
+    { mid: 100, t1: enrichedResults[95]?.winner, t2: enrichedResults[96]?.winner },
+  ]
+  ;[...qfLeft, ...qfRight].forEach(({ mid, t1, t2 }) => {
+    enrichedResults[mid] = { ...(results[mid] || {}), match_id: mid, team1: t1 || 'TBD', team2: t2 || 'TBD', winner: results[mid]?.winner || null }
+  })
+
+  const sfLeft  = [{ mid: 101, t1: enrichedResults[97]?.winner,  t2: enrichedResults[98]?.winner  }]
+  const sfRight = [{ mid: 102, t1: enrichedResults[99]?.winner,  t2: enrichedResults[100]?.winner }]
+  ;[...sfLeft, ...sfRight].forEach(({ mid, t1, t2 }) => {
+    enrichedResults[mid] = { ...(results[mid] || {}), match_id: mid, team1: t1 || 'TBD', team2: t2 || 'TBD', winner: results[mid]?.winner || null }
+  })
+
+  const finalist1 = enrichedResults[101]?.winner
+  const finalist2 = enrichedResults[102]?.winner
+  const champion  = enrichedResults[104]?.winner
+  const sf101loser = enrichedResults[101]?.winner ? (enrichedResults[101].winner === enrichedResults[101].team1 ? enrichedResults[101].team2 : enrichedResults[101].team1) : null
+  const sf102loser = enrichedResults[102]?.winner ? (enrichedResults[102].winner === enrichedResults[102].team1 ? enrichedResults[102].team2 : enrichedResults[102].team1) : null
+
+  const finalResult = {
+    104: { match_id: 104, team1: finalist1 || 'TBD', team2: finalist2 || 'TBD', winner: champion || null }
+  }
+  const thirdResult = {
+    103: { match_id: 103, team1: sf101loser || 'TBD', team2: sf102loser || 'TBD', winner: enrichedResults[103]?.winner || null }
+  }
+
+  const teamRow = (team, isWinner) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', background: isWinner ? 'rgba(251,191,36,0.15)' : 'transparent', borderLeft: `2px solid ${isWinner ? '#fbbf24' : 'transparent'}` }}>
+      {team && team !== 'TBD' && <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />}
+      <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: isWinner ? '#fbbf24' : (!team || team === 'TBD') ? '#475569' : '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team || 'TBD'}</span>
+      {isWinner && <span style={{ fontSize: 9 }}>🏆</span>}
+    </div>
+  )
+
   return (
     <div>
-      {/* Header */}
       <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #3b82f6', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <h2 style={{ fontWeight: 900, fontSize: 20, color: '#93c5fd', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-              PROJECTED BRACKET
-            </h2>
+            <h2 style={{ fontWeight: 900, fontSize: 20, color: '#93c5fd', margin: 0, fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>LIVE BRACKET</h2>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 100, animation: 'livePulse 2s infinite' }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
               LIVE
             </span>
           </div>
-          <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
-            Round of 32 projected from current standings. Later rounds TBD.
-          </p>
+          <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Knockout stage is underway! Results update as teams progress.</p>
         </div>
-        <p style={{ color: '#334155', fontSize: 11, margin: 0, textAlign: 'right' }}>
-          ⚠️ Subject to change until June 27
-        </p>
       </div>
 
-      {!hasAnyData ? (
-        <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '48px 20px', textAlign: 'center' }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>⏳</div>
-          <p style={{ color: '#475569', fontSize: 16, fontWeight: 600, margin: 0 }}>No standings data yet — check back once matches begin!</p>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+          <p style={{ color: '#3b82f6', fontWeight: 700, fontSize: 16 }}>Loading bracket...</p>
         </div>
       ) : (
         <div style={{ overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', paddingBottom: 8 }}>
           <div style={{ display: 'flex', gap: COL_GAP, alignItems: 'flex-start', paddingBottom: 8, minWidth: 'max-content' }}>
 
-            {/* LEFT SIDE */}
-            <BracketCol title="Round of 32" count={8} matches={r32Matches.slice(0, 8)} totalH={totalH} isR32={true} />
-            <BracketCol title="Round of 16" count={4} totalH={totalH} />
-            <BracketCol title="Quarter Finals" count={2} totalH={totalH} />
-            <BracketCol title="Semi Finals" count={1} totalH={totalH} />
+            {/* LEFT R32 */}
+            <BracketCol title="Round of 32" count={8} matches={r32.slice(0, 8)} totalH={totalH} isR32={true} />
 
-            {/* CENTRE — Final + 3rd Place */}
+            {/* LEFT R16 */}
+            <KnockoutBracketCol title="Round of 16" matchIds={r16Left.map(m => m.mid)} results={enrichedResults} totalH={totalH} />
+
+            {/* LEFT QF */}
+            <KnockoutBracketCol title="Quarter Finals" matchIds={qfLeft.map(m => m.mid)} results={enrichedResults} totalH={totalH} />
+
+            {/* LEFT SF */}
+            <KnockoutBracketCol title="Semi Finals" matchIds={sfLeft.map(m => m.mid)} results={enrichedResults} totalH={totalH} />
+
+            {/* CENTRE */}
             <div style={{ flexShrink: 0, width: CARD_W + 20, height: totalH + 28, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
               <div>
                 <div style={{ fontSize: 8, fontWeight: 800, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 4 }}>🏆 Final</div>
-                <div style={{ background: '#0f1729', border: '2px solid #fbbf24', borderRadius: 6, overflow: 'hidden', width: CARD_W + 20 }}>
-                  <div style={{ background: 'rgba(251,191,36,0.1)', padding: '2px 6px', fontSize: 8, fontWeight: 800, color: '#fbbf24', textAlign: 'center' }}>CHAMPION</div>
-                  {[0, 1].map(i => (
-                    <div key={i}>
-                      {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px' }}>
-                        <div style={{ width: 16, height: 11, borderRadius: 1, background: 'rgba(255,255,255,0.04)', flexShrink: 0 }} />
-                        <span style={{ flex: 1, fontSize: 9, fontWeight: 600, color: '#334155' }}>TBD</span>
-                      </div>
-                    </div>
-                  ))}
+                <div style={{ background: '#0f1729', border: `2px solid ${champion ? '#22c55e' : '#fbbf24'}`, borderRadius: 6, overflow: 'hidden', width: CARD_W + 20 }}>
+                  <div style={{ background: champion ? 'rgba(34,197,94,0.1)' : 'rgba(251,191,36,0.1)', padding: '2px 6px', fontSize: 8, fontWeight: 800, color: champion ? '#22c55e' : '#fbbf24', textAlign: 'center' }}>
+                    {champion ? '🏆 CHAMPION' : 'CHAMPION'}
+                  </div>
+                  {teamRow(finalist1, champion === finalist1)}
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                  {teamRow(finalist2, champion === finalist2)}
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: 8, fontWeight: 800, color: '#fb923c', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 4 }}>🥉 3rd Place</div>
                 <div style={{ background: '#0f1729', border: '1px solid rgba(251,146,60,0.4)', borderRadius: 6, overflow: 'hidden', width: CARD_W + 20 }}>
                   <div style={{ background: 'rgba(251,146,60,0.08)', padding: '2px 6px', fontSize: 8, fontWeight: 800, color: '#fb923c', textAlign: 'center' }}>BRONZE</div>
-                  {[0, 1].map(i => (
+                  {[sf101loser, sf102loser].map((team, i) => (
                     <div key={i}>
                       {i === 1 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px' }}>
-                        <div style={{ width: 16, height: 11, borderRadius: 1, background: 'rgba(255,255,255,0.04)', flexShrink: 0 }} />
-                        <span style={{ flex: 1, fontSize: 9, fontWeight: 600, color: '#334155' }}>TBD</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 6px', background: thirdResult[103]?.winner === team ? 'rgba(251,146,60,0.15)' : 'transparent' }}>
+                        {team && <img src={`https://flagcdn.com/w40/${FLAGS[team] || 'un'}.png`} alt={team} style={{ width: 16, height: 11, objectFit: 'cover', borderRadius: 1, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />}
+                        <span style={{ flex: 1, fontSize: 9, fontWeight: 700, color: thirdResult[103]?.winner === team ? '#fb923c' : team ? '#e2e8f0' : '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team || 'TBD'}</span>
+                        {thirdResult[103]?.winner === team && <span style={{ fontSize: 9 }}>🥉</span>}
                       </div>
                     </div>
                   ))}
@@ -297,11 +307,17 @@ function ProjectedBracketTab({ standings }) {
               </div>
             </div>
 
-            {/* RIGHT SIDE */}
-            <BracketCol title="Semi Finals" count={1} totalH={totalH} />
-            <BracketCol title="Quarter Finals" count={2} totalH={totalH} />
-            <BracketCol title="Round of 16" count={4} totalH={totalH} />
-            <BracketCol title="Round of 32" count={8} matches={r32Matches.slice(8, 16)} totalH={totalH} isR32={true} />
+            {/* RIGHT SF */}
+            <KnockoutBracketCol title="Semi Finals" matchIds={sfRight.map(m => m.mid)} results={enrichedResults} totalH={totalH} />
+
+            {/* RIGHT QF */}
+            <KnockoutBracketCol title="Quarter Finals" matchIds={qfRight.map(m => m.mid)} results={enrichedResults} totalH={totalH} />
+
+            {/* RIGHT R16 */}
+            <KnockoutBracketCol title="Round of 16" matchIds={r16Right.map(m => m.mid)} results={enrichedResults} totalH={totalH} />
+
+            {/* RIGHT R32 */}
+            <BracketCol title="Round of 32" count={8} matches={r32.slice(8, 16)} totalH={totalH} isR32={true} />
           </div>
         </div>
       )}
@@ -309,7 +325,6 @@ function ProjectedBracketTab({ standings }) {
   )
 }
 
-// ── Group Table ──
 function GroupTable({ group, standings, color }) {
   const teams = GROUPS[group] || []
   const sorted = [...teams].sort((a, b) => {
@@ -371,8 +386,6 @@ function GroupTable({ group, standings, color }) {
   )
 }
 
-// ── Qualification Tab ──
-// ── Best 3rd Place Tab ──
 function ThirdPlaceTab({ standings }) {
   const thirds = GROUP_LETTERS.map(g => {
     const teams = GROUPS[g] || []
@@ -389,12 +402,9 @@ function ThirdPlaceTab({ standings }) {
   }).sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points
     if (b.gd !== a.gd) return b.gd - a.gd
-    if (b.gf !== a.gf) return b.gf - a.gf
-    return 0
+    return b.gf - a.gf
   })
-
   const hasData = thirds.some(t => t.played > 0)
-
   return (
     <div>
       <div style={{ background: '#0d1526', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #f59e0b', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
@@ -407,7 +417,6 @@ function ThirdPlaceTab({ standings }) {
           <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Advancing (Top 8)</span>
         </div>
       </div>
-
       {!hasData ? (
         <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '48px 20px', textAlign: 'center' }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>⏳</div>
@@ -417,32 +426,23 @@ function ThirdPlaceTab({ standings }) {
         <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '28px 28px 1fr 36px 36px 36px 36px 44px 44px 44px 44px', padding: '8px 16px', fontSize: 10, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
             <span></span><span>#</span><span>Team</span>
-            <span style={{ textAlign: 'center' }}>P</span>
-            <span style={{ textAlign: 'center' }}>W</span>
-            <span style={{ textAlign: 'center' }}>D</span>
-            <span style={{ textAlign: 'center' }}>L</span>
-            <span style={{ textAlign: 'center' }}>GF</span>
-            <span style={{ textAlign: 'center' }}>GA</span>
-            <span style={{ textAlign: 'center' }}>GD</span>
-            <span style={{ textAlign: 'center' }}>Pts</span>
+            <span style={{ textAlign: 'center' }}>P</span><span style={{ textAlign: 'center' }}>W</span>
+            <span style={{ textAlign: 'center' }}>D</span><span style={{ textAlign: 'center' }}>L</span>
+            <span style={{ textAlign: 'center' }}>GF</span><span style={{ textAlign: 'center' }}>GA</span>
+            <span style={{ textAlign: 'center' }}>GD</span><span style={{ textAlign: 'center' }}>Pts</span>
           </div>
           {thirds.map((t, i) => {
             const advancing = i < 8
             const groupColor = getGroupColor(t.group)
             return (
-              <motion.div key={t.team || i}
-                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+              <motion.div key={t.team || i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                 style={{ display: 'grid', gridTemplateColumns: '28px 28px 1fr 36px 36px 36px 36px 44px 44px 44px 44px', padding: '10px 16px', alignItems: 'center', borderBottom: i < 11 ? '1px solid rgba(255,255,255,0.04)' : 'none', background: advancing ? 'rgba(34,197,94,0.04)' : 'transparent', borderLeft: advancing ? '3px solid #22c55e' : i === 8 ? '3px solid rgba(239,68,68,0.3)' : '3px solid transparent' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {advancing
-                    ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} />
-                    : <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(239,68,68,0.4)' }} />}
+                  {advancing ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(239,68,68,0.4)' }} />}
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 800, color: advancing ? '#22c55e' : '#334155' }}>{i + 1}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <img src={`https://flagcdn.com/w40/${FLAGS[t.team] || 'un'}.png`} alt={t.team}
-                    style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2, flexShrink: 0, filter: advancing ? 'none' : 'grayscale(50%)' }}
-                    onError={e => { e.target.style.display = 'none' }} />
+                  <img src={`https://flagcdn.com/w40/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2, flexShrink: 0, filter: advancing ? 'none' : 'grayscale(50%)' }} onError={e => { e.target.style.display = 'none' }} />
                   <span style={{ fontWeight: 700, fontSize: 13, color: advancing ? '#e2e8f0' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.team || '—'}</span>
                   <span style={{ fontSize: 9, fontWeight: 800, color: groupColor, background: `${groupColor}18`, border: `1px solid ${groupColor}30`, padding: '1px 0', borderRadius: 4, flexShrink: 0, width: 18, textAlign: 'center', display: 'inline-block' }}>{t.group}</span>
                 </div>
@@ -458,14 +458,8 @@ function ThirdPlaceTab({ standings }) {
             )
           })}
           <div style={{ display: 'flex', gap: 16, padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} />
-              <span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>Advancing to R32 (top 8)</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(239,68,68,0.4)' }} />
-              <span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>Eliminated</span>
-            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} /><span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>Advancing to R32 (top 8)</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(239,68,68,0.4)' }} /><span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>Eliminated</span></div>
           </div>
         </div>
       )}
@@ -494,28 +488,25 @@ function QualificationTab({ qualification }) {
             {advanced.map((t, i) => (
               <motion.div key={t.team} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
                 onClick={() => setGlowTeam(glowTeam?.team === t.team ? null : t)}
-                style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', boxShadow: '0 0 12px rgba(34,197,94,0.08)' }}
-                whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(34,197,94,0.2)' }}>
+                style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+                whileHover={{ scale: 1.03 }}>
                 <div style={{ position: 'relative' }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }} onError={e => { e.target.style.display = 'none' }} />
+                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6 }} onError={e => { e.target.style.display = 'none' }} />
                   <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>✅</span>
                 </div>
-                <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center', lineHeight: 1.3 }}>{t.team}</span>
+                <span style={{ fontWeight: 700, fontSize: 12, color: '#e2e8f0', textAlign: 'center' }}>{t.team}</span>
                 <span style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>Group {t.group}</span>
               </motion.div>
             ))}
           </div>
         )}
         <AnimatePresence>
-          {glowTeam && glowTeam.status === 'advanced' && glowTeam.message && (
+          {glowTeam?.status === 'advanced' && glowTeam.message && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
               style={{ marginTop: 16, background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04))', border: '1px solid rgba(34,197,94,0.3)', borderLeft: '4px solid #22c55e', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team} style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <p style={{ color: '#22c55e', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🟢 {glowTeam.team} advance!</p>
-                <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{glowTeam.message}</p>
-              </div>
-              <button onClick={() => setGlowTeam(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 16, marginLeft: 'auto', flexShrink: 0 }}>✕</button>
+              <div><p style={{ color: '#22c55e', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🟢 {glowTeam.team} advance!</p><p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>{glowTeam.message}</p></div>
+              <button onClick={() => setGlowTeam(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 16, marginLeft: 'auto' }}>✕</button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -538,25 +529,22 @@ function QualificationTab({ qualification }) {
                 style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', opacity: 0.7 }}
                 whileHover={{ opacity: 1, scale: 1.03 }}>
                 <div style={{ position: 'relative', filter: 'grayscale(60%)' }}>
-                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }} onError={e => { e.target.style.display = 'none' }} />
+                  <img src={`https://flagcdn.com/w80/${FLAGS[t.team] || 'un'}.png`} alt={t.team} style={{ width: 56, height: 38, objectFit: 'cover', borderRadius: 6 }} onError={e => { e.target.style.display = 'none' }} />
                   <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 14 }}>❌</span>
                 </div>
-                <span style={{ fontWeight: 700, fontSize: 12, color: '#64748b', textAlign: 'center', lineHeight: 1.3 }}>{t.team}</span>
+                <span style={{ fontWeight: 700, fontSize: 12, color: '#64748b', textAlign: 'center' }}>{t.team}</span>
                 <span style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>Group {t.group}</span>
               </motion.div>
             ))}
           </div>
         )}
         <AnimatePresence>
-          {glowTeam && glowTeam.status === 'eliminated' && glowTeam.message && (
+          {glowTeam?.status === 'eliminated' && glowTeam.message && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
               style={{ marginTop: 16, background: 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02))', border: '1px solid rgba(239,68,68,0.25)', borderLeft: '4px solid #ef4444', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <img src={`https://flagcdn.com/w40/${FLAGS[glowTeam.team] || 'un'}.png`} alt={glowTeam.team} style={{ width: 32, height: 22, objectFit: 'cover', borderRadius: 4, flexShrink: 0, marginTop: 2, filter: 'grayscale(50%)' }} />
-              <div>
-                <p style={{ color: '#f87171', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🔴 {glowTeam.team} eliminated</p>
-                <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{glowTeam.message}</p>
-              </div>
-              <button onClick={() => setGlowTeam(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 16, marginLeft: 'auto', flexShrink: 0 }}>✕</button>
+              <div><p style={{ color: '#f87171', fontWeight: 800, fontSize: 14, margin: '0 0 4px' }}>🔴 {glowTeam.team} eliminated</p><p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>{glowTeam.message}</p></div>
+              <button onClick={() => setGlowTeam(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 16, marginLeft: 'auto' }}>✕</button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -565,7 +553,6 @@ function QualificationTab({ qualification }) {
   )
 }
 
-// ── Main ──
 function Standings() {
   const [standings, setStandings] = useState({})
   const [qualification, setQualification] = useState([])
@@ -605,12 +592,11 @@ function Standings() {
           <p style={{ color: '#64748b', marginTop: 6, fontSize: 14 }}>Live group tables — updated after each match. Top 2 + best 8 third-place teams advance.</p>
         </div>
 
-        {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap', paddingTop: 4 }}>
           {[
-            { id: 'standings', label: '📊 Group Tables' },
-            { id: 'third', label: '🥉 Best 3rd Place' },
-            { id: 'bracket', label: '🗂️ Projected R32', live: true },
+            { id: 'standings',     label: '📊 Group Tables' },
+            { id: 'third',         label: '🥉 Best 3rd Place' },
+            { id: 'bracket',       label: '🗂️ Live Bracket', live: true },
             { id: 'qualification', label: '🏆 Qualification' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -641,14 +627,13 @@ function Standings() {
           </>
         )}
 
-        {activeTab === 'third' && <ThirdPlaceTab standings={standings} />}
+        {activeTab === 'third'         && <ThirdPlaceTab standings={standings} />}
         {activeTab === 'qualification' && <QualificationTab qualification={qualification} />}
       </div>
 
-      {/* Bracket tab rendered outside maxWidth container so it can use full width */}
       {activeTab === 'bracket' && (
         <div style={{ padding: '0 16px 80px' }}>
-          <ProjectedBracketTab standings={standings} />
+          <LiveBracketTab />
         </div>
       )}
 
