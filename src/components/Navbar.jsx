@@ -353,7 +353,7 @@ function Navbar() {
       )}
 
       <style>{`
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
           .md-nav { display: flex !important; align-items: center; gap: 12px; }
           .md-auth { display: flex !important; }
           .mobile-controls { display: none !important; }
