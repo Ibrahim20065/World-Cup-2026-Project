@@ -369,7 +369,7 @@ function SecondChanceTab({ token }) {
   const [saving, setSaving] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
-  const lockTime = new Date('2026-06-29T16:50:00Z')
+  const lockTime = new Date('2026-06-29T20:30:00Z')
   const isLocked = locked || new Date() >= lockTime
 
   useEffect(() => {
