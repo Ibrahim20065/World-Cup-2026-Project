@@ -63,7 +63,7 @@ const CARD_H = 56
 const CARD_W = 130
 const COL_GAP = 10
 
-const [r32Matchups, setR32Matchups] = useState([])
+
 
 // ── autoAssign3rdPlace ──
 function autoAssign3rdPlace(thirdPlaceAdvancing, groupPredictions) {
@@ -983,6 +983,7 @@ function Predictions() {
   const [groupStageScored, setGroupStageScored] = useState(false)
   const [realStandings, setRealStandings] = useState({})
   const [qualification, setQualification] = useState([])
+  const [r32Matchups, setR32Matchups] = useState([])
 
   const token = localStorage.getItem('token')
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
