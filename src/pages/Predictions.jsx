@@ -1188,7 +1188,7 @@ function Predictions() {
         )}
 
         {activeTab === 'awards' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 480px))', gap: 16, justifyContent: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, justifyContent: 'center', alignItems: 'start' }}>
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#0d1526', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 14, padding: 20, borderTop: '3px solid #fbbf24' }}>
               <h2 style={{ color: '#fbbf24', fontWeight: 800, fontSize: 16, margin: '0 0 4px' }}>Best Players</h2>
               <p style={{ color: '#475569', fontSize: 12, margin: '0 0 14px' }}>Best overall players of the tournament voted by FIFA</p>

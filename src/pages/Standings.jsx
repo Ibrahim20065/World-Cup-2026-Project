@@ -451,7 +451,7 @@ function ThirdPlaceTab({ standings }) {
         </div>
       ) : (
         <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '28px 28px 1fr 36px 36px 36px 36px 44px 44px 44px 44px', padding: '8px 16px', fontSize: 10, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+          <div className="third-header" style={{ display: 'grid', gridTemplateColumns: '28px 28px 1fr 36px 36px 36px 36px 44px 44px 44px 44px', padding: '8px 16px', fontSize: 10, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
             <span></span><span>#</span><span>Team</span>
             <span style={{ textAlign: 'center' }}>P</span><span style={{ textAlign: 'center' }}>W</span>
             <span style={{ textAlign: 'center' }}>D</span><span style={{ textAlign: 'center' }}>L</span>
@@ -463,6 +463,7 @@ function ThirdPlaceTab({ standings }) {
             const groupColor = getGroupColor(t.group)
             return (
               <motion.div key={t.team || i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+              className="third-row"
                 style={{ display: 'grid', gridTemplateColumns: '28px 28px 1fr 36px 36px 36px 36px 44px 44px 44px 44px', padding: '10px 16px', alignItems: 'center', borderBottom: i < 11 ? '1px solid rgba(255,255,255,0.04)' : 'none', background: advancing ? 'rgba(34,197,94,0.04)' : 'transparent', borderLeft: advancing ? '3px solid #22c55e' : i === 8 ? '3px solid rgba(239,68,68,0.3)' : '3px solid transparent' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {advancing ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(239,68,68,0.4)' }} />}
@@ -732,6 +733,15 @@ function Standings() {
           .team-flag { width: 18px !important; height: 12px !important; }
           .team-name { font-size: 11px !important; }
           .stat-value { font-size: 11px !important; }
+
+          .third-header, .third-row {
+            grid-template-columns: 20px 20px 1fr 32px 36px !important;
+            padding: 8px 8px !important;
+          }
+          .third-header span:nth-child(4), .third-header span:nth-child(5), .third-header span:nth-child(6), .third-header span:nth-child(7), .third-header span:nth-child(8), .third-header span:nth-child(9),
+          .third-row span:nth-child(4), .third-row span:nth-child(5), .third-row span:nth-child(6), .third-row span:nth-child(7), .third-row span:nth-child(8), .third-row span:nth-child(9) {
+            display: none !important;
+          }
         }
       `}</style>
     </div>

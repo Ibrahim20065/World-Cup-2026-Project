@@ -260,11 +260,7 @@ function Navbar() {
             </div>
           )}
 
-          <Link to="/settings" onClick={() => setMenuOpen(false)} style={{
-              textDecoration: 'none', textAlign: 'center', fontSize: 13, fontWeight: 700,
-              color: '#94a3b8', padding: '10px', borderRadius: 10,
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                  } }>⚙️ Settings</Link>
+          
 
           {/* Nav links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>

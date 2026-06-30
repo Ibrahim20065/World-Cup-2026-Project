@@ -281,17 +281,17 @@ export default function History() {
                 {/* Main row */}
                 <div
                   onClick={() => setSelectedYear(isSelected ? null : t.year)}
-                  style={{
-                    background: isSelected ? `${champColor}08` : '#0d1526',
-                    border: `1px solid ${isSelected ? champColor + '30' : 'rgba(255,255,255,0.06)'}`,
-                    borderLeft: `4px solid ${champColor}`,
-                    borderRadius: isSelected ? '12px 12px 0 0' : 12,
-                    padding: '14px 18px', cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    display: 'grid',
-                    gridTemplateColumns: '60px 1fr 140px 80px',
-                    alignItems: 'center', gap: 12,
-                  }}>
+                  className="history-row"
+style={{
+    background: isSelected ? `${champColor}08` : '#0d1526',
+    border: `1px solid ${isSelected ? champColor + '30' : 'rgba(255,255,255,0.06)'}`,
+    borderLeft: `4px solid ${champColor}`,
+    borderRadius: isSelected ? '12px 12px 0 0' : 12,
+    padding: '14px 18px', cursor: 'pointer',
+    transition: 'all 0.15s',
+    display: 'grid',
+    alignItems: 'center', gap: 12,
+  }}>
 
                   {/* Year */}
                   <div>
@@ -427,9 +427,15 @@ export default function History() {
       </div>
 
       <style>{`
+        .history-row {
+          grid-template-columns: 50px 1fr 90px;
+        }
         @media (min-width: 640px) {
           .score-col { display: block !important; }
           .awards-preview { display: block !important; }
+          .history-row {
+            grid-template-columns: 60px 1fr 140px 80px;
+          }
         }
       `}</style>
     </div>
