@@ -122,9 +122,16 @@ function MatchCard({ match, onClick }) {
               <span style={{ color: '#334155', fontSize: 10, fontWeight: 600 }}>Local Time</span>
             </>
           ) : (
-            <span style={{ color: '#fff', fontWeight: 900, fontSize: 30, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
-              {match.home_score ?? 0} – {match.away_score ?? 0}
-            </span>
+            <>
+              <span style={{ color: '#fff', fontWeight: 900, fontSize: 30, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+                {match.home_score ?? 0} – {match.away_score ?? 0}
+              </span>
+              {match.home_pen != null && match.away_pen != null && (
+                <span style={{ color: '#fbbf24', fontSize: 12, fontWeight: 700 }}>
+                  (pen {match.home_pen}–{match.away_pen})
+                </span>
+              )}
+            </>
           )}
         </div>
 
@@ -231,6 +238,11 @@ function MatchModal({ match, onClose }) {
                   <span style={{ color: '#fff', fontWeight: 900, fontSize: 36, letterSpacing: '-0.02em', lineHeight: 1 }}>
                     {match.home_score ?? 0} – {match.away_score ?? 0}
                   </span>
+                  {match.home_pen != null && match.away_pen != null && (
+                    <span style={{ color: '#fbbf24', fontSize: 13, fontWeight: 700, marginTop: 4}}>
+                      (pen {match.home_pen}–{match.away_pen})
+                    </span>
+                  )}
                   <StatusBadge status={match.status} minute={match.minute} />
                 </>
               )}
