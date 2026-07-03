@@ -6,7 +6,7 @@ import { useColor } from '../assets/ColorContext'
 
 const FLAGS = {
   'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
-  'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia': 'ba',
+  'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia & Herzegovina': 'ba',
   'Brazil': 'br', 'Scotland': 'gb-sct', 'Morocco': 'ma', 'Haiti': 'ht',
   'USA': 'us', 'Australia': 'au', 'Paraguay': 'py', 'Turkey': 'tr',
   'Germany': 'de', 'Ecuador': 'ec', 'Ivory Coast': 'ci', 'Curacao': 'cw',
