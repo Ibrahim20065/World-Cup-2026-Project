@@ -378,10 +378,6 @@ function SecondChanceTab({ token }) {
       .catch(() => {})
   }, [])
 
-  axios.get(`${API_URL}/api/second-chance/matchups`)
-  .then(res => setR32Matchups(res.data))
-  .catch(() => {})
-
   useEffect(() => {
     if (!token) return
     axios.get(`${API_URL}/api/second-chance`, { headers: { Authorization: `Bearer ${token}` } })
@@ -1167,8 +1163,8 @@ function Predictions() {
 
         {activeTab === 'knockout' && (
           <div>
-            {Object.keys(groupPredictions).length < 12 ? <div style={{ textAlign: 'center', padding: '80px 20px' }}><p style={{ color: '#fbbf24', fontWeight: 700, fontSize: 16 }}>Complete Group Stage first!</p></div>
-              : thirdPlaceAdvancing.length < 8 ? <div style={{ textAlign: 'center', padding: '80px 20px' }}><p style={{ color: '#fbbf24', fontWeight: 700, fontSize: 16 }}>Select all 8 third-place teams first!</p></div>
+            {!locked && Object.keys(groupPredictions).length < 12 ? <div style={{ textAlign: 'center', padding: '80px 20px' }}><p style={{ color: '#fbbf24', fontWeight: 700, fontSize: 16 }}>Complete Group Stage first!</p></div>
+              : !locked && thirdPlaceAdvancing.length < 8 ? <div style={{ textAlign: 'center', padding: '80px 20px' }}><p style={{ color: '#fbbf24', fontWeight: 700, fontSize: 16 }}>Select all 8 third-place teams first!</p></div>
               : (
                 <>
                   <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 18, marginBottom: 20, borderTop: '3px solid #3b82f6' }}>
