@@ -510,7 +510,7 @@ function MatchPicks({ token }) {
     const homeScore = parseInt(pick.home), awayScore = parseInt(pick.away)
     if (isNaN(homeScore) || isNaN(awayScore) || homeScore < 0 || awayScore < 0) { toast.error('Enter valid scores!'); return }
     const isDraw = homeScore === awayScore
-    const isKnockout = match?.round === 'Round of 32' || match?.round === 'Round of 16' || match?.id >= 89
+    const isKnockout = match?.round === 'Round of 32' || match?.round === 'Round of 16' || match?.round === 'Quarter Final' || match?.id >= 89
     if (isDraw && isKnockout && !pick.pen_winner) { toast.error('Please pick a penalty winner!'); return }
     setSaving(matchId)
     try {
@@ -558,7 +558,7 @@ function MatchPicks({ token }) {
       </div>
       <div style={{ background: '#0d1526', border: `1px solid rgba(${todayMatches[0]?.round === 'Round of 32' ? '6,182,212' : todayMatches[0]?.round === 'Round of 16' ? '139,92,246' : '59,130,246'},0.2)`, borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: `3px solid ${todayMatches[0]?.round === 'Round of 32' ? '#06b6d4' : todayMatches[0]?.round === 'Round of 16' ? '#8b5cf6' : '#3b82f6'}`, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: 18, color: todayMatches[0]?.round === 'Round of 32' ? '#67e8f9' : todayMatches[0]?.round === 'Round of 16' ? '#c4b5fd' : '#93c5fd', margin: '0 0 4px' }}>{todayMatches[0]?.round === 'Round of 32' ? '⚔️ Round of 32 Match Picks' : todayMatches[0]?.round === 'Round of 16' ? '⚔️ Round of 16 Match Picks' : 'Match Picks'}</h2>
+          <h2 style={{ fontWeight: 800, fontSize: 18, color: todayMatches[0]?.round === 'Round of 32' ? '#67e8f9' : todayMatches[0]?.round === 'Round of 16' ? '#c4b5fd' : '#93c5fd', margin: '0 0 4px' }}>{todayMatches[0]?.round === 'Round of 32' ? '⚔️ Round of 32 Match Picks' : todayMatches[0]?.round === 'Round of 16' ? '⚔️ Round of 16 Match Picks' : todayMatches[0]?.round === 'Quarter Final' ? '⚔️ Quarter Final Match Picks' : 'Match Picks'}</h2>
           <p style={{ color: '#ffffff', fontSize: 13, margin: 0 }}>{new Date(activeDate + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {todayMatches.length} matches</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
@@ -571,7 +571,8 @@ function MatchPicks({ token }) {
         {todayMatches.map(match => {
           const isR32 = match.round === 'Round of 32'
           const isR16 = match.round === 'Round of 16'
-          const gc = isR32 ? '#06b6d4' : isR16 ? '#8b5cf6' : groupColor(match.group)
+          const isQF = match.round === 'Quarter Final'
+          const gc = isR32 ? '#06b6d4' : isR16 ? '#8b5cf6' : isQF ? '#f59e0b' : groupColor(match.group)
           const saved = savedPreds[match.id]; const pick = matchPreds[match.id] || { home: '', away: '' }
           const isSaving = saving === match.id; const hasSaved = !!saved
           const matchLocked = isMatchLocked(match); const timeLeftMatch = getTimeLeft(match)

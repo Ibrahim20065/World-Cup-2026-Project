@@ -225,7 +225,7 @@ function CityProfile() {
                           fontSize: 10, fontWeight: 800, color: gc,
                           textTransform: 'uppercase', letterSpacing: '0.08em',
                         }}>
-                          {match.round === 'Round of 32' ? '⚔️ Round of 32' : match.group && match.group !== 'R32' ? `Group ${match.group}` : 'Knockout'} · Match {match.id}
+                          {match.round === 'Round of 32' ? `⚔️ R32 · Match ${match.id}` : match.round === 'Round of 16' ? `⚔️ R16 · Match ${match.id}` : match.round === 'Quarter Final' ? `⚔️ QF · Match ${match.id}` : `Group ${match.group} · Match ${match.id}`}
                         </span>
                         <span style={{ color: '#334155', fontSize: 11, fontWeight: 600 }}>
                         {match.kickoff_utc ? new Date(match.kickoff_utc).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + new Date(match.kickoff_utc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
