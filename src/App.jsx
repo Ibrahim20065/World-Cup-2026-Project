@@ -21,6 +21,7 @@ import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import VersionHistory from './pages/VersionHistory'
 import Bracket from './pages/Bracket'
+import AIPredictions from './pages/AIPredictions'
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
               <Route path="/bracket" element={<Bracket />} />
               <Route path="/standings" element={<Standings/>} />
               <Route path="/settings" element={<Settings/>} />
+              <Route path="/ai-predictions" element={<AIPredictions />} />
               <Route path="/predictions" element={
                 <ProtectedRoute><Predictions /></ProtectedRoute>
               } />

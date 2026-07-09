@@ -21,6 +21,7 @@ const LINKS = [
   { path: '/map', label: 'Host Cities' },
   { path: '/history', label: 'History' },
   { path: '/changelog', label: 'Updates' },
+  { path: '/ai-predictions', label: '🤖 AI' },
 ]
 
 function Navbar() {
