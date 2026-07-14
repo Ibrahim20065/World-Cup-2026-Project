@@ -366,7 +366,7 @@ function LiveScores() {
   const liveCount = matches.filter(m => m.status === 'LIVE').length
 
   const filtered = matches.filter(m => {
-    const groupMatch = filter === 'ALL' || m.group === filter || (filter === 'R32' && (m.round === 'Round of 32' || m.round === 'Round of 16'))
+    const groupMatch = filter === 'ALL' || m.group === filter || (filter === 'R32' && (m.round === 'Round of 32' || m.round === 'Round of 16' || m.round === 'Quarter Final' || m.round === 'Semi Final'))
     // Compare selected date (YYYY-MM-DD) against user's local date of kickoff
     const dateMatch = !selectedDate || toLocalDate(m.kickoff_utc) === selectedDate
     return groupMatch && dateMatch

@@ -510,7 +510,7 @@ function MatchPicks({ token }) {
     const homeScore = parseInt(pick.home), awayScore = parseInt(pick.away)
     if (isNaN(homeScore) || isNaN(awayScore) || homeScore < 0 || awayScore < 0) { toast.error('Enter valid scores!'); return }
     const isDraw = homeScore === awayScore
-    const isKnockout = match?.round === 'Round of 32' || match?.round === 'Round of 16' || match?.round === 'Quarter Final' || match?.id >= 89
+    const isKnockout = match?.round === 'Round of 32' || match?.round === 'Round of 16' || match?.round === 'Quarter Final' || match?.round === 'Semi-Final' ||  match?.id >= 89
     if (isDraw && isKnockout && !pick.pen_winner) { toast.error('Please pick a penalty winner!'); return }
     setSaving(matchId)
     try {
@@ -558,7 +558,7 @@ function MatchPicks({ token }) {
       </div>
       <div style={{ background: '#0d1526', border: `1px solid rgba(${todayMatches[0]?.round === 'Round of 32' ? '6,182,212' : todayMatches[0]?.round === 'Round of 16' ? '139,92,246' : '59,130,246'},0.2)`, borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: `3px solid ${todayMatches[0]?.round === 'Round of 32' ? '#06b6d4' : todayMatches[0]?.round === 'Round of 16' ? '#8b5cf6' : '#3b82f6'}`, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: 18, color: todayMatches[0]?.round === 'Round of 32' ? '#67e8f9' : todayMatches[0]?.round === 'Round of 16' ? '#c4b5fd' : '#93c5fd', margin: '0 0 4px' }}>{todayMatches[0]?.round === 'Round of 32' ? '⚔️ Round of 32 Match Picks' : todayMatches[0]?.round === 'Round of 16' ? '⚔️ Round of 16 Match Picks' : todayMatches[0]?.round === 'Quarter Final' ? '⚔️ Quarter Final Match Picks' : 'Match Picks'}</h2>
+          <h2 style={{ fontWeight: 800, fontSize: 18, color: todayMatches[0]?.round === 'Round of 32' ? '#67e8f9' : todayMatches[0]?.round === 'Round of 16' ? '#c4b5fd' : '#93c5fd', margin: '0 0 4px' }}>{todayMatches[0]?.round === 'Round of 32' ? '⚔️ Round of 32 Match Picks' : todayMatches[0]?.round === 'Round of 16' ? '⚔️ Round of 16 Match Picks' : todayMatches[0]?.round === 'Quarter Final' ? '⚔️ Quarter Final Match Picks' : todayMatches[0]?.round === 'Semi Final' ? '⚔️ Semi Final Match Picks' : 'Match Picks' }</h2>
           <p style={{ color: '#ffffff', fontSize: 13, margin: 0 }}>{new Date(activeDate + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {todayMatches.length} matches</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
@@ -572,6 +572,7 @@ function MatchPicks({ token }) {
           const isR32 = match.round === 'Round of 32'
           const isR16 = match.round === 'Round of 16'
           const isQF = match.round === 'Quarter Final'
+          const isSF = match.round === 'Semi Final'
           const gc = isR32 ? '#06b6d4' : isR16 ? '#8b5cf6' : isQF ? '#f59e0b' : groupColor(match.group)
           const saved = savedPreds[match.id]; const pick = matchPreds[match.id] || { home: '', away: '' }
           const isSaving = saving === match.id; const hasSaved = !!saved
@@ -580,7 +581,7 @@ function MatchPicks({ token }) {
             <motion.div key={match.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               style={{ background: '#0d1526', border: `1px solid ${hasSaved ? gc + '30' : 'rgba(255,255,255,0.06)'}`, borderTop: `3px solid ${matchLocked ? '#334155' : gc}`, borderRadius: 14, padding: '16px 18px', opacity: matchLocked ? 0.7 : 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: matchLocked ? '#334155' : gc, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{isR32 ? `⚔️ R32 · Match ${match.id}` : isR16 ? `⚔️ R16 · Match ${match.id}` : `Group ${match.group} · Match ${match.id}`}</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: matchLocked ? '#334155' : gc, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{isR32 ? `⚔️ R32 · Match ${match.id}` : isR16 ? `⚔️ R16 · Match ${match.id}` : isQF ? `⚔️ QF · Match ${match.id}` : match.round === 'Semi Final' ? `⚔️ SF · Match ${match.id}` : `Group ${match.group} · Match ${match.id}`}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {matchLocked ? <span style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100 }}>🔒 Locked</span>
                     : timeLeftMatch ? <span style={{ color: '#f59e0b', fontSize: 10, fontWeight: 600 }}>Locks in {timeLeftMatch}</span> : null}
