@@ -298,6 +298,15 @@ function Admin() {
     } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
   }
 },
+{ label: 'Score Awards', desc: 'Score Golden Ball, Boot, Glove, U21', color: '#fbbf24', icon: '🏅',
+  action: async () => {
+    if (!confirm('Score awards now?')) return
+    try {
+      const res = await axios.post(`${API_URL}/api/admin/score-awards`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      alert(`✅ ${res.data.message}\n${res.data.results?.slice(0,5).map(r => `${r.username}: +${r.points_awarded}pts`).join('\n')}`)
+    } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
+  }
+},
   ]
 
   const STATS = [
