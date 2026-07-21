@@ -178,6 +178,13 @@ const TOURNAMENTS = [
     goldenBall: { player: 'Lionel Messi', country: 'Argentina' },
     teams: 32, matches: 64,
   },
+  {
+    year: 2026, host: 'USA / Canada / Mexico', champion: 'Spain', runnerUp: 'Argentina',
+    score: '1–0', thirdPlace: 'France', venue: 'MetLife Stadium, New York New Jersey',
+    goldenBoot: { player: 'Kylian Mbappé', country: 'France', goals: 10 },
+    goldenBall: { player: 'Rodri', country: 'Spain' },
+    teams: 48, matches: 104,
+  },
 ]
 
 const CHAMPION_TITLES = TOURNAMENTS.reduce((acc, t) => {

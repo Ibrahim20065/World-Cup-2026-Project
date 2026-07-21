@@ -963,6 +963,344 @@ function MyResults({ groupPredictions, thirdPlaceAdvancing, realStandings, quali
   )
 }
 
+function EveryonePredictions() {
+  const [allPreds, setAllPreds] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [activeSection, setActiveSection] = useState('knockout')
+  const token = localStorage.getItem('token')
+  const [schedule, setSchedule] = useState([])
+
+  useEffect(() => {
+    axios.get(`${API_URL}/api/all-predictions`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => { setAllPreds(res.data); setLoading(false) })
+      .catch(() => setLoading(false))
+    axios.get(`${API_URL}/api/matches`)
+      .then(res => setSchedule(res.data))
+      .catch(() => {})
+  }, [])
+
+  const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
+  const GROUP_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#84cc16','#6366f1']
+  const FLAGS = {
+    'Mexico': 'mx', 'South Korea': 'kr', 'South Africa': 'za', 'Czech Republic': 'cz',
+    'Canada': 'ca', 'Switzerland': 'ch', 'Qatar': 'qa', 'Bosnia': 'ba',
+    'Brazil': 'br', 'Scotland': 'gb-sct', 'Morocco': 'ma', 'Haiti': 'ht',
+    'USA': 'us', 'Australia': 'au', 'Paraguay': 'py', 'Turkey': 'tr',
+    'Germany': 'de', 'Ecuador': 'ec', 'Ivory Coast': 'ci', 'Curacao': 'cw',
+    'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
+    'Belgium': 'be', 'New Zealand': 'nz', 'Egypt': 'eg', 'Iran': 'ir',
+    'Spain': 'es', 'Uruguay': 'uy', 'Saudi Arabia': 'sa', 'Cape Verde': 'cv',
+    'France': 'fr', 'Norway': 'no', 'Senegal': 'sn', 'Iraq': 'iq',
+    'Argentina': 'ar', 'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz',
+    'Portugal': 'pt', 'Colombia': 'co', 'Uzbekistan': 'uz', 'DR Congo': 'cd',
+    'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
+    'Bosnia & Herzegovina': 'ba', 'Rodri': null, 'Lionel Messi': null,
+  }
+
+  const GROUPS = {
+    'A': ['Mexico', 'South Korea', 'South Africa', 'Czech Republic'],
+    'B': ['Canada', 'Switzerland', 'Qatar', 'Bosnia'],
+    'C': ['Brazil', 'Scotland', 'Morocco', 'Haiti'],
+    'D': ['USA', 'Australia', 'Paraguay', 'Turkey'],
+    'E': ['Germany', 'Ecuador', 'Ivory Coast', 'Curacao'],
+    'F': ['Netherlands', 'Japan', 'Sweden', 'Tunisia'],
+    'G': ['Belgium', 'New Zealand', 'Egypt', 'Iran'],
+    'H': ['Spain', 'Uruguay', 'Saudi Arabia', 'Cape Verde'],
+    'I': ['France', 'Norway', 'Senegal', 'Iraq'],
+    'J': ['Argentina', 'Austria', 'Jordan', 'Algeria'],
+    'K': ['Portugal', 'Colombia', 'Uzbekistan', 'DR Congo'],
+    'L': ['England', 'Croatia', 'Ghana', 'Panama'],
+  }
+
+  // Real results for comparison
+  const REAL = {
+    golden_ball: 'Rodri', silver_ball: 'Lionel Messi', bronze_ball: 'Kylian Mbappe',
+    golden_boot: 'Kylian Mbappe', golden_glove: 'Unai Simon', u21_award: 'Pau Cubarsí',
+    final_winner: 'Spain',
+  }
+
+  const flagImg = (team, size = 20) => {
+    const code = FLAGS[team] || 'un'
+    if (!code) return null
+    return <img src={`https://flagcdn.com/w40/${code}.png`} alt={team} style={{ width: size * 1.4, height: size, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />
+  }
+
+  if (loading) return (
+    <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>👥</div>
+      <p style={{ color: '#3b82f6', fontWeight: 700 }}>Loading everyone's predictions...</p>
+    </div>
+  )
+
+  // User list view
+  if (!selectedUser) return (
+    <div>
+      <div style={{ background: '#0d1526', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, borderTop: '3px solid #3b82f6' }}>
+        <h2 style={{ fontWeight: 900, fontSize: 20, color: '#93c5fd', margin: '0 0 4px', fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>👥 EVERYONE'S PREDICTIONS</h2>
+        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Click on any user to see their full predictions, match picks and awards.</p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {allPreds.map((u, i) => (
+          <motion.div key={u.username} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+            onClick={() => setSelectedUser(u)}
+            style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#0f1d35'}
+            onMouseLeave={e => e.currentTarget.style.background = '#0d1526'}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#3b82f6', flexShrink: 0 }}>
+              {u.username.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: 15, color: '#f1f5f9' }}>{u.username}</div>
+              <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>
+                {Object.keys(u.group_predictions).length} groups · {u.match_picks.length} match picks
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontWeight: 900, fontSize: 20, color: '#fbbf24' }}>{u.points}</div>
+              <div style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>pts · #{i + 1}</div>
+            </div>
+            <span style={{ color: '#334155', fontSize: 18 }}>›</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
+
+  // Individual user predictions view
+  const u = selectedUser
+  const sections = [
+    { id: 'knockout', label: '🏆 Knockout' },
+    { id: 'groups',   label: '📊 Groups' },
+    { id: 'picks',    label: '⚽ Match Picks' },
+    { id: 'awards',   label: '🏅 Awards' },
+    { id: 'second',   label: '🔄 2nd Chance' },
+  ]
+
+  return (
+    <div>
+      {/* Back button + user header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <button onClick={() => setSelectedUser(null)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>← Back</button>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 900, fontSize: 18, color: '#f1f5f9' }}>{u.username}</div>
+          <div style={{ fontSize: 12, color: '#fbbf24', fontWeight: 700 }}>{u.points} points · #{allPreds.findIndex(x => x.username === u.username) + 1}</div>
+        </div>
+      </div>
+
+      {/* Section tabs */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+        {sections.map(s => (
+          <button key={s.id} onClick={() => setActiveSection(s.id)}
+            style={{ padding: '7px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', border: 'none', background: activeSection === s.id ? '#3b82f6' : 'rgba(255,255,255,0.05)', color: activeSection === s.id ? '#fff' : '#64748b', fontFamily: 'inherit' }}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── KNOCKOUT ── */}
+      {activeSection === 'knockout' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[
+            { label: 'Round of 32', key: 'r32', pts: 6 },
+            { label: 'Round of 16', key: 'r16', pts: 12 },
+            { label: 'Quarter Finals', key: 'quarter', pts: 18 },
+            { label: 'Semi Finals', key: 'semi', pts: 24 },
+          ].map(({ label, key, pts }) => {
+            const picks = u.knockout_predictions[key] || {}
+            if (Object.keys(picks).length === 0) return null
+            return (
+              <div key={key} style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 800, fontSize: 13, color: '#93c5fd' }}>{label}</span>
+                  <span style={{ fontSize: 11, color: '#334155' }}>{pts}pts per correct pick</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: 12 }}>
+                  {Object.values(picks).filter(Boolean).map((team, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '6px 10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      {flagImg(team, 14)}
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0' }}>{team}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+          {/* Final + 3rd */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              { label: '🥉 3rd Place Pick', value: u.knockout_predictions.third_place, pts: 27 },
+              { label: '🏆 Final Winner Pick', value: u.knockout_predictions.final, pts: 30 },
+            ].map(({ label, value, pts }) => (
+              <div key={label} style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginBottom: 8 }}>{label} · {pts}pts</div>
+                {value ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    {flagImg(value, 18)}
+                    <span style={{ fontWeight: 800, fontSize: 14, color: '#f1f5f9' }}>{value}</span>
+                  </div>
+                ) : <span style={{ color: '#334155', fontSize: 12 }}>No pick</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── GROUPS ── */}
+      {activeSection === 'groups' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+          {GROUP_LETTERS.map((g, gi) => {
+            const predicted = u.group_predictions[g] || []
+            if (predicted.length === 0) return null
+            const color = GROUP_COLORS[gi]
+            return (
+              <div key={g} style={{ background: '#0d1526', border: `1px solid ${color}25`, borderTop: `3px solid ${color}`, borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span style={{ width: 22, height: 22, borderRadius: 4, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#000' }}>{g}</span>
+                  <span style={{ fontWeight: 800, fontSize: 13, color: '#f1f5f9' }}>Group {g}</span>
+                </div>
+                {predicted.map((team, pos) => (
+                  <div key={team} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', borderBottom: pos < 3 ? '1px solid rgba(255,255,255,0.03)' : 'none', background: pos < 2 ? `${color}08` : 'transparent' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: pos < 2 ? color : '#334155', width: 16 }}>{pos + 1}</span>
+                    {flagImg(team, 14)}
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0' }}>{team}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── MATCH PICKS ── */}
+      {activeSection === 'picks' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {u.match_picks.length === 0 ? (
+            <p style={{ color: '#475569', textAlign: 'center', padding: '40px 0' }}>No match picks made.</p>
+          ) : (
+            u.match_picks.sort((a, b) => a.match_id - b.match_id).map(pick => {
+              const match = schedule?.find(m => m.id === pick.match_id)
+              if (!match) return null
+              const isDraw = pick.home_score === pick.away_score
+              return (
+                <div key={pick.match_id} style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#334155', minWidth: 60 }}>M{pick.match_id}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, justifyContent: 'flex-end' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{match.home}</span>
+                      {flagImg(match.home, 14)}
+                    </div>
+                    <span style={{ fontWeight: 900, fontSize: 14, color: '#f1f5f9', background: 'rgba(255,255,255,0.06)', padding: '4px 10px', borderRadius: 6, flexShrink: 0 }}>
+                      {pick.home_score} – {pick.away_score}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1 }}>
+                      {flagImg(match.away, 14)}
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{match.away}</span>
+                    </div>
+                  </div>
+                  {isDraw && pick.pen_winner && (
+                    <span style={{ fontSize: 10, color: '#fbbf24', fontWeight: 700, background: 'rgba(251,191,36,0.1)', padding: '2px 8px', borderRadius: 100 }}>
+                      pens: {pick.pen_winner}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 12, fontWeight: 800, color: pick.points_awarded > 0 ? '#22c55e' : '#334155', minWidth: 40, textAlign: 'right' }}>
+                    {pick.scored ? `+${pick.points_awarded}` : '–'}
+                  </span>
+                </div>
+              )
+            })
+          )}
+        </div>
+      )}
+
+      {/* ── AWARDS ── */}
+      {activeSection === 'awards' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[
+            { label: '🥇 Golden Ball', value: u.golden_ball, real: REAL.golden_ball, pts: 15 },
+            { label: '🥈 Silver Ball', value: u.silver_ball, real: REAL.silver_ball, pts: 10 },
+            { label: '🥉 Bronze Ball', value: u.bronze_ball, real: REAL.bronze_ball, pts: 5 },
+          ].map(({ label, value, real, pts }) => {
+            const correct = value === real
+            return (
+              <div key={label} style={{ background: '#0d1526', border: `1px solid ${correct ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>{label}</span>
+                <span style={{ fontWeight: 700, fontSize: 13, color: correct ? '#22c55e' : '#e2e8f0' }}>{value || '—'}</span>
+                {correct && <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 700 }}>+{pts}pts ✓</span>}
+              </div>
+            )
+          })}
+          {[
+            { label: '👟 Golden Boot', values: u.golden_boot, real: REAL.golden_boot, pts: [12,8,4] },
+            { label: '🧤 Golden Glove', values: u.golden_glove, real: REAL.golden_glove, pts: [12,8,4] },
+            { label: '⭐ Best U21', values: u.u21_award, real: REAL.u21_award, pts: [12,8,4] },
+          ].map(({ label, values, real, pts }) => (
+            <div key={label} style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '12px 16px' }}>
+              <div style={{ fontSize: 12, color: '#475569', fontWeight: 600, marginBottom: 8 }}>{label}</div>
+              {values.map((v, i) => {
+                const correct = v === real
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <span style={{ fontSize: 11, color: '#334155' }}>{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : 'rd'}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: correct ? '#22c55e' : '#e2e8f0' }}>{v || '—'}</span>
+                    {correct && <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 700 }}>+{pts[i]}pts ✓</span>}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── SECOND CHANCE ── */}
+      {activeSection === 'second' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[
+            { label: 'Round of 32', key: 'r32', pts: 3 },
+            { label: 'Round of 16', key: 'r16', pts: 6 },
+            { label: 'Quarter Finals', key: 'quarter', pts: 9 },
+            { label: 'Semi Finals', key: 'semi', pts: 12 },
+          ].map(({ label, key, pts }) => {
+            const picks = u.second_chance[key] || {}
+            if (Object.keys(picks).length === 0) return null
+            return (
+              <div key={key} style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 800, fontSize: 13, color: '#93c5fd' }}>{label}</span>
+                  <span style={{ fontSize: 11, color: '#334155' }}>{pts}pts per correct</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: 12 }}>
+                  {Object.values(picks).filter(Boolean).map((team, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '6px 10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      {flagImg(team, 14)}
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0' }}>{team}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              { label: '🥉 3rd Place', value: u.second_chance.third_place, pts: 13 },
+              { label: '🏆 Final Winner', value: u.second_chance.final, pts: 15 },
+            ].map(({ label, value, pts }) => (
+              <div key={label} style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginBottom: 8 }}>{label} · {pts}pts</div>
+                {value ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    {flagImg(value, 18)}
+                    <span style={{ fontWeight: 800, fontSize: 14, color: '#f1f5f9' }}>{value}</span>
+                  </div>
+                ) : <span style={{ color: '#334155', fontSize: 12 }}>No pick</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ── MAIN ──
 function Predictions() {
@@ -1063,6 +1401,7 @@ function Predictions() {
     { id: 'picks',    label: 'Match Picks' },
     { id: 'second',   label: '🔄 Second Chance' },
     { id: 'results', label: '📊 My Results' },
+    { id: 'everyone', label: '🌍 Everyone\'s Predictions' }
   ]
 
   return (
@@ -1243,6 +1582,9 @@ function Predictions() {
     qualification={qualification}
     groupStageScored={groupStageScored}
   />
+)}
+{activeTab === 'everyone' && (
+  <EveryonePredictions />
 )}
       </div>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} } input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; } input[type=number] { -moz-appearance: textfield; }`}</style>
