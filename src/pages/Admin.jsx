@@ -279,6 +279,25 @@ function Admin() {
         } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
       }
     },
+
+    { label: 'Score Second Chance', desc: 'Score SC bracket predictions', color: '#f59e0b', icon: '🔮',
+  action: async () => {
+    if (!confirm('Score Second Chance predictions now?')) return
+    try {
+      const res = await axios.post(`${API_URL}/api/admin/score-second-chance`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      alert(`✅ ${res.data.message}\n${res.data.results?.slice(0,5).map(r => `${r.username}: +${r.points_awarded}pts`).join('\n')}`)
+    } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
+  }
+},
+{ label: 'Score Main Knockouts', desc: 'Score pre-tournament knockout predictions', color: '#22c55e', icon: '🏆',
+  action: async () => {
+    if (!confirm('Score main knockout predictions now?')) return
+    try {
+      const res = await axios.post(`${API_URL}/api/admin/score-main-knockouts`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      alert(`✅ ${res.data.message}\n${res.data.results?.slice(0,5).map(r => `${r.username}: +${r.points_awarded}pts`).join('\n')}`)
+    } catch (err) { alert('❌ Failed: ' + (err.response?.data?.error || err.message)) }
+  }
+},
   ]
 
   const STATS = [
